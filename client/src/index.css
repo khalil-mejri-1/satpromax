@@ -1,0 +1,287 @@
+:root {
+  /* Yellow, Black, Red - Professional Palette */
+  --primary-blue: #D32F2F;
+  /* Red (replacing Blue) for primary actions/prices */
+  --primary-dark: #B71C1C;
+  /* Darker Red */
+  --dark-blue: #111111;
+  /* Black (replacing Dark Blue) for headings */
+  --accent-yellow: #FFD600;
+  /* Vibrant Yellow */
+  --accent-glow: rgba(255, 214, 0, 0.4);
+  /* Yellow Glow */
+
+  --bg-light: #FAFAFA;
+  /* Very light grey/white background */
+  --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+  /* For dark sections */
+
+  --text-dark: #000000;
+  /* Pitch Black */
+  --text-gray: #424242;
+  /* Dark Gray */
+  --white: #ffffff;
+  --border-color: #eeeeee;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 20px rgba(211, 47, 47, 0.3);
+  /* Reddish/Yellow glow */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light);
+  background-image: radial-gradient(circle at 10% 20%, rgba(255, 214, 0, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(211, 47, 47, 0.05) 0%, transparent 20%);
+  color: var(--text-dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--accent-yellow);
+  color: var(--primary-blue);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Utilities */
+.container {
+  max-width: 1400px;
+  /* Wide screen */
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.mt-10 {
+  margin-top: 40px;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-yellow {
+  background-color: var(--accent-yellow);
+  color: var(--primary-blue);
+  box-shadow: 0 4px 6px rgba(251, 191, 36, 0.3);
+}
+
+.btn-yellow:hover {
+  background-color: #f59e0b;
+  box-shadow: 0 6px 12px rgba(251, 191, 36, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-outline-white {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--white);
+  color: var(--white);
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  /* Rounded pill */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s;
+}
+
+.btn-outline-white:hover {
+  background-color: var(--white);
+  color: var(--dark-blue);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+  }
+}
+
+/* Promo Banners */
+.promo-banners {
+  display: flex;
+  gap: 20px;
+}
+
+.promo-banner-card {
+  flex: 1;
+  height: 200px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background-size: 150% 150%;
+  animation: gradientMove 10s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.promo-banner-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.bg-streaming {
+  background-image: linear-gradient(45deg, #111, #333, #555);
+  background-image: url(https://www.mysat.tn/wp-content/uploads/2025/01/360_F_433092533_6yA8KufgoMuiRoSxYLmL9KXfD1klO8CL.webp);
+}
+
+.bg-sharing {
+  background-image: linear-gradient(45deg, #1e3a8a, #2563eb, #60a5fa);
+  background-image: url(https://www.mysat.tn/wp-content/uploads/2025/05/p-1-charter-and-disney-agree-to-crack-down-on-cable-password-sharing-1.webp);
+}
+
+.bg-software {
+  background-image: linear-gradient(45deg, #5b21b6, #7c3aed, #a78bfa);
+  background-image: url(https://www.mysat.tn/wp-content/uploads/2025/05/design-sans-titre-10.webp);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid var(--bg-light);
+}
+
+
+@media (max-width: 768px) {
+  .promo-banners {
+    flex-direction: column;
+  }
+
+  .promo-banner-card {
+    height: 200px !important;
+    width: 100%;
+    flex: none;
+    background-size: cover;
+    background-position: center;
+  }
+}

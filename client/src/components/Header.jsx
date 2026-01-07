@@ -1,0 +1,593 @@
+import React, { useContext, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ShopContext } from '../context/ShopContext';
+import './Header.css';
+
+// Simple SVG Icons
+const SearchIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+);
+// ... (keep other icons roughly the same, but the tool replaces blocks)
+// I will just supply the UserIcon here again to be safe with the chunk
+const UserIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+);
+const HeartIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+);
+
+const CartIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+);
+
+const MenuIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+);
+
+const NavIcon = ({ name }) => {
+    // You could replace these with specific icons for each category
+    return <div className="nav-icon-placeholder" />
+}
+
+// Professional Icons matching reference
+const StreamingIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 4H3C1.89543 4 1 4.89543 1 6V16C1 17.1046 1.89543 18 3 18H21C22.1046 18 23 17.1046 23 16V6C23 4.89543 22.1046 4 21 4Z" fill="#3B82F6" stroke="#2563EB" strokeWidth="1.5" />
+        <path d="M8 22H16" stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <path d="M12 18V22" stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <rect x="3" y="6" width="18" height="10" rx="0.5" fill="#60A5FA" fillOpacity="0.2" />
+    </svg>
+);
+
+const IPTVIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4H4C2.89543 4 2 4.89543 2 6V15C2 16.1046 2.89543 17 4 17H20C21.1046 17 22 16.1046 22 15V6C22 4.89543 21.1046 4 20 4Z" fill="#0EA5E9" fillOpacity="0.8" />
+        <path d="M8 21H16" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+        <path d="M12 17V21" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+        <path d="M7 10.5L10 12.5L7 14.5V10.5Z" fill="white" />
+    </svg>
+);
+
+const MusicIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 10V16C3 18.2091 4.79086 20 7 20H8V11H5C4.44772 11 4 10.5523 4 10V9C4 5.68629 6.68629 3 10 3H14C17.3137 3 20 5.68629 20 9V10C20 10.5523 19.5523 11 19 11H16V20H17C19.2091 20 21 18.2091 21 16V10M7 20H5" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7 11V20" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+        <path d="M17 11V20" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+);
+
+const BoxIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="9" width="16" height="12" rx="2" fill="#8B5CF6" />
+        <path d="M8 8L6 5" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
+        <path d="M16 8L18 5" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="9" cy="13" r="1.5" fill="#4C1D95" />
+        <circle cx="15" cy="13" r="1.5" fill="#4C1D95" />
+    </svg>
+);
+
+const GamingIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4.09526 13.9116C3.12596 9.6834 5.75336 5.48316 9.92348 4.49842C11.272 4.17997 12.6713 4.15682 14.0298 4.45347C18.225 5.36952 20.9161 9.56942 20.0468 13.8188L19.4975 16.5042C19.1627 18.1415 17.5898 19.229 15.9472 18.9602L15.3528 18.8629L14.7702 18.7676C13.5684 18.571 12.4285 19.141 11.9015 20.2078V20.2078C11.2299 21.5672 9.58406 22.0945 8.24357 21.3794C6.91896 20.6728 6.42718 19.0068 7.15939 17.6534L8.03816 16.0291L4.09526 13.9116Z" fill="#6366F1" />
+        <path d="M8 12L10 12" stroke="#E0E7FF" strokeWidth="2" strokeLinecap="round" />
+        <path d="M9 11L9 13" stroke="#E0E7FF" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="15" cy="10" r="1" fill="#FCA5A5" />
+        <circle cx="17" cy="12" r="1" fill="#FCD34D" />
+    </svg>
+);
+
+const GiftCardIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="5" width="20" height="14" rx="2" fill="#0EA5E9" />
+        <path d="M2 10H22" stroke="#0369A1" strokeWidth="2" />
+        <rect x="5" y="14" width="8" height="2" rx="0.5" fill="white" fillOpacity="0.5" />
+    </svg>
+);
+
+const SoftwareIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="4" width="10" height="16" rx="5" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2" />
+        <path d="M12 4V9" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+);
+
+export default function Header() {
+    const {
+        cartItems,
+        wishlistItems,
+        getCartCount,
+        getCartTotal,
+        removeFromCart,
+        removeFromWishlist,
+        getWishlistCount,
+        addAllToCart
+    } = useContext(ShopContext);
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+
+        // Fetch dynamic categories
+        setLoadingCategories(true);
+        fetch('http://localhost:3000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data && data.data.categories) {
+                    setCategories(data.data.categories);
+                }
+                setLoadingCategories(false);
+            })
+            .catch(err => {
+                console.error("Error fetching categories:", err);
+                setLoadingCategories(false);
+            });
+    }, []);
+
+    const getCategorySlug = (name) => {
+        if (!name) return "";
+        return name.toLowerCase()
+            .replace(/ & /g, '-')
+            .replace(/[ /]/g, '-');
+    };
+
+    const iconMap = {
+        'Streaming': <StreamingIcon />,
+        'IPTV Premium': <IPTVIcon />,
+        'Music': <MusicIcon />,
+        'Musique': <MusicIcon />,
+        'Box Android': <BoxIcon />,
+        'Gaming': <GamingIcon />,
+        'Gift Card': <GiftCardIcon />,
+        'Cartes Cadeaux': <GiftCardIcon />,
+        'Software': <SoftwareIcon />,
+        'Logiciels': <SoftwareIcon />
+    };
+
+    const getIcon = (cat) => {
+        const icon = typeof cat === 'object' ? cat.icon : null;
+        const name = typeof cat === 'object' ? cat.name : cat;
+
+        if (icon) {
+            if (icon.startsWith('http')) {
+                return <img src={icon} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />;
+            }
+            return <span style={{ fontSize: '18px' }}>{icon}</span>;
+        }
+
+        return iconMap[name] || <StreamingIcon />;
+    };
+
+    const cartCount = getCartCount();
+    const wishlistCount = getWishlistCount();
+    const cartTotal = getCartTotal();
+
+    return (
+        <header className="header">
+            {/* Top Strip */}
+            <div className="top-strip">
+                <div className="container">
+                    <span>WhatsApp  : +216 97 490 300</span>
+                </div>
+            </div>
+
+            {/* Main Header */}
+            <div className="main-header">
+                <div className="container header-content">
+                    <div className="logo">
+                        <Link to="/">
+                            <span className="yellow">satpro</span><span className="white">max</span>
+                        </Link>
+                    </div>
+
+                    <div className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+                        <MenuIcon /> MENU
+                    </div>
+
+                    <div className="search-bar">
+                        <div className="category-select" onClick={() => setIsCategoryModalOpen(!isCategoryModalOpen)}>
+                            Toutes les catégories
+                            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isCategoryModalOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}>
+                                <path d="M1 1L5 5L9 1" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+
+                            {/* Category Dropdown */}
+                            {isCategoryModalOpen && (
+                                <div className="category-dropdown-container">
+                                    <div className="category-dropdown-header">
+                                        Toutes les catégories
+                                    </div>
+                                    <div className="category-dropdown-list">
+                                        {categories.map((cat, index) => {
+                                            const name = typeof cat === 'object' ? cat.name : cat;
+                                            return (
+                                                <Link
+                                                    key={index}
+                                                    to={`/category/${getCategorySlug(name)}`}
+                                                    className="category-dropdown-link"
+                                                    onClick={() => setIsCategoryModalOpen(false)}
+                                                >
+                                                    {name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="search-input-wrapper">
+                            <input
+                                type="text"
+                                placeholder="Je cherche ..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setIsSearchDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setIsSearchDropdownOpen(false), 200)}
+                            />
+                            {isSearchDropdownOpen && (
+                                <div className="search-dropdown-container">
+                                    <div className="search-dropdown-content">
+                                        <div className="search-dropdown-hint">
+                                            {searchTerm ? 'Résultats pour "' + searchTerm + '"' : 'Commencez à taper pour rechercher...'}
+                                        </div>
+                                        {/* You can add actual search results here later */}
+                                        <div className="search-suggestions">
+                                            <p className="suggestion-title">Suggestions populaires</p>
+                                            <div className="suggestion-list">
+                                                <span>Abonnement IPTV</span>
+                                                <span>Netflix Premium</span>
+                                                <span>Spotify Family</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <button className="search-btn"><SearchIcon /></button>
+                    </div>
+
+                    <div className="user-actions">
+                        {user ? (
+                            <div className="action-item dropdown-parent">
+                                <UserIcon />
+                                <div className="action-text">
+                                    <span className="small">Bonjour</span>
+                                    <span className="bold" style={{ textTransform: 'capitalize' }}>{user.username}</span>
+                                </div>
+
+                                {/* Profile Dropdown */}
+                                <div className="mini-dropdown profile-dropdown">
+                                    <div className="dropdown-header">Mon Compte</div>
+                                    <div className="dropdown-items">
+                                        <Link to="/profile" className="dropdown-item">
+                                            <div style={{ width: '50px', height: '50px', background: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                                <UserIcon />
+                                            </div>
+                                            <div className="item-info">
+                                                <div className="item-name" style={{ color: '#333' }}>Mon Profil</div>
+                                                <div className="item-meta">Gérer mon compte</div>
+                                            </div>
+                                        </Link>
+
+                                        <div className="dropdown-item"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                localStorage.removeItem('user');
+                                                setUser(null);
+                                                window.location.reload();
+                                            }}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <div style={{ width: '50px', height: '50px', background: '#fee2e2', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                            </div>
+                                            <div className="item-info">
+                                                <div className="item-name" style={{ color: '#ef4444' }}>Déconnexion</div>
+                                                <div className="item-meta">Se déconnecter</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <Link to="/login" className="action-item">
+                                <UserIcon />
+                                <div className="action-text">
+                                    <span className="small">Connexion</span>
+                                    <span className="bold">Mon Compte</span>
+                                </div>
+                            </Link>
+                        )}
+
+                        <div className="action-item dropdown-parent" onClick={() => {
+                            if (window.innerWidth <= 591) {
+                                setIsWishlistModalOpen(true);
+                            }
+                        }}>
+                            <div className="icon-badge-wrapper">
+                                <HeartIcon />
+                                <span className="badge">{wishlistCount}</span>
+                            </div>
+                            <div className="action-text">
+                                <span className="small_s">Favoris</span>
+                                <span className="bold">Ma Liste</span>
+                            </div>
+
+                            {/* Wishlist Dropdown (Desktop) */}
+                            <div className="mini-dropdown wishlist-dropdown">
+                                <div className="dropdown-header">Ma Liste</div>
+                                <div className="dropdown-items">
+                                    {wishlistItems.length === 0 ? (
+                                        <p className="empty-msg">Votre liste est vide.</p>
+                                    ) : (
+                                        wishlistItems.map(item => (
+                                            <div key={item.id} className="dropdown-item">
+                                                <img src={item.image} alt={item.name} />
+                                                <div className="item-info">
+                                                    <div className="item-name">{item.name}</div>
+                                                    <div className="item-price">{item.price}</div>
+                                                </div>
+                                                <button className="remove-btn" onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation(); // Prevent modal opening if removing
+                                                    removeFromWishlist(item.id);
+                                                }}>×</button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                {wishlistItems.length > 0 && (
+                                    <div className="dropdown-footer">
+                                        <button
+                                            className="btn-add-all-cart"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                addAllToCart(wishlistItems);
+                                            }}
+                                        >
+                                            AJOUTER TOUT AU PANIER
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Mobile Wishlist Modal */}
+                        {isWishlistModalOpen && (
+                            <div className="mobile-modal-overlay" onClick={() => setIsWishlistModalOpen(false)}>
+                                <div className="mobile-modal-content" onClick={e => e.stopPropagation()}>
+                                    <div className="mobile-modal-header">
+                                        <h3>Ma Liste ({wishlistCount})</h3>
+                                        <button className="close-modal-btn" onClick={() => setIsWishlistModalOpen(false)}>×</button>
+                                    </div>
+                                    <div className="mobile-modal-body">
+                                        {wishlistItems.length === 0 ? (
+                                            <div className="empty-state">
+                                                <span style={{ fontSize: '40px' }}>♡</span>
+                                                <p>Votre liste est vide.</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {wishlistItems.map(item => (
+                                                    <div key={item.id} className="mobile-product-item">
+                                                        <img src={item.image} alt={item.name} />
+                                                        <div className="mobile-item-info">
+                                                            <h4>{item.name}</h4>
+                                                            <span className="mobile-item-price">{item.price}</span>
+                                                        </div>
+                                                        <button className="mobile-remove-btn" onClick={() => removeFromWishlist(item.id)}>Retirer</button>
+                                                    </div>
+                                                ))}
+                                                <div className="mobile-modal-footer">
+                                                    <button
+                                                        className="btn-add-all-cart"
+                                                        onClick={() => {
+                                                            addAllToCart(wishlistItems);
+                                                            setIsWishlistModalOpen(false);
+                                                        }}
+                                                    >
+                                                        AJOUTER TOUT DANS PANIER
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="action-item dropdown-parent">
+                            <Link to="/checkout" className="action-link-wrapper">
+                                <div className="icon-badge-wrapper">
+                                    <CartIcon />
+                                    <span className="badge">{cartCount}</span>
+                                </div>
+                                <div className="action-text">
+                                    <span className="small_ss">Votre Panier</span>
+                                    <span className="bold">{cartTotal} DT</span>
+                                </div>
+                            </Link>
+
+                            {/* Cart Dropdown */}
+                            <div className="mini-dropdown cart-dropdown">
+                                <div className="dropdown-header">Votre Panier</div>
+                                <div className="dropdown-items">
+                                    {cartItems.length === 0 ? (
+                                        <p className="empty-msg">Votre panier est vide.</p>
+                                    ) : (
+                                        cartItems.map(item => (
+                                            <div key={item.id} className="dropdown-item">
+                                                <img src={item.image} alt={item.name} />
+                                                <div className="item-info">
+                                                    <Link to={`/product/${item.id}`} className="item-name">{item.name}</Link>
+                                                    <div className="item-meta">{item.quantity} × <span className="price-bold">{item.price}</span></div>
+                                                </div>
+                                                <button className="remove-btn" onClick={(e) => {
+                                                    e.preventDefault();
+                                                    removeFromCart(item.id);
+                                                }}>×</button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                                {cartItems.length > 0 && (
+                                    <div className="dropdown-footer">
+                                        <div className="subtotal-row">
+                                            <span>Sous-total :</span>
+                                            <span className="subtotal-amount">{cartTotal} DT</span>
+                                        </div>
+                                        <Link to="/checkout" className="btn-view-cart">VOIR LE PANIER</Link>
+                                        <Link to="/checkout" className="btn-checkout-mini">COMMANDER</Link>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Navigation Bar */}
+            <div className="bottom-nav">
+                <div className="container nav-links">
+                    {loadingCategories ? (
+                        [1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="nav-link skeleton-button">
+                                <div className="skeleton-icon"></div>
+                                <div className="skeleton-text"></div>
+                            </div>
+                        ))
+                    ) : categories.length > 0 ? (
+                        categories.map((cat, index) => {
+                            const name = typeof cat === 'object' ? cat.name : cat;
+                            return (
+                                <Link key={index} to={`/category/${getCategorySlug(name)}`} className="nav-link">
+                                    <span className="icon">{getIcon(cat)}</span>
+                                    {name}
+                                    <span className="arrow"></span>
+                                </Link>
+                            );
+                        })
+                    ) : (
+                        <>
+                            <Link to="/category/streaming" className="nav-link"><span className="icon"><StreamingIcon /></span> Streaming <span className="arrow"></span></Link>
+                            <Link to="/category/iptv-sharing" className="nav-link"><span className="icon"><IPTVIcon /></span> IPTV & Sharing <span className="arrow"></span></Link>
+                            <Link to="/category/music" className="nav-link"><span className="icon"><MusicIcon /></span> Musique</Link>
+                            <Link to="/category/box-android" className="nav-link"><span className="icon"><BoxIcon /></span> Box Android & Recepteur</Link>
+                            <Link to="/category/gaming" className="nav-link"><span className="icon"><GamingIcon /></span> Gaming</Link>
+                            <Link to="/category/gift-card" className="nav-link"><span className="icon"><GiftCardIcon /></span> Cartes Cadeaux</Link>
+                            <Link to="/category/software" className="nav-link"><span className="icon"><SoftwareIcon /></span> Logiciels</Link>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Mobile Sidebar Menu */}
+            <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
+            <div className={`sidebar-menu ${isSidebarOpen ? 'active' : ''}`}>
+                <div className="sidebar-header-profile">
+                    <div className="profile-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                    </div>
+                    {user ? (
+                        <>
+                            <div className="profile-info">
+                                <div className="guest-name" style={{ textTransform: 'capitalize' }}>{user.username}</div>
+                                <div className="guest-email">{user.email}</div>
+                            </div>
+                            <button
+                                className="sidebar-login-link"
+                                onClick={() => {
+                                    localStorage.removeItem('user');
+                                    setUser(null);
+                                    setIsSidebarOpen(false);
+                                    window.location.reload();
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#fcd34d', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                            >
+                                ➜ Déconnexion
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="profile-info">
+                                <div className="guest-name">Invité</div>
+                                <div className="guest-email">Bienvenue chez satpromax</div>
+                            </div>
+                            <Link to="/login" className="sidebar-login-link" onClick={() => setIsSidebarOpen(false)}>
+                                ➜ Connexion
+                            </Link>
+                        </>
+                    )}
+                </div>
+                <div className="sidebar-main-title">
+                    <span>MENU PRINCIPAL</span>
+                    <button className="sidebar-close-btn" onClick={() => setIsSidebarOpen(false)}>✕</button>
+                </div>
+                <div className="sidebar-nav-list">
+                    {loadingCategories ? (
+                        [1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="sidebar-nav-item skeleton-sidebar-item">
+                                <div className="skeleton-icon-sidebar"></div>
+                                <div className="skeleton-text-sidebar"></div>
+                            </div>
+                        ))
+                    ) : categories.length > 0 ? (
+                        categories.map((cat, index) => {
+                            const name = typeof cat === 'object' ? cat.name : cat;
+                            return (
+                                <Link key={index} to={`/category/${getCategorySlug(name)}`} className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                    <span className="sidebar-icon">{getIcon(cat)}</span>
+                                    <span className="sidebar-text">{name}</span>
+                                    <span className="sidebar-arrow">›</span>
+                                </Link>
+                            );
+                        })
+                    ) : (
+                        <>
+                            <Link to="/category/streaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><StreamingIcon /></span>
+                                <span className="sidebar-text">Streaming</span>
+                                <span className="sidebar-arrow">›</span>
+                            </Link>
+                            <Link to="/category/iptv-sharing" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><IPTVIcon /></span>
+                                <span className="sidebar-text">IPTV & Sharing</span>
+                                <span className="sidebar-arrow">›</span>
+                            </Link>
+                            <Link to="/category/music" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><MusicIcon /></span>
+                                <span className="sidebar-text">Musique</span>
+                            </Link>
+                            <Link to="/category/box-android" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><BoxIcon /></span>
+                                <span className="sidebar-text">Box Android & Recepteur</span>
+                            </Link>
+                            <Link to="/category/gaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><GamingIcon /></span>
+                                <span className="sidebar-text">Gaming</span>
+                            </Link>
+                            <Link to="/category/gift-card" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><GiftCardIcon /></span>
+                                <span className="sidebar-text">Cartes Cadeaux</span>
+                            </Link>
+                            <Link to="/category/software" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                                <span className="sidebar-icon"><SoftwareIcon /></span>
+                                <span className="sidebar-text">Logiciels</span>
+                            </Link>
+                        </>
+                    )}
+                </div>
+            </div>
+        </header>
+    )
+}
