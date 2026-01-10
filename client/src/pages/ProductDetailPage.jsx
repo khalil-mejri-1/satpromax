@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
+import { slugify } from '../utils/slugify';
 import './ProductDetailPage.css';
 
 // Extended Mock Data (In a real app, this would come from an API)
@@ -83,15 +84,14 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
         <div
             className="premium-similar-card"
             style={{
+                position: 'relative',
                 background: '#fff',
                 borderRadius: '24px',
-                overflow: 'hidden',
                 border: '1px solid #f1f5f9',
                 transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                 display: 'flex',
                 flexDirection: 'column',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
-                position: 'relative',
                 minWidth: '260px',
                 maxWidth: '260px',
                 margin: '15px 10px',
@@ -109,9 +109,11 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
             }}
         >
             {item.promoPrice && new Date(item.promoEndDate) > new Date() && (
-                <div className="card-badge-similar promo">PROMO !</div>
+                <div className="card-badge-similar promo">
+                    <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
+                </div>
             )}
-            <Link to={`/product/${item._id || item.id}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Link to={`/produit/${slugify(item.category)}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                     height: '220px',
                     overflow: 'hidden',
@@ -155,7 +157,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
 
             <div style={{ padding: '0 20px 20px 20px', display: 'flex', gap: '8px' }}>
                 <Link
-                    to={`/product/${item._id || item.id}`}
+                    to={`/produit/${slugify(item.category)}/${item.slug || slugify(item.name)}`}
                     style={{
                         flex: 1,
                         background: '#f1f5f9',
@@ -205,27 +207,30 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
 };
 
 export default function ProductDetailPage() {
-    const [isZoomOpen, setIsZoomOpen] = useState(false);
-    const { productId } = useParams();
+    const { category, slug } = useParams();
     const navigate = useNavigate();
     const [quantity, setQuantity] = useState(1);
     const { addToCart, addToWishlist } = useContext(ShopContext);
     const carouselRef = React.useRef(null);
 
-    const scrollCarousel = (direction) => {
-        if (carouselRef.current) {
-            const scrollAmount = 300;
-            carouselRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [paymentModes, setPaymentModes] = useState([]);
+    const [similarProducts, setSimilarProducts] = useState([]);
+    const [deviceChoices, setDeviceChoices] = useState([]);
+    const [selectedDevice, setSelectedDevice] = useState('');
+    const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
+    const [activeImage, setActiveImage] = useState(null);
+    const [settings, setSettings] = useState(null);
 
+    // Share & Compare & UI states
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [compareModalOpen, setCompareModalOpen] = useState(false);
+    const [compareProduct, setCompareProduct] = useState(null);
+    const [isZoomOpen, setIsZoomOpen] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user'));
 
-    // Billing State for single product order
     const [billingInfo, setBillingInfo] = useState({
         name: user ? user.username : '',
         address: '',
@@ -242,7 +247,7 @@ export default function ProductDetailPage() {
     });
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-    // Update name if user logs in while on page (optional, but good practice)
+    // Update name if user logs in while on page
     useEffect(() => {
         if (user && !billingInfo.name) {
             setBillingInfo(prev => ({ ...prev, name: user.username }));
@@ -254,47 +259,51 @@ export default function ProductDetailPage() {
         setBillingInfo(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleReviewSubmit = async (e) => {
-        e.preventDefault();
-        if (!reviewForm.comment.trim()) {
-            setModal({ show: true, message: "Veuillez écrire un commentaire.", type: 'error' });
-            return;
-        }
+    // Share handlers
+    const shareOnFacebook = () => {
+        const url = window.location.href;
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    };
 
-        setIsSubmittingReview(true);
-        try {
-            const response = await fetch('http://localhost:3000/api/reviews', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: reviewForm.username,
-                    comment: reviewForm.comment,
-                    rating: reviewForm.rating,
-                    productId: productWithId.id
-                })
+    const shareOnTelegram = () => {
+        const url = window.location.href;
+        const text = `Découvrez ${product?.name} sur satpromax !`;
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    // Compare handlers
+    const handleCompare = () => {
+        const storedProduct = localStorage.getItem('compare_product');
+        if (!storedProduct) {
+            localStorage.setItem('compare_product', JSON.stringify(productWithId));
+            setModal({
+                show: true,
+                title: "Premier produit enregistré",
+                message: "Le premier produit a été enregistré. Choisissez un deuxième produit pour comparer.",
+                type: 'success',
+                btnText: "Continuer"
             });
-            const data = await response.json();
-            if (data.success) {
-                setModal({ show: true, message: "Merci ! Votre avis a été envoyé et sera visible après validation.", type: 'success' });
-                setReviewModalOpen(false);
-                setReviewForm(prev => ({ ...prev, comment: '' }));
+        } else {
+            const firstProduct = JSON.parse(storedProduct);
+            if (firstProduct.id === productWithId.id) {
+                setModal({ show: true, message: "Vous avez déjà sélectionné ce produit. Choisissez-en un autre.", type: 'error' });
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            setModal({ show: true, message: "Erreur lors de l'envoi de l'avis.", type: 'error' });
-        } finally {
-            setIsSubmittingReview(false);
+            setCompareProduct(firstProduct);
+            setCompareModalOpen(true);
         }
     };
 
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [paymentModes, setPaymentModes] = useState([]);
-    const [similarProducts, setSimilarProducts] = useState([]);
-    const [deviceChoices, setDeviceChoices] = useState([]);
-    const [selectedDevice, setSelectedDevice] = useState('');
-    const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
-    const [activeImage, setActiveImage] = useState(null);
+    // Scroll handler for Similar Products carousel
+    const scrollCarousel = (direction) => {
+        if (carouselRef.current) {
+            const scrollAmount = 300;
+            carouselRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     // Fetch Similar Products
     useEffect(() => {
@@ -303,55 +312,70 @@ export default function ProductDetailPage() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        // Filter out the current product
                         const filtered = data.data.filter(p => (p._id || p.id) !== productWithId.id);
-                        setSimilarProducts(filtered.slice(0, 4)); // Show top 4
+                        setSimilarProducts(filtered.slice(0, 4));
                     }
                 })
                 .catch(err => console.error(err));
         }
     }, [product]);
 
-    // Fetch Payment Modes and Settings
+    // Fetch Settings
     useEffect(() => {
         fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
+                    setSettings(data.data);
                     setPaymentModes(data.data.paymentModes || []);
-                    setDeviceChoices(data.data.deviceChoices || ['1 Mois', '3 Mois', '12 Mois']); // Fallback if empty/new
-
-                    // Set default payment mode if exists
+                    setDeviceChoices(data.data.deviceChoices || ['1 Mois', '3 Mois', '12 Mois']);
                     if (data.data.paymentModes && data.data.paymentModes.length > 0) {
                         setBillingInfo(prev => ({ ...prev, paymentMode: data.data.paymentModes[0].name }));
                     }
-                    if (data.data.whatsappNumber) {
-                        setWhatsappNumber(data.data.whatsappNumber);
-                    }
+                    if (data.data.whatsappNumber) setWhatsappNumber(data.data.whatsappNumber);
                 }
             })
             .catch(err => console.error(err));
     }, []);
 
+    // UseEffect to update SEO Meta Tags dynamically
+    useEffect(() => {
+        if (product) {
+            // Update Title
+            document.title = `${product.name} - satpromax`;
+
+            // Update Meta Tags (for browsers and some crawlers)
+            const updateMeta = (property, content) => {
+                let element = document.querySelector(`meta[property="${property}"]`);
+                if (!element) {
+                    element = document.createElement('meta');
+                    element.setAttribute('property', property);
+                    document.head.appendChild(element);
+                }
+                element.setAttribute('content', content);
+            };
+
+            updateMeta('og:title', product.name);
+            updateMeta('og:description', product.description || "Découvrez ce produit sur satpromax.");
+            updateMeta('og:image', product.image);
+            updateMeta('og:url', window.location.href);
+        }
+    }, [product]);
 
     // Fetch Product Data
     useEffect(() => {
         const fetchProduct = async () => {
             setLoading(true);
             try {
-                // 1. Try to fetch from Backend API first to get real data (galleries, etc.)
                 let response;
                 let data = { success: false };
 
                 try {
-                    if (productId.match(/^[0-9a-fA-F]{24}$/)) {
-                        response = await fetch(`http://localhost:3000/api/products/${productId}`);
-                    } else {
-                        response = await fetch(`http://localhost:3000/api/products/name/${encodeURIComponent(productId)}`);
-                    }
+                    // Try fetch by slug first
+                    response = await fetch(`http://localhost:3000/api/products/slug/${category}/${slug}`);
                     data = await response.json();
                 } catch (e) {
-                    console.log("DB Fetch failed, falling back to static data");
+                    console.log("DB Fetch failed");
                 }
 
                 if (data.success) {
@@ -361,27 +385,29 @@ export default function ProductDetailPage() {
                     return;
                 }
 
-                // 2. Fallback to static list (for demo data compatibility)
-                let foundProduct = allProducts.find(p => p.sku === productId || p.name === decodeURIComponent(productId));
-
-                if (foundProduct) {
-                    setProduct({ ...foundProduct, id: foundProduct.sku });
-                    setActiveImage(foundProduct.image);
-                    setLoading(false);
-                    return;
+                // Temporary backward compatibility check for old IDs or direct names
+                if (slug.match(/^[0-9a-fA-F]{24}$/)) {
+                    response = await fetch(`http://localhost:3000/api/products/${slug}`);
+                    data = await response.json();
+                    if (data.success) {
+                        setProduct(data.data);
+                        setActiveImage(data.data.image);
+                        setLoading(false);
+                        return;
+                    }
                 }
 
             } catch (error) {
-                console.error("Error fetching product details:", error);
+                console.error("Error:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (productId) {
+        if (slug) {
             fetchProduct();
         }
-    }, [productId]);
+    }, [category, slug]);
 
     // Ensure product object structure is consistent
     const productWithId = product ? { ...product, id: product._id || product.id || product.sku } : null;
@@ -501,7 +527,7 @@ export default function ProductDetailPage() {
     };
 
     const closeModal = () => {
-        setModal({ ...modal, show: false });
+        setModal({ show: false, message: '', type: 'success', title: null, btnText: null, onClose: null });
         if (modal.onClose) modal.onClose();
     };
 
@@ -534,10 +560,10 @@ export default function ProductDetailPage() {
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                             )}
                         </div>
-                        <h3 className="checkout-modal-title">{modal.type === 'success' ? 'Commande Reçue !' : 'Attention'}</h3>
+                        <h3 className="checkout-modal-title">{modal.title || (modal.type === 'success' ? 'Commande Reçue !' : 'Attention')}</h3>
                         <p className="checkout-modal-message">{modal.message}</p>
                         <button className="checkout-modal-btn" onClick={closeModal}>
-                            {modal.type === 'success' ? (user ? 'Voir mon profil' : 'Contenu achat') : 'Fermer'}
+                            {modal.btnText || (modal.type === 'success' ? (user ? 'Voir mon profil' : 'Contenu achat') : 'Fermer')}
                         </button>
                     </div>
                 </div>
@@ -600,7 +626,7 @@ export default function ProductDetailPage() {
 
                         {/* Right: Info */}
                         <div className="product-info-section">
-                            <h1 className="detail-title">{product.name}</h1>
+                            <h1 className="detail-title" style={{ color: settings?.productTitleColor || 'inherit' }}>{product.name}</h1>
                             <div className="detail-price">
                                 {product.price}
                             </div>
@@ -836,36 +862,28 @@ export default function ProductDetailPage() {
                                         <path d="M20 6L9 17L4 12" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
+                            </div>
 
-                                <button
-                                    className="btn-add-review"
-                                    onClick={() => setReviewModalOpen(true)}
-                                    style={{
-                                        marginTop: '15px',
-                                        width: '100%',
-                                        padding: '12px',
-                                        background: '#f8fafc',
-                                        border: '1px dashed #cbd5e1',
-                                        borderRadius: '12px',
-                                        color: '#64748b',
-                                        cursor: 'pointer',
-                                        fontWeight: '600',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '18px' }}>★</span> Laisser un avis
+                            <div className="review-action">
+                                <button className="btn-review" onClick={() => setReviewModalOpen(true)}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                    Laisser un avis
                                 </button>
                             </div>
 
                             <div className="meta-actions">
-                                <div className="meta-action-item" onClick={() => addToWishlist(productWithId)} style={{ cursor: 'pointer' }}>
-                                    <span className="icon">♡</span> Ajouter à la liste
-                                </div>
-                                {/* <div className="meta-action-item"><span className="icon">⇄</span> Compare</div>
-                                <div className="meta-action-item share-btn"><span className="icon">🔗</span> Share</div> */}
+                                <button className="meta-action-btn" onClick={() => addToWishlist(productWithId)}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                    Ajouter à la liste
+                                </button>
+                                <button className="meta-action-btn" onClick={handleCompare}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                                    Comparer
+                                </button>
+                                <button className="meta-action-btn" onClick={() => setShareModalOpen(true)}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                    Partager
+                                </button>
                             </div>
 
                             <hr className="divider" />
@@ -879,6 +897,105 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
             </main>
+
+            {shareModalOpen && (
+                <div className="checkout-modal-overlay" onClick={() => setShareModalOpen(false)} style={{ zIndex: 9999 }}>
+                    <div className="checkout-modal-content share-modal-premium" onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '30px', padding: '40px', maxWidth: '420px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+                        <h3 style={{ marginBottom: '25px', color: '#1e293b', fontSize: '24px', fontWeight: '800' }}>Partager ce produit</h3>
+                        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginBottom: '25px' }}>
+                            <button
+                                onClick={shareOnFacebook}
+                                style={{
+                                    background: '#1877F2',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '12px 20px',
+                                    borderRadius: '16px',
+                                    cursor: 'pointer',
+                                    fontWeight: '700',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    fontSize: '15px',
+                                    flex: 1,
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                                Facebook
+                            </button>
+                            <button
+                                onClick={shareOnTelegram}
+                                style={{
+                                    background: '#0088cc',
+                                    color: '#fff',
+                                    border: 'none',
+                                    padding: '12px 20px',
+                                    borderRadius: '16px',
+                                    cursor: 'pointer',
+                                    fontWeight: '700',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    fontSize: '15px',
+                                    flex: 1,
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.84 8.783c-.156 1.353-.846 5.424-1.22 7.42-.158.844-.468 1.127-.77 1.155-.654.06-1.15-.436-1.784-.852-1.012-.662-1.583-1.074-2.564-1.72-1.135-.747-.4-.1.1.258.118.083.22.155.32 0s2.176-1.996 2.508-2.584c.062-.11.122-.224.062-.284-.06-.06-.217-.037-.3-.024-.136.02-.797.23-2.18.57-.306.075-.584.11-.833.106-.25-.004-.73-.14-1.088-.256-.438-.142-.786-.218-.756-.46.016-.126.19-.255.525-.386 2.05-.892 3.42-1.48 4.108-1.765 1.964-.816 2.372-.958 2.638-.963.058-.002.19.013.275.083.072.06.092.143.1.206.013.064.02.195.01.306z" /></svg>
+                                Telegram
+                            </button>
+                        </div>
+                        <button onClick={() => setShareModalOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', width: 'auto', fontWeight: '600', fontSize: '16px', padding: '10px 20px', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#1e293b'} onMouseOut={(e) => e.target.style.color = '#64748b'}>Fermer</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Comparison Modal */}
+            {compareModalOpen && compareProduct && (
+                <div className="checkout-modal-overlay" onClick={() => setCompareModalOpen(false)} style={{ zIndex: 9999 }}>
+                    <div className="checkout-modal-content" onClick={e => e.stopPropagation()} style={{ background: '#fff', width: '90%', maxWidth: '800px', borderRadius: '24px', padding: '40px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h2 style={{ marginBottom: '30px', textAlign: 'center', color: '#0f172a', fontWeight: '900' }}>Comparaison de Produits</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
+                            <div style={{ background: '#f8fafc', padding: '20px' }}></div>
+                            <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
+                                <img src={compareProduct.image} alt={compareProduct.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
+                                <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{compareProduct.name}</h4>
+                            </div>
+                            <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
+                                <img src={product.image} alt={product.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
+                                <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
+                            </div>
+
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Prix</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{compareProduct.price}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{product.price}</div>
+
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Catégorie</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{compareProduct.category}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{product.category}</div>
+
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Description</div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{compareProduct.description}</div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{product.description}</div>
+
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>SKU</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{compareProduct.sku}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{product.sku}</div>
+                        </div>
+                        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                            <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
+                            <button onClick={() => setCompareModalOpen(false)} style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Rich Description Section */}
             {(product.descriptionGlobal || (product.extraSections && product.extraSections.length > 0)) && (
                 <section className="product-rich-description" style={{

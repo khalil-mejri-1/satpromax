@@ -3,6 +3,7 @@ import { Link, useNavigate, } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
+import { slugify } from '../utils/slugify';
 import './CheckoutPage.css';
 
 export default function CheckoutPage() {
@@ -217,7 +218,7 @@ export default function CheckoutPage() {
                                 cartItems.map(item => (
                                     <div key={item.id} className="checkout-product-item">
                                         <div className="checkout-product-main">
-                                            <Link to={`/product/${encodeURIComponent(item.name)}`} className="checkout-product-link-wrapper">
+                                            <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="checkout-product-link-wrapper">
                                                 <img src={item.image} alt={item.name} className="checkout-product-img" />
                                                 <div className="checkout-product-info">
                                                     <div className="checkout-product-name-row">

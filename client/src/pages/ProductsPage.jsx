@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
+import { slugify } from '../utils/slugify';
 import './ProductsPage.css';
 
 const CATEGORIES_META = {
@@ -105,9 +106,12 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
     const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
 
     return (
-        <Link to={`/product/${product._id || product.id || encodeURIComponent(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
             {isPromoActive && (
-                <div className="card-badge_2 promo_2">PROMO !</div>
+                <div className="card-badge_2 promo_2">
+                    <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
+
+                </div>
             )}
             <div className="cat-product-img-wrapper">
                 {/* Heart Icon for Wishlist */}

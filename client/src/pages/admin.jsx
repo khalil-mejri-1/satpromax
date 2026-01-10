@@ -2062,6 +2062,56 @@ const SettingsManager = () => {
                 />
             )}
 
+            <div style={{ marginTop: '20px', padding: '20px', background: '#fefce8', borderRadius: '12px', border: '1px solid #fef08a', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#854d0e', marginBottom: '10px' }}>Identifiants Administrateur</h3>
+                <p style={{ fontSize: '13px', color: '#a16207', marginBottom: '15px' }}>Ces identifiants sont utilisés pour accéder à cet espace d'administration.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '15px', alignItems: 'flex-end' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Email Admin</label>
+                        <input
+                            type="email"
+                            value={settings.adminEmail || ''}
+                            onChange={(e) => setSettings({ ...settings, adminEmail: e.target.value })}
+                            className="form-input"
+                        />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Mot de passe Admin</label>
+                        <input
+                            type="text"
+                            value={settings.adminPassword || ''}
+                            onChange={(e) => setSettings({ ...settings, adminPassword: e.target.value })}
+                            className="form-input"
+                        />
+                    </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('http://localhost:3000/api/settings', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        adminEmail: settings.adminEmail,
+                                        adminPassword: settings.adminPassword
+                                    })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    showNotification("Identifiants Admin mis à jour", "success");
+                                    // Optionally update local storage if currently logged in admin changed their own email
+                                }
+                            } catch (err) {
+                                showNotification("Erreur", "error");
+                            }
+                        }}
+                        className="btn btn-primary"
+                        style={{ height: '42px' }}
+                    >
+                        Mettre à jour
+                    </button>
+                </div>
+            </div>
+
             <div style={{ marginTop: '20px', padding: '20px', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '30px' }}>
                 <h3 style={{ fontSize: '18px', color: '#0c4a6e', marginBottom: '10px' }}>Configuration WhatsApp</h3>
                 <p style={{ fontSize: '13px', color: '#0369a1', marginBottom: '15px' }}>Ce numéro sera utilisé pour recevoir les commandes par message.</p>
@@ -2096,6 +2146,45 @@ const SettingsManager = () => {
                         }}
                         className="btn btn-primary"
                         style={{ alignSelf: 'flex-end', height: '42px' }}
+                    >
+                        Mettre à jour
+                    </button>
+                </div>
+            </div>
+            <div style={{ marginTop: '30px', padding: '20px', background: '#fdf2f2', borderRadius: '12px', border: '1px solid #fecaca', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#991b1b', marginBottom: '10px' }}>Couleur du Titre Produit</h3>
+                <p style={{ fontSize: '13px', color: '#b91c1c', marginBottom: '15px' }}>Modifiez la couleur du titre dans la page de détails du produit.</p>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <input
+                        type="color"
+                        value={settings.productTitleColor || '#ffffff'}
+                        onChange={(e) => setSettings({ ...settings, productTitleColor: e.target.value })}
+                        style={{ width: '50px', height: '50px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                    />
+                    <input
+                        type="text"
+                        value={settings.productTitleColor || '#ffffff'}
+                        onChange={(e) => setSettings({ ...settings, productTitleColor: e.target.value })}
+                        className="form-input"
+                        style={{ width: '120px' }}
+                    />
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('http://localhost:3000/api/settings', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ productTitleColor: settings.productTitleColor })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    showNotification("Couleur du titre mise à jour", "success");
+                                }
+                            } catch (err) {
+                                showNotification("Erreur", "error");
+                            }
+                        }}
+                        className="btn btn-primary"
                     >
                         Mettre à jour
                     </button>
@@ -2364,7 +2453,7 @@ const SettingsManager = () => {
                     )}
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 

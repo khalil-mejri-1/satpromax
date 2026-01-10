@@ -145,9 +145,10 @@
     border-radius: var(--card-radius);
     padding: 24px;
     border: 1px solid #f1f5f9;
-    position: relative;
+    position: relative !important;
     transition: var(--transition-smooth);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    overflow: visible !important;
 }
 
 .slider-card:hover {
@@ -167,7 +168,6 @@
     border-radius: 50px;
     z-index: 5;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .card-badge.new {
@@ -181,11 +181,49 @@
 }
 
 .card-badge.promo {
-    background: #ef4444;
-    color: #fff;
-    left: auto;
-    right: 15px;
-    /* Or stick to left if you prefer, but "promo" often pairs well with others */
+    position: absolute !important;
+    top: -12px !important;
+    right: -12px !important;
+    width: 90px !important;
+    height: 90px !important;
+    z-index: 100 !important;
+    pointer-events: none;
+    background: transparent !important;
+}
+
+.card-badge.promo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.category-product-card {
+    position: relative !important;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    text-align: left;
+    transition: box-shadow 0.2s;
+    overflow: visible !important;
+}
+
+.category-product-card .card-badge_2.promo_2 {
+    position: absolute !important;
+    top: -10px !important;
+    right: -10px !important;
+    width: 80px !important;
+    height: 80px !important;
+    z-index: 100 !important;
+    pointer-events: none;
+    background: transparent !important;
+}
+
+.category-product-card .card-badge_2.promo_2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 /* Image Section */

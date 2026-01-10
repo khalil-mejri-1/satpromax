@@ -28,7 +28,10 @@ const GeneralSettingsSchema = new mongoose.Schema({
     footerColumn3: {
         title: { type: String, default: 'Cartes Cadeaux' },
         links: [String]
-    }
+    },
+    productTitleColor: { type: String, default: '#ffffff' },
+    adminEmail: { type: String, default: 'ferid123@admin.test' },
+    adminPassword: { type: String, default: '123456' }
 }, { timestamps: true });
 
 // Ensure only one document exists usually

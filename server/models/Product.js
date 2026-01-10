@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema(
         promoPrice: String,
         promoStartDate: Date,
         promoEndDate: Date,
+        slug: { type: String, unique: true, sparse: true }
     },
     { timestamps: true }
 );

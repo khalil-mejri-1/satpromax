@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
+import { slugify } from '../utils/slugify';
 import './Header.css';
 
 // Simple SVG Icons
@@ -224,7 +225,8 @@ export default function Header() {
                 <div className="container header-content">
                     <div className="logo">
                         <Link to="/">
-                            <span className="yellow">satpro</span><span className="white">max</span>
+                            {/* <span className="yellow">satpro</span><span className="white">max</span> */}
+                            <img src="https://i.ibb.co/kRsrFC3/Untitled-design-6-pixian-ai.png" alt="" srcset="" className='logo-img' />
                         </Link>
                     </div>
 
@@ -327,7 +329,7 @@ export default function Header() {
                                                             {searchResults.products.map(product => (
                                                                 <Link
                                                                     key={product._id}
-                                                                    to={`/product/${product._id}`}
+                                                                    to={`/produit/${slugify(product.category || 'all')}/${product.slug || slugify(product.name)}`}
                                                                     className="search-product-item"
                                                                     onClick={() => setIsSearchDropdownOpen(false)}
                                                                 >
@@ -386,6 +388,18 @@ export default function Header() {
                                                 <div className="item-meta">Gérer mon compte</div>
                                             </div>
                                         </Link>
+
+                                        {user && user.role === 'admin' && (
+                                            <Link to="/admin" className="dropdown-item">
+                                                <div style={{ width: '50px', height: '50px', background: '#fff7ed', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
+                                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                </div>
+                                                <div className="item-info">
+                                                    <div className="item-name" style={{ color: '#f97316' }}>Tableau de Bord</div>
+                                                    <div className="item-meta">Administration site</div>
+                                                </div>
+                                            </Link>
+                                        )}
 
                                         <div className="dropdown-item"
                                             onClick={(e) => {
@@ -488,9 +502,13 @@ export default function Header() {
                                             <>
                                                 {wishlistItems.map(item => (
                                                     <div key={item.id} className="mobile-product-item">
-                                                        <img src={item.image} alt={item.name} />
+                                                        <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`}>
+                                                            <img src={item.image} alt={item.name} />
+                                                        </Link>
                                                         <div className="mobile-item-info">
-                                                            <h4>{item.name}</h4>
+                                                            <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                                <h4>{item.name}</h4>
+                                                            </Link>
                                                             <span className="mobile-item-price">{item.price}</span>
                                                         </div>
                                                         <button className="mobile-remove-btn" onClick={() => removeFromWishlist(item.id)}>Retirer</button>
@@ -537,7 +555,7 @@ export default function Header() {
                                             <div key={item.id} className="dropdown-item">
                                                 <img src={item.image} alt={item.name} />
                                                 <div className="item-info">
-                                                    <Link to={`/product/${item.id}`} className="item-name">{item.name}</Link>
+                                                    <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="item-name">{item.name}</Link>
                                                     <div className="item-meta">{item.quantity} × <span className="price-bold">{item.price}</span></div>
                                                 </div>
                                                 <button className="remove-btn" onClick={(e) => {

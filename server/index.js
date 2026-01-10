@@ -40,6 +40,50 @@ app.post("/api/seed", async (req, res) => {
     }
 });
 
+// Helper to slugify text
+const slugify = (text) => {
+    if (!text) return "";
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')     // Replace spaces with -
+        .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+        .replace(/--+/g, '-');    // Replace multiple - with single -
+};
+
+// Helper to generate a unique slug
+const generateUniqueSlug = async (name, currentId = null) => {
+    let baseSlug = slugify(name);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+        const existing = await Product.findOne({ slug, _id: { $ne: currentId } });
+        if (!existing) break;
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+    }
+    return slug;
+};
+
+// Migration endpoint to generate slugs for existing products
+app.post("/api/migrate-slugs", async (req, res) => {
+    try {
+        const products = await Product.find({ slug: { $exists: false } });
+        let updatedCount = 0;
+        for (const product of products) {
+            product.slug = await generateUniqueSlug(product.name, product._id);
+            await product.save();
+            updatedCount++;
+        }
+        res.status(200).json({ success: true, message: `${updatedCount} products updated with slugs` });
+    } catch (error) {
+        console.error("Migration error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Get all products (or filter by category)
 app.get("/api/products", async (req, res) => {
     try {
@@ -71,7 +115,6 @@ app.get("/api/products/:id", async (req, res) => {
         }
         res.status(200).json({ success: true, data: product });
     } catch (error) {
-        // Check if error is cast error (invalid ID format)
         if (error.kind === 'ObjectId') {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
@@ -79,10 +122,11 @@ app.get("/api/products/:id", async (req, res) => {
     }
 });
 
-// Get single product by Name (for SEO URLs)
-app.get("/api/products/name/:name", async (req, res) => {
+// Get single product by Category Slug and Product Slug
+app.get("/api/products/slug/:category/:slug", async (req, res) => {
     try {
-        const product = await Product.findOne({ name: req.params.name });
+        // We find by slug. The category in URL is for SEO.
+        const product = await Product.findOne({ slug: req.params.slug });
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
@@ -95,7 +139,11 @@ app.get("/api/products/name/:name", async (req, res) => {
 // Create a new product
 app.post("/api/products", async (req, res) => {
     try {
-        const product = new Product(req.body);
+        const productData = req.body;
+        if (productData.name) {
+            productData.slug = await generateUniqueSlug(productData.name);
+        }
+        const product = new Product(productData);
         const savedProduct = await product.save();
         res.status(201).json({ success: true, data: savedProduct });
     } catch (error) {
@@ -106,7 +154,11 @@ app.post("/api/products", async (req, res) => {
 // Update a product
 app.put("/api/products/:id", async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const productData = req.body;
+        if (productData.name) {
+            productData.slug = await generateUniqueSlug(productData.name, req.params.id);
+        }
+        const product = await Product.findByIdAndUpdate(req.params.id, productData, { new: true, runValidators: true });
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
@@ -159,7 +211,20 @@ app.post("/api/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Find user
+        // Check against Admin Credentials from Settings
+        const settings = await GeneralSettings.findOne();
+        const adminEmail = settings?.adminEmail || 'ferid123@admin.test';
+        const adminPassword = settings?.adminPassword || '123456';
+
+        if (email === adminEmail && password === adminPassword) {
+            return res.status(200).json({
+                success: true,
+                message: "Connexion réussie (Admin)",
+                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin' }
+            });
+        }
+
+        // Find regular user
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });

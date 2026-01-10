@@ -2,6 +2,7 @@ import React, { useRef, useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import './ProductSection.css';
+import { slugify } from '../utils/slugify';
 
 export default function ProductSection({ title, products = [], loading = false, categoryLink }) {
     const scrollContainerRef = useRef(null);
@@ -96,9 +97,13 @@ export default function ProductSection({ title, products = [], loading = false, 
 
                             const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
 
+                            // Generate SEO URL
+                            const categorySlug = slugify(product.category || 'all');
+                            const productSlug = product.slug || slugify(product.name);
+
                             return (
-                                <Link to={`/product/${product._id || product.id || encodeURIComponent(product.name)}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    {isPromoActive && <div className="card-badge promo">PROMO !</div>}
+                                <Link to={`/produit/${categorySlug}/${productSlug}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    {isPromoActive && <div className="card-badge promo"><img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>}
                                     {/* {isNew && <div className="card-badge new">NOUVEAU</div>} */}
                                     {/* {isPopular && !isNew && <div className="card-badge popular">POPULAIRE</div>} */}
 

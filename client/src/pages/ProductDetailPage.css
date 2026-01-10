@@ -429,6 +429,91 @@
     background-color: var(--primary-dark);
 }
 
+/* Review Action */
+.review-action {
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
+.btn-review {
+    width: 100%;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-review:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #475569;
+}
+
+.btn-review svg {
+    color: #fbbf24;
+    /* Star color */
+}
+
+/* Meta Actions (Wishlist, Compare, Share) */
+.meta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.meta-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 8px 0;
+    position: relative;
+    outline: none;
+}
+
+.meta-action-btn svg {
+    transition: transform 0.3s;
+}
+
+.meta-action-btn:hover {
+    color: var(--dark-blue);
+}
+
+.meta-action-btn:hover svg {
+    transform: scale(1.2);
+    color: var(--accent-yellow);
+}
+
+.meta-action-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent-yellow);
+    transition: width 0.3s;
+}
+
+.meta-action-btn:hover::after {
+    width: 100%;
+}
+
 .divider {
     border: none;
     border-top: 1px solid #eee;
@@ -624,6 +709,42 @@
 }
 
 /* Card Badge for Similar Products */
+.category-product-card {
+    position: relative !important;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    text-align: left;
+    transition: box-shadow 0.2s;
+    overflow: visible !important;
+    /* Ensure the badge can pop out */
+}
+
+.category-product-card .card-badge_2.promo_2 {
+    position: absolute !important;
+    top: -10px !important;
+    right: -10px !important;
+    width: 80px !important;
+    height: 80px !important;
+    z-index: 100 !important;
+    pointer-events: none;
+    background: transparent !important;
+    display: block !important;
+}
+
+.category-product-card .card-badge_2.promo_2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.category-product-card .card-badge_2.promo_2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .card-badge-similar {
     position: absolute;
     top: 10px;
@@ -637,9 +758,28 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.premium-similar-card {
+    position: relative !important;
+    overflow: visible !important;
+}
+
 .card-badge-similar.promo {
-    background: #ef4444;
-    color: #fff;
+    position: absolute !important;
+    top: -10px !important;
+    right: -10px !important;
+    width: 75px !important;
+    height: 75px !important;
+    z-index: 100 !important;
+    pointer-events: none;
+    background: transparent !important;
+    display: block !important;
+}
+
+.card-badge-similar.promo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 /* Review Modal Styles */

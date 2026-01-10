@@ -1021,6 +1021,13 @@
     font-size: 18px;
 }
 
+.logo-img {
+    width: 100px;
+    object-fit: contain;
+    position: relative;
+    top: 7px;
+}
+
 /* Highlight active category if needed, e.g. Streaming in the image */
 .sidebar-nav-item:hover .sidebar-text,
 .sidebar-nav-item:hover .sidebar-arrow {
