@@ -108,6 +108,9 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                 e.currentTarget.style.borderColor = '#f1f5f9';
             }}
         >
+            {item.promoPrice && new Date(item.promoEndDate) > new Date() && (
+                <div className="card-badge-similar promo">PROMO !</div>
+            )}
             <Link to={`/product/${item._id || item.id}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                     height: '220px',

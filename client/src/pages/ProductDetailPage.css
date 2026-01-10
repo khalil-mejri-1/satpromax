@@ -623,6 +623,25 @@
     }
 }
 
+/* Card Badge for Similar Products */
+.card-badge-similar {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 50px;
+    z-index: 6;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card-badge-similar.promo {
+    background: #ef4444;
+    color: #fff;
+}
+
 /* Review Modal Styles */
 .modal-overlay {
     position: fixed;

@@ -14,6 +14,8 @@ export default function Admin() {
         switch (activeTab) {
             case 'products':
                 return <ProductsManager />;
+            case 'promos':
+                return <PromoManager />;
             case 'orders':
                 return <OrdersManager />;
             case 'clients':
@@ -40,6 +42,12 @@ export default function Admin() {
                         onClick={() => setActiveTab('products')}
                     >
                         <IconProduct /> Gestion de produit
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'promos' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('promos')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>🏷️</span> Gestion des Promos
                     </button>
                     <button
                         className={`admin-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
@@ -223,6 +231,241 @@ const MultiInput = ({ items, onAdd, onRemove, placeholder }) => {
                     </span>
                 ))}
             </div>
+        </div>
+    );
+};
+
+const PromoManager = () => {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentProduct, setCurrentProduct] = useState(null);
+    const [promoData, setPromoData] = useState({
+        promoPrice: '',
+        promoDurationDays: 0,
+        promoDurationHours: 0,
+        promoDurationMinutes: 0
+    });
+    const [notification, setNotification] = useState(null);
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+    };
+
+    const fetchProducts = () => {
+        setLoading(true);
+        fetch('http://localhost:3000/api/products')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.data)) {
+                    setProducts(data.data);
+                } else {
+                    setProducts([]);
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+                showNotification("Erreur de chargement des produits", "error");
+            });
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const openPromoModal = (product) => {
+        setCurrentProduct(product);
+
+        let days = 0, hours = 0, minutes = 0;
+
+        if (product.promoEndDate && product.promoStartDate) {
+            const end = new Date(product.promoEndDate);
+            const now = new Date(); // Or start date if preferred, but usually we want remaining time or total duration set previously
+            // Let's calculate duration from now if active, or just what was potentially saved? 
+            // Actually requirement says "input when it starts/ends in days/hours/minutes".
+            // Let's simplify: Input is "Duration from NOW". 
+
+            // If editing, maybe we want to see current remaining time? 
+            // For simplicity based on prompt: "input ... when it starts and ends in days/hours/minutes"
+            // Interpreting as: User enters duration, we calculate End Date. Start Date is Now.
+
+            const diffMs = end - new Date(product.promoStartDate); // Total duration of the promo
+            if (diffMs > 0) {
+                days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            }
+        }
+
+        setPromoData({
+            promoPrice: product.promoPrice || '',
+            promoDurationDays: days,
+            promoDurationHours: hours,
+            promoDurationMinutes: minutes
+        });
+        setModalOpen(true);
+    };
+
+    const handleSavePromo = async (e) => {
+        e.preventDefault();
+
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + parseInt(promoData.promoDurationDays || 0));
+        endDate.setHours(endDate.getHours() + parseInt(promoData.promoDurationHours || 0));
+        endDate.setMinutes(endDate.getMinutes() + parseInt(promoData.promoDurationMinutes || 0));
+
+        const updateData = {
+            promoPrice: promoData.promoPrice,
+            promoStartDate: startDate,
+            promoEndDate: endDate
+        };
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification("Promo mise à jour avec succès !", "success");
+                setModalOpen(false);
+                fetchProducts();
+            } else {
+                showNotification(data.message || "Erreur", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur de connexion", "error");
+        }
+    };
+
+    // Group items
+    const groupedProducts = products.reduce((acc, product) => {
+        const category = product.category || 'Non classé';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(product);
+        return acc;
+    }, {});
+
+    if (loading) return <div>Chargement...</div>;
+
+    return (
+        <div className="admin-card">
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+            <h2>Gestion des Promos</h2>
+            <p style={{ marginBottom: '20px', color: '#666' }}>Sélectionnez un produit pour ajouter ou modifier une promotion.</p>
+
+            {Object.keys(groupedProducts).map(category => (
+                <div key={category} style={{ marginBottom: '30px' }}>
+                    <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>{category}</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                        {groupedProducts[category].map(product => {
+                            const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+                            return (
+                                <div
+                                    key={product._id}
+                                    onClick={() => openPromoModal(product)}
+                                    style={{
+                                        border: isPromoActive ? '2px solid #ef4444' : '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        padding: '10px',
+                                        cursor: 'pointer',
+                                        background: '#fff',
+                                        position: 'relative',
+                                        transition: 'transform 0.2s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                >
+                                    {isPromoActive && <div style={{ position: 'absolute', top: -10, right: -5, background: '#ef4444', color: '#fff', fontSize: '10px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>PROMO ACTIVE</div>}
+                                    <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+                                        <img src={product.image} alt={product.name} style={{ maxHeight: '100%', maxWidth: '100%' }} />
+                                    </div>
+                                    <h4 style={{ fontSize: '14px', margin: '0 0 5px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</h4>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{product.price}</span>
+                                        {isPromoActive && <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '13px' }}>{product.promoPrice}</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            ))}
+
+            <Modal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title={`Configurer Promo: ${currentProduct?.name}`}
+            >
+                <form onSubmit={handleSavePromo}>
+                    <div className="form-group">
+                        <label className="form-label">Prix Actuel</label>
+                        <input type="text" className="form-input" value={currentProduct?.price || ''} disabled style={{ background: '#f1f5f9' }} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Prix Promo (Nouveau prix)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={promoData.promoPrice}
+                            onChange={e => setPromoData({ ...promoData, promoPrice: e.target.value })}
+                            placeholder="ex: 99 DT"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Durée de la promo (à partir de maintenant)</label>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ flex: 1 }}>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={promoData.promoDurationDays}
+                                    onChange={e => setPromoData({ ...promoData, promoDurationDays: e.target.value })}
+                                    min="0"
+                                />
+                                <span style={{ fontSize: '12px', color: '#666' }}>Jours</span>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={promoData.promoDurationHours}
+                                    onChange={e => setPromoData({ ...promoData, promoDurationHours: e.target.value })}
+                                    min="0" max="23"
+                                />
+                                <span style={{ fontSize: '12px', color: '#666' }}>Heures</span>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={promoData.promoDurationMinutes}
+                                    onChange={e => setPromoData({ ...promoData, promoDurationMinutes: e.target.value })}
+                                    min="0" max="59"
+                                />
+                                <span style={{ fontSize: '12px', color: '#666' }}>Minutes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-actions">
+                        <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>Annuler</button>
+                        <button type="submit" className="btn btn-primary">Enregistrer la Promo</button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };
@@ -1255,16 +1498,295 @@ const ClientsManager = () => {
         </div>
     );
 };
-
 const HomeManager = () => {
+    const [topStripText, setTopStripText] = useState('');
+    const [topStripMessage, setTopStripMessage] = useState('');
+
+    // Hero Data
+    const [heroData, setHeroData] = useState({
+        heroMainImages: [],
+        heroCardBoxImages: [],
+        heroCardNetflixImage: '',
+        heroCardGiftImage: '',
+        heroCardSoftImage: ''
+    });
+
+    // Footer Data
+    const [footerData, setFooterData] = useState({
+        footerDescription: '',
+        footerContactPhone: '',
+        footerColumn1: { title: 'IPTV Premium', links: [] },
+        footerColumn2: { title: 'Streaming', links: [] },
+        footerColumn3: { title: 'Cartes Cadeaux', links: [] }
+    });
+
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+    };
+
+    useEffect(() => {
+        fetch('http://localhost:3000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    setTopStripText(data.data.topStripText || '');
+                    setTopStripMessage(data.data.topStripMessage || '');
+                    setHeroData({
+                        heroMainImages: data.data.heroMainImages || [],
+                        heroCardBoxImages: data.data.heroCardBoxImages || [],
+                        heroCardNetflixImage: data.data.heroCardNetflixImage || '',
+                        heroCardGiftImage: data.data.heroCardGiftImage || '',
+                        heroCardSoftImage: data.data.heroCardSoftImage || ''
+                    });
+                    setFooterData({
+                        footerDescription: data.data.footerDescription || '',
+                        footerContactPhone: data.data.footerContactPhone || '',
+                        footerColumn1: data.data.footerColumn1 || { title: 'IPTV Premium', links: [] },
+                        footerColumn2: data.data.footerColumn2 || { title: 'Streaming', links: [] },
+                        footerColumn3: data.data.footerColumn3 || { title: 'Cartes Cadeaux', links: [] }
+                    });
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, []);
+
+    const handleSave = async () => {
+        try {
+            const body = {
+                topStripText,
+                topStripMessage,
+                ...heroData,
+                ...footerData
+            };
+
+            const response = await fetch('http://localhost:3000/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification("Page d'accueil et Footer mis à jour !", "success");
+            } else {
+                showNotification("Erreur lors de la mise à jour", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur de connexion", "error");
+        }
+    };
+
+    // Helper for MultiInput state updates
+    const addImage = (field, url) => {
+        setHeroData(prev => ({ ...prev, [field]: [...prev[field], url] }));
+    };
+    const removeImage = (field, index) => {
+        setHeroData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
+    };
+
+    // Helper for Footer Links
+    const updateFooterCol = (colName, key, value) => {
+        setFooterData(prev => ({
+            ...prev,
+            [colName]: { ...prev[colName], [key]: value }
+        }));
+    };
+
+    const addFooterLink = (colName, link) => {
+        setFooterData(prev => ({
+            ...prev,
+            [colName]: { ...prev[colName], links: [...prev[colName].links, link] }
+        }));
+    };
+
+    const removeFooterLink = (colName, index) => {
+        setFooterData(prev => ({
+            ...prev,
+            [colName]: { ...prev[colName], links: prev[colName].links.filter((_, i) => i !== index) }
+        }));
+    };
+
+    if (loading) return <div>Chargement...</div>;
+
     return (
         <div className="admin-card">
-            <h2>Personnalisation de l'Accueil</h2>
-            <p className="text-muted">Modifiez les bannières, les sections mises en avant, etc.</p>
-            <br />
-            <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', border: '1px dashed #ccc', textAlign: 'center' }}>
-                Contenu de la gestion de la page d'accueil ici...
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+            <h2>Gestion de la Page d'Accueil</h2>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Barre Supérieure (Top Strip)</h3>
+                <div className="form-group">
+                    <label className="form-label">Contact (Gauche)</label>
+                    <input type="text" className="form-input" value={topStripText} onChange={(e) => setTopStripText(e.target.value)} />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Message Promo (Droite)</label>
+                    <input type="text" className="form-input" value={topStripMessage} onChange={(e) => setTopStripMessage(e.target.value)} />
+                </div>
             </div>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Bannière Principale (Slider)</h3>
+                <div className="form-group">
+                    <label className="form-label">Images du Slider Principal (Ajoutez plusieurs URLs)</label>
+                    <MultiInput
+                        items={heroData.heroMainImages}
+                        onAdd={(val) => addImage('heroMainImages', val)}
+                        onRemove={(idx) => removeImage('heroMainImages', idx)}
+                        placeholder="https://... + Entrée"
+                    />
+                </div>
+            </div>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Cartes Secondaires</h3>
+
+                <div className="form-group">
+                    <label className="form-label">Carte "Box Android" (Slider)</label>
+                    <MultiInput
+                        items={heroData.heroCardBoxImages}
+                        onAdd={(val) => addImage('heroCardBoxImages', val)}
+                        onRemove={(idx) => removeImage('heroCardBoxImages', idx)}
+                        placeholder="https://... + Entrée"
+                    />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="form-group">
+                        <label className="form-label">Carte Netflix (Image Unique)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={heroData.heroCardNetflixImage}
+                            onChange={(e) => setHeroData({ ...heroData, heroCardNetflixImage: e.target.value })}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Carte Cartes Cadeaux (Image Unique)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={heroData.heroCardGiftImage}
+                            onChange={(e) => setHeroData({ ...heroData, heroCardGiftImage: e.target.value })}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Carte Logiciels (Image Unique)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={heroData.heroCardSoftImage}
+                            onChange={(e) => setHeroData({ ...heroData, heroCardSoftImage: e.target.value })}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Pied de page (Footer)</h3>
+                <div className="form-group">
+                    <label className="form-label">Description (À Propos)</label>
+                    <textarea
+                        className="form-input"
+                        style={{ minHeight: '80px', resize: 'vertical' }}
+                        value={footerData.footerDescription}
+                        onChange={(e) => setFooterData({ ...footerData, footerDescription: e.target.value })}
+                    />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">Numéro de Contact</label>
+                    <input
+                        type="text"
+                        className="form-input"
+                        value={footerData.footerContactPhone}
+                        onChange={(e) => setFooterData({ ...footerData, footerContactPhone: e.target.value })}
+                    />
+                </div>
+
+                <h4 style={{ fontSize: '14px', marginTop: '20px', marginBottom: '10px', color: '#64748b' }}>Colonnes de Liens</h4>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                    {/* Column 1 */}
+                    <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div className="form-group">
+                            <label className="form-label">Titre Colonne 1</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={footerData.footerColumn1.title}
+                                onChange={(e) => updateFooterCol('footerColumn1', 'title', e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Liens Colonne 1</label>
+                            <MultiInput
+                                items={footerData.footerColumn1.links}
+                                onAdd={(val) => addFooterLink('footerColumn1', val)}
+                                onRemove={(idx) => removeFooterLink('footerColumn1', idx)}
+                                placeholder="Nom du lien + Entrée"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Column 2 */}
+                    <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div className="form-group">
+                            <label className="form-label">Titre Colonne 2</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={footerData.footerColumn2.title}
+                                onChange={(e) => updateFooterCol('footerColumn2', 'title', e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Liens Colonne 2</label>
+                            <MultiInput
+                                items={footerData.footerColumn2.links}
+                                onAdd={(val) => addFooterLink('footerColumn2', val)}
+                                onRemove={(idx) => removeFooterLink('footerColumn2', idx)}
+                                placeholder="Nom du lien + Entrée"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Column 3 */}
+                    <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div className="form-group">
+                            <label className="form-label">Titre Colonne 3</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={footerData.footerColumn3.title}
+                                onChange={(e) => updateFooterCol('footerColumn3', 'title', e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Liens Colonne 3</label>
+                            <MultiInput
+                                items={footerData.footerColumn3.links}
+                                onAdd={(val) => addFooterLink('footerColumn3', val)}
+                                onRemove={(idx) => removeFooterLink('footerColumn3', idx)}
+                                placeholder="Nom du lien + Entrée"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button className="btn btn-primary" style={{ width: '100%', padding: '15px', fontSize: '16px' }} onClick={handleSave}>Enregistrer Tout</button>
         </div>
     );
 };

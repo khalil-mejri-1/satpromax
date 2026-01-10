@@ -102,8 +102,13 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
         setTimeout(() => setIsWishlisted(false), 2000);
     }
 
+    const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+
     return (
         <Link to={`/product/${product._id || product.id || encodeURIComponent(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            {isPromoActive && (
+                <div className="card-badge_2 promo_2">PROMO !</div>
+            )}
             <div className="cat-product-img-wrapper">
                 {/* Heart Icon for Wishlist */}
                 <button

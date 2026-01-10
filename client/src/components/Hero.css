@@ -99,7 +99,7 @@
 }
 
 .card-box {
-    background: linear-gradient(180deg, rgba(8, 47, 73, 0.9) 0%, rgba(15, 23, 42, 0.1) 60%), url(https://www.mysat.tn/wp-content/uploads/2025/05/product-box-mockup-300x300.jpg);
+    background: linear-gradient(180deg, rgba(8, 47, 73, 0.9) 0%, rgba(15, 23, 42, 0.1) 60%), url('https://www.mysat.tn/wp-content/uploads/2025/05/design-sans-titre-29.webp');
     background-size: cover;
     background-position: center;
 }
@@ -213,6 +213,77 @@
     }
 }
 
+/* Slider Background Styles */
+.hero-slider-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.slider-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.slider-slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Ensure content stays above slider */
+.hero-content,
+.hero-card h3 {
+    z-index: 10;
+    position: relative;
+}
+
+/* Dots Navigation */
+.hero-dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.dot.active {
+    background: #fbbf24;
+    transform: scale(1.2);
+    width: 20px;
+    border-radius: 5px;
+}
+
+.dot:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
 .hero-image-placeholder {
     animation: float 4s ease-in-out infinite;
+    z-index: 10;
 }

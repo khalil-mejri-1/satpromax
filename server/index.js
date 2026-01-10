@@ -626,6 +626,40 @@ app.delete("/api/reviews/:id", async (req, res) => {
     }
 });
 
+// Search Endpoint
+app.get("/api/search", async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.length < 2) {
+            return res.status(200).json({ categories: [], products: [] });
+        }
+
+        // Fuzzy search regex: "sarng" -> /s.*a.*r.*n.*g/i
+        const fuzzyPattern = q.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*');
+        const regex = new RegExp(fuzzyPattern, "i");
+
+        // Search Categories
+        const settings = await getSafeSettings();
+        const categories = (settings.categories || []).filter(cat =>
+            regex.test(typeof cat === 'object' ? cat.name : cat)
+        );
+
+        // Search Products
+        const products = await Product.find({
+            $or: [
+                { name: { $regex: regex } },
+                { description: { $regex: regex } },
+                { category: { $regex: regex } }
+            ]
+        }).limit(5);
+
+        res.status(200).json({ success: true, categories, products });
+    } catch (error) {
+        console.error("Search API Error:", error);
+        res.status(500).json({ success: false, message: "Search failed" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

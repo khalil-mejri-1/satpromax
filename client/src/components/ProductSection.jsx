@@ -94,10 +94,13 @@ export default function ProductSection({ title, products = [], loading = false, 
                             const isNew = index === 0;
                             const isPopular = index === 1 || product.price.includes('DT');
 
+                            const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+
                             return (
                                 <Link to={`/product/${product._id || product.id || encodeURIComponent(product.name)}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    {isNew && <div className="card-badge new">NOUVEAU</div>}
-                                    {isPopular && !isNew && <div className="card-badge popular">POPULAIRE</div>}
+                                    {isPromoActive && <div className="card-badge promo">PROMO !</div>}
+                                    {/* {isNew && <div className="card-badge new">NOUVEAU</div>} */}
+                                    {/* {isPopular && !isNew && <div className="card-badge popular">POPULAIRE</div>} */}
 
                                     <div className="product-image-container">
                                         <img src={product.image} alt={product.name} className="product-image" loading="lazy" />

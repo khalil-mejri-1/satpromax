@@ -22,6 +22,9 @@ const productSchema = new mongoose.Schema(
         region: String,
         downloadLink: String,
         gallery: [String],
+        promoPrice: String,
+        promoStartDate: Date,
+        promoEndDate: Date,
     },
     { timestamps: true }
 );

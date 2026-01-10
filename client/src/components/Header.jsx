@@ -111,6 +111,40 @@ export default function Header() {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState({ categories: [], products: [] });
+
+    useEffect(() => {
+        const timeoutId = setTimeout(async () => {
+            if (searchTerm.length < 2) {
+                setSearchResults({ categories: [], products: [] });
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:3000/api/search?q=${searchTerm}`);
+                const data = await res.json();
+                if (data.success) {
+                    setSearchResults({ categories: data.categories || [], products: data.products || [] });
+                }
+            } catch (err) {
+                console.error("Search error", err);
+            }
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
+    const highlightMatch = (text, query) => {
+        if (!query || !text) return text;
+        const parts = text.split(new RegExp(`(${query})`, 'gi'));
+        return parts.map((part, index) =>
+            part.toLowerCase() === query.toLowerCase()
+                ? <span key={index} style={{ fontWeight: 'bold' }}>{part}</span>
+                : part
+        );
+    };
+
+    const [topStripText, setTopStripText] = useState('WhatsApp : 97 490 300'); // Default
+    const [topStripMessage, setTopStripMessage] = useState('Bienvenue sur satpromax !'); // Default
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -118,22 +152,25 @@ export default function Header() {
             setUser(JSON.parse(storedUser));
         }
 
-        // Fetch dynamic categories
+        // Fetch dynamic categories and settings
         setLoadingCategories(true);
         fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.data && data.data.categories) {
-                    setCategories(data.data.categories);
+                if (data.success && data.data) {
+                    if (data.data.categories) setCategories(data.data.categories);
+                    if (data.data.topStripText) setTopStripText(data.data.topStripText);
+                    if (data.data.topStripMessage) setTopStripMessage(data.data.topStripMessage);
                 }
                 setLoadingCategories(false);
             })
             .catch(err => {
-                console.error("Error fetching categories:", err);
+                console.error("Error fetching settings:", err);
                 setLoadingCategories(false);
             });
     }, []);
 
+    // ... (rest of helper functions)
     const getCategorySlug = (name) => {
         if (!name) return "";
         return name.toLowerCase()
@@ -176,8 +213,9 @@ export default function Header() {
         <header className="header">
             {/* Top Strip */}
             <div className="top-strip">
-                <div className="container">
-                    <span>WhatsApp  : +216 97 490 300</span>
+                <div className="container" style={{ justifyContent: 'space-between', display: 'flex' }}>
+                    <span>{topStripText}</span>
+                    <span className="scrolling-promo-text">{topStripMessage}</span>
                 </div>
             </div>
 
@@ -237,18 +275,88 @@ export default function Header() {
                             {isSearchDropdownOpen && (
                                 <div className="search-dropdown-container">
                                     <div className="search-dropdown-content">
-                                        <div className="search-dropdown-hint">
-                                            {searchTerm ? 'Résultats pour "' + searchTerm + '"' : 'Commencez à taper pour rechercher...'}
-                                        </div>
-                                        {/* You can add actual search results here later */}
-                                        <div className="search-suggestions">
-                                            <p className="suggestion-title">Suggestions populaires</p>
-                                            <div className="suggestion-list">
-                                                <span>Abonnement IPTV</span>
-                                                <span>Netflix Premium</span>
-                                                <span>Spotify Family</span>
+                                        {searchTerm.length < 2 ? (
+                                            <>
+                                                <div className="search-dropdown-hint">
+                                                    Commencez à taper pour rechercher...
+                                                </div>
+                                                <div className="search-suggestions">
+                                                    <p className="suggestion-title">Suggestions populaires</p>
+                                                    <div className="suggestion-list">
+                                                        {categories.slice(0, 4).map((cat, idx) => (
+                                                            <Link
+                                                                key={idx}
+                                                                to={`/category/${getCategorySlug(typeof cat === 'object' ? cat.name : cat)}`}
+                                                                onClick={() => setIsSearchDropdownOpen(false)}
+                                                            >
+                                                                {typeof cat === 'object' ? cat.name : cat}
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="search-results-wrapper">
+                                                {/* Categories Section */}
+                                                {searchResults.categories.length > 0 && (
+                                                    <div className="search-section">
+                                                        <h4 className="search-section-title">CATÉGORIES</h4>
+                                                        <ul className="search-category-list">
+                                                            {searchResults.categories.map((cat, idx) => {
+                                                                const name = typeof cat === 'object' ? cat.name : cat;
+                                                                return (
+                                                                    <li key={idx}>
+                                                                        <Link
+                                                                            to={`/category/${getCategorySlug(name)}`}
+                                                                            onClick={() => setIsSearchDropdownOpen(false)}
+                                                                        >
+                                                                            {highlightMatch(name, searchTerm)}
+                                                                        </Link>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                        </ul>
+                                                    </div>
+                                                )}
+
+                                                {/* Products Section */}
+                                                {searchResults.products.length > 0 && (
+                                                    <div className="search-section">
+                                                        <h4 className="search-section-title">PRODUITS</h4>
+                                                        <div className="search-product-list">
+                                                            {searchResults.products.map(product => (
+                                                                <Link
+                                                                    key={product._id}
+                                                                    to={`/product/${product._id}`}
+                                                                    className="search-product-item"
+                                                                    onClick={() => setIsSearchDropdownOpen(false)}
+                                                                >
+                                                                    <img src={product.image} alt={product.name} />
+                                                                    <div className="search-product-info">
+                                                                        <div className="search-product-name">
+                                                                            {highlightMatch(product.name, searchTerm)}
+                                                                        </div>
+                                                                        <div className="search-product-price">{product.price}</div>
+                                                                    </div>
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {searchResults.categories.length === 0 && searchResults.products.length === 0 && (
+                                                    <div className="no-results">Aucun résultat trouvé pour "{searchTerm}"</div>
+                                                )}
+
+                                                {searchResults.products.length > 0 && (
+                                                    <div className="see-all-results">
+                                                        <Link to={`/search?q=${searchTerm}`} onClick={() => setIsSearchDropdownOpen(false)}>
+                                                            SEE ALL PRODUCTS... ({searchResults.products.length})
+                                                        </Link>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

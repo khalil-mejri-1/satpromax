@@ -39,7 +39,9 @@
     color: var(--dark-blue);
     position: relative;
     margin: 0;
+
     padding-bottom: 0;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 15px;
@@ -176,6 +178,14 @@
 .card-badge.popular {
     background: var(--primary-blue);
     color: #fff;
+}
+
+.card-badge.promo {
+    background: #ef4444;
+    color: #fff;
+    left: auto;
+    right: 15px;
+    /* Or stick to left if you prefer, but "promo" often pairs well with others */
 }
 
 /* Image Section */
