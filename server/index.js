@@ -264,7 +264,7 @@ app.post("/api/google-login", async (req, res) => {
                 username: name,
                 email: email,
                 password: Math.random().toString(36).slice(-10), // Random password for social logins
-                role: 'user'
+                role: 'client'
             });
             await user.save();
         }
