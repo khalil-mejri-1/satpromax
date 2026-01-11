@@ -5,7 +5,7 @@ export default function Footer() {
     const [settings, setSettings] = useState(null);
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {

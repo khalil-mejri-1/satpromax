@@ -34,7 +34,7 @@ export default function CheckoutPage() {
 
     // Fetch Payment Modes
     useEffect(() => {
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/api/orders', {
+            const response = await fetch('https://satpromax.com/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

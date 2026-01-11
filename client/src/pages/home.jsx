@@ -11,7 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/products')
+    fetch('https://satpromax.com/api/products')
       .then(res => res.json())
       .then(data => {
         if (data.success) {

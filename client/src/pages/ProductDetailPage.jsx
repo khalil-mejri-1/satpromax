@@ -318,7 +318,7 @@ export default function ProductDetailPage() {
     // Fetch Similar Products
     useEffect(() => {
         if (product && product.category) {
-            fetch(`http://localhost:3000/api/products?category=${encodeURIComponent(product.category)}`)
+            fetch(`https://satpromax.com/api/products?category=${encodeURIComponent(product.category)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -332,7 +332,7 @@ export default function ProductDetailPage() {
 
     // Fetch Settings
     useEffect(() => {
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -382,7 +382,7 @@ export default function ProductDetailPage() {
 
                 try {
                     // Try fetch by slug first
-                    response = await fetch(`http://localhost:3000/api/products/slug/${category}/${slug}`);
+                    response = await fetch(`https://satpromax.com/api/products/slug/${category}/${slug}`);
                     data = await response.json();
                 } catch (e) {
                     console.log("DB Fetch failed");
@@ -397,7 +397,7 @@ export default function ProductDetailPage() {
 
                 // Temporary backward compatibility check for old IDs or direct names
                 if (slug.match(/^[0-9a-fA-F]{24}$/)) {
-                    response = await fetch(`http://localhost:3000/api/products/${slug}`);
+                    response = await fetch(`https://satpromax.com/api/products/${slug}`);
                     data = await response.json();
                     if (data.success) {
                         setProduct(data.data);
@@ -502,7 +502,7 @@ export default function ProductDetailPage() {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/api/orders', {
+            const response = await fetch('https://satpromax.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
