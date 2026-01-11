@@ -113,14 +113,17 @@ export default function Header() {
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState({ categories: [], products: [] });
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
             if (searchTerm.length < 2) {
                 setSearchResults({ categories: [], products: [] });
+                setIsSearching(false);
                 return;
             }
             try {
+                setIsSearching(true);
                 const res = await fetch(`http://localhost:3000/api/search?q=${searchTerm}`);
                 const data = await res.json();
                 if (data.success) {
@@ -128,6 +131,8 @@ export default function Header() {
                 }
             } catch (err) {
                 console.error("Search error", err);
+            } finally {
+                setIsSearching(false);
             }
         }, 300);
 
@@ -277,7 +282,12 @@ export default function Header() {
                             {isSearchDropdownOpen && (
                                 <div className="search-dropdown-container">
                                     <div className="search-dropdown-content">
-                                        {searchTerm.length < 2 ? (
+                                        {isSearching ? (
+                                            <div className="search-loading">
+                                                <div className="spinner"></div>
+                                                <span>Recherche en cours...</span>
+                                            </div>
+                                        ) : searchTerm.length < 2 ? (
                                             <>
                                                 <div className="search-dropdown-hint">
                                                     Commencez à taper pour rechercher...
@@ -300,7 +310,8 @@ export default function Header() {
                                         ) : (
                                             <div className="search-results-wrapper">
                                                 {/* Categories Section */}
-                                                {searchResults.categories.length > 0 && (
+                                                {/* Categories Section - HIDDEN */}
+                                                {/* {searchResults.categories.length > 0 && (
                                                     <div className="search-section">
                                                         <h4 className="search-section-title">CATÉGORIES</h4>
                                                         <ul className="search-category-list">
@@ -319,7 +330,7 @@ export default function Header() {
                                                             })}
                                                         </ul>
                                                     </div>
-                                                )}
+                                                )} */}
 
                                                 {/* Products Section */}
                                                 {searchResults.products.length > 0 && (
@@ -350,13 +361,13 @@ export default function Header() {
                                                     <div className="no-results">Aucun résultat trouvé pour "{searchTerm}"</div>
                                                 )}
 
-                                                {searchResults.products.length > 0 && (
+                                                {/* {searchResults.products.length > 0 && (
                                                     <div className="see-all-results">
                                                         <Link to={`/search?q=${searchTerm}`} onClick={() => setIsSearchDropdownOpen(false)}>
                                                             SEE ALL PRODUCTS... ({searchResults.products.length})
                                                         </Link>
                                                     </div>
-                                                )}
+                                                )} */}
                                             </div>
                                         )}
                                     </div>

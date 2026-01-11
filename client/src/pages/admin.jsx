@@ -140,7 +140,7 @@ const Notification = ({ message, type, onClose }) => {
 const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h3 className="modal-title">{title}</h3>
@@ -479,7 +479,7 @@ const ProductsManager = () => {
     const [formData, setFormData] = useState({
         name: '', price: '', image: '', category: 'Streaming', description: '', skuList: [], tagsList: [],
         metaTitle: '', metaDescription: '', resolution: '', region: '', downloadLink: '', galleryList: [],
-        descriptionGlobal: '', extraSections: []
+        descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: ''
     });
     const [notification, setNotification] = useState(null);
 
@@ -557,7 +557,9 @@ const ProductsManager = () => {
             downloadLink: '',
             galleryList: [],
             descriptionGlobal: '',
-            extraSections: []
+            extraSections: [],
+            hasDelivery: false,
+            deliveryPrice: ''
         });
         setModalOpen(true);
     };
@@ -585,7 +587,9 @@ const ProductsManager = () => {
             downloadLink: product.downloadLink || '',
             galleryList: product.gallery || [],
             descriptionGlobal: product.descriptionGlobal || '',
-            extraSections: product.extraSections || []
+            extraSections: product.extraSections || [],
+            hasDelivery: product.hasDelivery || false,
+            deliveryPrice: product.deliveryPrice || ''
         });
         setModalOpen(true);
     };
@@ -808,6 +812,33 @@ const ProductsManager = () => {
                                 })}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="form-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: formData.hasDelivery ? '15px' : '0' }}>
+                            <input
+                                type="checkbox"
+                                id="hasDelivery"
+                                checked={formData.hasDelivery}
+                                onChange={(e) => setFormData({ ...formData, hasDelivery: e.target.checked })}
+                                style={{ width: '18px', height: '18px', marginRight: '10px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="hasDelivery" style={{ cursor: 'pointer', fontWeight: '600', color: '#334155' }}>Ce produit a une livraison payante ?</label>
+                        </div>
+
+                        {formData.hasDelivery && (
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Prix de Livraison</label>
+                                <input
+                                    type="text"
+                                    name="deliveryPrice"
+                                    className="form-input"
+                                    value={formData.deliveryPrice}
+                                    onChange={handleInputChange}
+                                    placeholder="ex: 7 DT"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {(formData.category === 'IPTV Premium' || formData.category === 'IPTV & Sharing') && (
@@ -1993,7 +2024,7 @@ const SettingsManager = () => {
     return (
         <div className="admin-card">
             {confirmModal.isOpen && (
-                <div className="modal-overlay" onClick={closeConfirmModal} style={{ zIndex: 1100, position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="modal-overlay" style={{ zIndex: 1100, position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '20px', maxWidth: '400px', width: '90%', textAlign: 'center', padding: '30px', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}>
                         <div style={{
                             width: '60px',
@@ -2084,6 +2115,33 @@ const SettingsManager = () => {
                             className="form-input"
                         />
                     </div>
+                </div>
+            </div>
+
+            <div style={{ marginTop: '20px', padding: '20px', background: '#ecfdf5', borderRadius: '12px', border: '1px solid #a7f3d0', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#065f46', marginBottom: '10px' }}>Configuration Email (Envoi de codes)</h3>
+                <p style={{ fontSize: '13px', color: '#047857', marginBottom: '15px' }}>Ces identifiants sont utilisés pour envoyer les codes de réinitialisation de mot de passe (Gmail App Password requis).</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '15px', alignItems: 'flex-end' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Email Expéditeur</label>
+                        <input
+                            type="email"
+                            value={settings.senderEmail || ''}
+                            onChange={(e) => setSettings({ ...settings, senderEmail: e.target.value })}
+                            className="form-input"
+                            placeholder="ex: kmejri57@gmail.com"
+                        />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Mot de passe d'application</label>
+                        <input
+                            type="text"
+                            value={settings.senderPassword || ''}
+                            onChange={(e) => setSettings({ ...settings, senderPassword: e.target.value })}
+                            className="form-input"
+                            placeholder="ex: msncmujsbjqnszxp"
+                        />
+                    </div>
                     <button
                         onClick={async () => {
                             try {
@@ -2091,26 +2149,29 @@ const SettingsManager = () => {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        adminEmail: settings.adminEmail,
-                                        adminPassword: settings.adminPassword
+                                        adminEmail: settings.adminEmail, // Keep these to prevent overwrite with null if API expects full object or partial updates work fine (Mongoose usually fine with partial).
+                                        adminPassword: settings.adminPassword,
+                                        // New fields
+                                        senderEmail: settings.senderEmail,
+                                        senderPassword: settings.senderPassword
                                     })
                                 });
                                 const data = await res.json();
                                 if (data.success) {
-                                    showNotification("Identifiants Admin mis à jour", "success");
-                                    // Optionally update local storage if currently logged in admin changed their own email
+                                    showNotification("Configuration Email mise à jour", "success");
                                 }
                             } catch (err) {
                                 showNotification("Erreur", "error");
                             }
                         }}
                         className="btn btn-primary"
-                        style={{ height: '42px' }}
+                        style={{ height: '42px', background: '#10b981', borderColor: '#059669' }}
                     >
                         Mettre à jour
                     </button>
                 </div>
             </div>
+
 
             <div style={{ marginTop: '20px', padding: '20px', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '30px' }}>
                 <h3 style={{ fontSize: '18px', color: '#0c4a6e', marginBottom: '10px' }}>Configuration WhatsApp</h3>

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Home from "./pages/home.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import Admin from "./pages/admin.jsx";
@@ -20,6 +21,16 @@ const ProtectedAdminRoute = ({ children }) => {
 };
 
 function App() {
+  // useEffect(() => {
+  //   const handleContextMenu = (e) => {
+  //     e.preventDefault();
+  //   };
+  //   document.addEventListener("contextmenu", handleContextMenu);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", handleContextMenu);
+  //   };
+  // }, []);
+
 
   return (
     <>

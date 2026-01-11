@@ -1289,7 +1289,8 @@
     border: 1px solid #f1f5f9;
     z-index: 10000;
     animation: dropdownSlideIn 0.3s ease;
-    overflow: hidden;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .search-dropdown-content {
@@ -1390,13 +1391,20 @@
     color: #333;
     font-weight: 500;
     display: block;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+    /* Optional: adds subtle roundness */
 }
 
 .search-category-list li a:hover {
     color: #3b82f6;
-    background: #f8fafc;
-    margin: 0 -20px;
-    padding: 6px 40px;
+    background: #f0f9ff;
+    margin: 0 -10px;
+    /* Slight expansion */
+    padding: 6px 30px;
+    /* Increase padding to create movement */
+    transform: translateX(5px);
+    /* Explicit movement */
 }
 
 .search-product-list {

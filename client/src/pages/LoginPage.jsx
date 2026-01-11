@@ -12,6 +12,110 @@ export default function LoginPage() {
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
+    // Forgot Password State
+    const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+    const [forgotStep, setForgotStep] = useState(1); // 1: Email, 2: Code, 3: New Pass
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotCode, setForgotCode] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [forgotMessage, setForgotMessage] = useState(null);
+    const [isForgotLoading, setIsForgotLoading] = useState(false);
+
+    const handleForgotClick = (e) => {
+        e.preventDefault();
+        setIsForgotModalOpen(true);
+        setForgotStep(1);
+        setForgotMessage(null);
+        setForgotEmail('');
+        setForgotCode('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+    };
+
+    const closeForgotModal = () => {
+        setIsForgotModalOpen(false);
+        setForgotMessage(null);
+    };
+
+    const handleSendCode = async (e) => {
+        e.preventDefault();
+        setIsForgotLoading(true);
+        setForgotMessage(null);
+        try {
+            const res = await fetch('http://localhost:3000/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setForgotStep(2);
+                setForgotMessage({ type: 'success', text: data.message });
+            } else {
+                setForgotMessage({ type: 'error', text: data.message });
+            }
+        } catch (err) {
+            setForgotMessage({ type: 'error', text: "Erreur serveur" });
+        }
+        setIsForgotLoading(false);
+    };
+
+    const handleVerifyCode = async (e) => {
+        e.preventDefault();
+        setIsForgotLoading(true);
+        setForgotMessage(null);
+        try {
+            const res = await fetch('http://localhost:3000/api/auth/verify-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail, code: forgotCode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setForgotStep(3);
+                setForgotMessage(null);
+            } else {
+                setForgotMessage({ type: 'error', text: data.message });
+            }
+        } catch (err) {
+            setForgotMessage({ type: 'error', text: "Erreur serveur" });
+        }
+        setIsForgotLoading(false);
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (newPassword.length < 6) {
+            setForgotMessage({ type: 'error', text: "Le mot de passe doit contenir au moins 6 caractères" });
+            return;
+        }
+        if (newPassword !== confirmNewPassword) {
+            setForgotMessage({ type: 'error', text: "Les mots de passe ne correspondent pas" });
+            return;
+        }
+
+        setIsForgotLoading(true);
+        setForgotMessage(null);
+        try {
+            const res = await fetch('http://localhost:3000/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: forgotEmail, code: forgotCode, newPassword })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeForgotModal();
+                setMessage({ type: 'success', text: "Mot de passe réinitialisé avec succès ! Connectez-vous." });
+            } else {
+                setForgotMessage({ type: 'error', text: data.message });
+            }
+        } catch (err) {
+            setForgotMessage({ type: 'error', text: "Erreur serveur" });
+        }
+        setIsForgotLoading(false);
+    };
+
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             const response = await fetch('http://localhost:3000/api/google-login', {
@@ -113,7 +217,14 @@ export default function LoginPage() {
                                 <input type="checkbox" />
                                 <span>Se souvenir de moi</span>
                             </label>
-                            <a href="#" className="forgot-password">Mot de passe oublié ?</a>
+                            <button
+                                type="button"
+                                onClick={handleForgotClick}
+                                className="forgot-password"
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                            >
+                                Mot de passe oublié ?
+                            </button>
                         </div>
 
                         <button type="submit" className="btn-login">Se connecter</button>
@@ -141,6 +252,108 @@ export default function LoginPage() {
                 </div>
             </div>
             <Footer />
+
+            {/* Forgot Password Modal */}
+            {isForgotModalOpen && (
+                <div className="auth-modal-overlay" onClick={closeForgotModal}>
+                    <div className="auth-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="auth-modal-close" onClick={closeForgotModal}>×</button>
+
+                        <div className="auth-modal-header">
+                            <h3>Réinitialiser le mot de passe</h3>
+                        </div>
+
+                        {forgotMessage && (
+                            <div className={`auth-message ${forgotMessage.type}`}>
+                                {forgotMessage.text}
+                            </div>
+                        )}
+
+                        {forgotStep === 1 && (
+                            <form onSubmit={handleSendCode} className="login-form">
+                                <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '10px' }}>
+                                    Entrez votre adresse email pour recevoir un code de vérification.
+                                </p>
+                                <div className="form-group">
+                                    <label>Email</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={forgotEmail}
+                                        onChange={e => setForgotEmail(e.target.value)}
+                                        placeholder="votre@email.com"
+                                    />
+                                </div>
+                                <button type="submit" className="btn-login" disabled={isForgotLoading}>
+                                    {isForgotLoading ? 'Envoi...' : 'Envoyer le code'}
+                                </button>
+                            </form>
+                        )}
+
+                        {forgotStep === 2 && (
+                            <form onSubmit={handleVerifyCode} className="login-form">
+                                <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '10px' }}>
+                                    Veuillez entrer le code à 8 chiffres envoyé à <strong>{forgotEmail}</strong>.
+                                    <br />(Expire dans 1 minute)
+                                </p>
+                                <div className="form-group">
+                                    <label>Code de vérification</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={forgotCode}
+                                        onChange={e => setForgotCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 8))}
+                                        placeholder="12345678"
+                                        maxLength={8}
+                                        style={{ letterSpacing: '2px', textAlign: 'center', fontSize: '18px' }}
+                                    />
+                                </div>
+                                <button type="submit" className="btn-login" disabled={isForgotLoading}>
+                                    {isForgotLoading ? 'Vérification...' : 'Vérifier'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setForgotStep(1)}
+                                    style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', marginTop: '10px', width: '100%' }}
+                                >
+                                    Renvoyer le code
+                                </button>
+                            </form>
+                        )}
+
+                        {forgotStep === 3 && (
+                            <form onSubmit={handleResetPassword} className="login-form">
+                                <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '10px' }}>
+                                    Entrez votre nouveau mot de passe.
+                                </p>
+                                <div className="form-group">
+                                    <label>Nouveau mot de passe</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={newPassword}
+                                        onChange={e => setNewPassword(e.target.value)}
+                                        placeholder="Min 6 caractères"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Confirmer le mot de passe</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={confirmNewPassword}
+                                        onChange={e => setConfirmNewPassword(e.target.value)}
+                                        placeholder="Confirmer"
+                                    />
+                                </div>
+                                <button type="submit" className="btn-login" disabled={isForgotLoading}>
+                                    {isForgotLoading ? 'Traitement...' : 'Changer le mot de passe'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

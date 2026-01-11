@@ -160,7 +160,7 @@ export default function ProductsPage() {
     const [selectedRegion, setSelectedRegion] = useState('All');
     const [selectedSort, setSelectedSort] = useState('Popularité');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [itemsPerPage, setItemsPerPage] = useState(20);
 
 
     // Normalize categoryName for lookup

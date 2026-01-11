@@ -45,6 +45,11 @@ export default function RegisterPage() {
         e.preventDefault();
         setMessage(null);
 
+        if (formData.password.length < 6) {
+            setMessage({ type: 'error', text: 'Le mot de passe doit contenir au moins 6 caractères' });
+            return;
+        }
+
         if (formData.password !== formData.confirmPassword) {
             setMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' });
             return;

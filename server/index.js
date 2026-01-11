@@ -1,9 +1,12 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
 const { OAuth2Client } = require('google-auth-library');
+const nodemailer = require("nodemailer");
 
 const app = express();
+
 const PORT = 3000;
 const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.apps.googleusercontent.com");
 const cors = require("cors");
@@ -245,6 +248,172 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
+// Forgot Password - Send Code
+app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+        const { email } = req.body;
+        const normalizedEmail = email.trim();
+        const emailRegex = new RegExp(`^${normalizedEmail}$`, 'i');
+
+        let user = await User.findOne({ email: { $regex: emailRegex } });
+        let isGeneralAdmin = false;
+        let settings = null;
+
+        if (!user) {
+            // Check if it's the admin email in settings
+            settings = await GeneralSettings.findOne();
+            if (settings && settings.adminEmail && emailRegex.test(settings.adminEmail)) {
+                isGeneralAdmin = true;
+            } else {
+                return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+            }
+        }
+
+        // Generate 8 digit code
+        const resetCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+        const expires = Date.now() + 60000; // 1 minute
+
+        if (isGeneralAdmin && settings) {
+            settings.resetCode = resetCode;
+            settings.resetCodeExpires = expires;
+            await settings.save();
+        } else if (user) {
+            user.resetCode = resetCode;
+            user.resetCodeExpires = expires;
+            await user.save();
+        }
+
+        // Send Email (Mocking if no creds, but structure is here)
+        // Note: For this to actually work, valid credentials are needed in transporter
+        // Send Email
+        // Send Email using Settings
+        // Ensure settings are loaded (fetched earlier in logic)
+        if (!settings) settings = await GeneralSettings.findOne();
+
+        const senderEmail = settings?.senderEmail || 'kmejri57@gmail.com';
+        const senderPassword = settings?.senderPassword || 'msncmujsbjqnszxp';
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: senderEmail,
+                pass: senderPassword
+            }
+        });
+
+        const mailOptions = {
+            from: senderEmail,
+            to: email,
+            subject: 'Code de réinitialisation de mot de passe',
+            text: `Votre code de réinitialisation est : ${resetCode}. Il expire dans 1 minute.`
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Email sent to ${email}`);
+        } catch (emailError) {
+            console.log("Email error:", emailError.message);
+            console.log("FALLBACK CODE:", resetCode);
+        }
+
+        // Always log for development as requested
+        console.log(`SIMULATION EMAIL: Code sent to ${email}: ${resetCode}`);
+
+        res.status(200).json({ success: true, message: "Code envoyé (vérifiez votre email)" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Verify Code
+app.post("/api/auth/verify-code", async (req, res) => {
+    try {
+        const { email, code } = req.body;
+        const normalizedEmail = email.trim();
+        const emailRegex = new RegExp(`^${normalizedEmail}$`, 'i');
+
+        // Check User
+        let target = await User.findOne({ email: { $regex: emailRegex } });
+
+        // If not user, Check Admin Settings
+        if (!target) {
+            const settings = await GeneralSettings.findOne();
+            if (settings && settings.adminEmail && emailRegex.test(settings.adminEmail)) {
+                target = settings;
+            }
+        }
+
+        if (!target) {
+            return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+
+        if (target.resetCode !== code) {
+            return res.status(400).json({ success: false, message: "Code incorrect" });
+        }
+
+        if (Date.now() > target.resetCodeExpires) {
+            return res.status(400).json({ success: false, message: "Le code a expiré" });
+        }
+
+        res.status(200).json({ success: true, message: "Code valide" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Reset Password
+app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: "Le mot de passe doit contenir au moins 6 caractères" });
+        }
+
+        const normalizedEmail = email.trim();
+        const emailRegex = new RegExp(`^${normalizedEmail}$`, 'i');
+
+        // Check User
+        let user = await User.findOne({ email: { $regex: emailRegex } });
+        let isGeneralAdmin = false;
+        let settings = null;
+
+        if (!user) {
+            // Check Admin
+            settings = await GeneralSettings.findOne();
+            if (settings && settings.adminEmail && emailRegex.test(settings.adminEmail)) {
+                isGeneralAdmin = true;
+            } else {
+                return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+            }
+        }
+
+        const target = isGeneralAdmin ? settings : user;
+
+        if (target.resetCode !== code || Date.now() > target.resetCodeExpires) {
+            return res.status(400).json({ success: false, message: "Code invalide ou expiré" });
+        }
+
+        if (isGeneralAdmin) {
+            target.adminPassword = newPassword;
+        } else {
+            target.password = newPassword;
+        }
+
+        target.resetCode = undefined;
+        target.resetCodeExpires = undefined;
+        await target.save();
+
+        res.status(200).json({ success: true, message: "Mot de passe modifié avec succès" });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+
 // Google Login Endpoint
 app.post("/api/google-login", async (req, res) => {
     try {
@@ -438,6 +607,25 @@ const getSafeSettings = async () => {
                     await settings.save();
                 }
             }
+
+
+
+            // Verify categories aren't strings
+            if (settings.categories && Array.isArray(settings.categories)) {
+                let changed = false;
+                const fixed = settings.categories.map(c => {
+                    if (typeof c === 'string') {
+                        changed = true;
+                        return { name: c, icon: '' };
+                    }
+                    return c;
+                });
+                if (changed) {
+                    settings.categories = fixed;
+                    await settings.save();
+                }
+            }
+
             return settings;
         }
     } catch (err) {
@@ -450,6 +638,14 @@ const getSafeSettings = async () => {
                     typeof m === 'string' ? { name: m, logo: '' } : m
                 );
             }
+
+            // Fix categories
+            if (rawSettings.categories && Array.isArray(rawSettings.categories)) {
+                rawSettings.categories = rawSettings.categories.map(c =>
+                    typeof c === 'string' ? { name: c, icon: '' } : c
+                );
+            }
+
             // Fix deviceChoices (schema expects array of strings, but let's check)
             if (rawSettings.deviceChoices) {
                 rawSettings.deviceChoices = Array.isArray(rawSettings.deviceChoices) ? rawSettings.deviceChoices : [];
@@ -692,38 +888,187 @@ app.delete("/api/reviews/:id", async (req, res) => {
 });
 
 // Search Endpoint
+// Search Endpoint
 app.get("/api/search", async (req, res) => {
     try {
         const { q } = req.query;
-        if (!q || q.length < 2) {
-            return res.status(200).json({ categories: [], products: [] });
+        if (!q) {
+            return res.json({ success: true, data: { categories: [], products: [] } });
         }
 
-        // Fuzzy search regex: "sarng" -> /s.*a.*r.*n.*g/i
-        const fuzzyPattern = q.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*');
-        const regex = new RegExp(fuzzyPattern, "i");
+        const searchTerm = q.trim();
 
-        // Search Categories
-        const settings = await getSafeSettings();
-        const categories = (settings.categories || []).filter(cat =>
-            regex.test(typeof cat === 'object' ? cat.name : cat)
-        );
+        // Escape special regex chars
+        const escapeRegex = (string) => {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        };
 
-        // Search Products
-        const products = await Product.find({
+        // 1. Create a "Space/Char-Insensitive" Regex
+        // Matches "Orca promax" against "Orca - Pro Max" or "Orca.Pro.Max"
+        const cleanTerm = searchTerm.replace(/\s+/g, '');
+        const escapedCleanTerm = escapeRegex(cleanTerm);
+        // matches zero or more whitespace OR non-word characters (like - . /)
+        const loosePattern = escapedCleanTerm.split('').join('[\\s\\W]*');
+        const searchRegex = new RegExp(loosePattern, 'i');
+
+        // Also keep exact term for scoring
+        const exactTermLower = searchTerm.toLowerCase();
+
+        // Fetch products matching regex
+        let products = await Product.find({
             $or: [
-                { name: { $regex: regex } },
-                { description: { $regex: regex } },
-                { category: { $regex: regex } }
+                { name: { $regex: searchRegex } },
+                { description: { $regex: searchRegex } },
+                { category: { $regex: searchRegex } }
             ]
-        }).limit(5);
+        });
 
-        res.status(200).json({ success: true, categories, products });
+        // 1. Filter and Score Products
+        products = products.map(p => {
+            const nameLower = p.name ? p.name.toLowerCase() : "";
+            let score = 0;
+
+            // Tier 1: Exact Phrase Match (User input exactly inside name)
+            if (nameLower.includes(exactTermLower)) {
+                score += 1000;
+            }
+            // Tier 2: Contiguous Regex Match in Name
+            else if (searchRegex.test(p.name)) {
+                score += 500;
+            }
+            // Tier 3: Description/Category Match Only
+            else {
+                score += 100;
+            }
+
+            return { product: p, score, length: nameLower.length };
+        });
+
+        // Sort: Score DESC, then Length DESC
+        products.sort((a, b) => {
+            if (a.score !== b.score) {
+                return b.score - a.score;
+            }
+            return b.length - a.length;
+        });
+
+        // Limit results (after sort)
+        const sortedProducts = products.map(item => item.product).slice(0, 10);
+
+        // Fetch settings for categories logic search (standard)
+        const settings = await getSafeSettings();
+        const allCategories = settings ? settings.categories : [];
+        const matchedCategories = new Set();
+
+        // Add categories from products
+        sortedProducts.forEach(p => {
+            if (p.category) matchedCategories.add(p.category);
+        });
+
+        // Add matching categories from settings
+        const fuzzyPattern = searchTerm.split('').join('.*');
+        const catRegex = new RegExp(fuzzyPattern, 'i');
+
+        allCategories.forEach(cat => {
+            const catName = typeof cat === 'object' ? cat.name : cat;
+            if (catName && catRegex.test(catName)) {
+                matchedCategories.add(catName);
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            categories: Array.from(matchedCategories),
+            products: sortedProducts
+        });
+
     } catch (error) {
         console.error("Search API Error:", error);
         res.status(500).json({ success: false, message: "Search failed" });
     }
 });
+
+
+
+
+app.get('/share/produit/:category/:slug', async (req, res) => {
+    try {
+        const { category, slug } = req.params;
+        const userAgent = req.get('User-Agent') || '';
+        // Expanded bot list
+        const isBot = /facebook|facebot|externalhit|twitterbot|pinterest|linkedinbot|whatsapp|telegram|discord|googlebot|bingbot|yandex|slackbot|applebot/i.test(userAgent);
+
+        console.log(`[SHARE DEBUG] Slug=${slug}, UA=${userAgent}, IsBot=${isBot}`);
+
+        // Find by slug only for reliability (slugs are unique)
+        const product = await Product.findOne({ slug: slug });
+
+        if (!product) {
+            console.log("[SHARE DEBUG] Product not found");
+            return res.status(404).send('<h1>Produit introuvable</h1>');
+        }
+
+        const realProductUrl = `https://satpromax.com/produit/${encodeURIComponent(category)}/${slug}`;
+        const shareApiUrl = `https://api.satpromax.com/share/produit/${encodeURIComponent(category)}/${slug}`;
+
+        let imageUrl = product.image || '';
+        if (imageUrl && !imageUrl.startsWith('http')) {
+            imageUrl = `https://satpromax.com${imageUrl}`;
+        }
+
+        // Clean description
+        const cleanDesc = product.description
+            ? product.description.replace(/<[^>]*>?/gm, '').substring(0, 200)
+            : `Découvrez ${product.name} sur SatProMax`;
+
+        res.set('Content-Type', 'text/html');
+        res.send(`<!DOCTYPE html>
+<html lang="fr" prefix="og: http://ogp.me/ns#">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <title>${product.name}</title>
+    
+    <!-- Open Graph Data -->
+    <meta property="og:title" content="${product.name}" />
+    <meta property="og:type" content="product" />
+    <meta property="og:url" content="${shareApiUrl}" />
+    <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image:width" content="600" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:description" content="${cleanDesc}" />
+    <meta property="og:site_name" content="SatProMax" />
+    <meta property="fb:app_id" content="966242223397117" />
+    
+    <!-- Twitter Card Data -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${product.name}" />
+    <meta name="twitter:description" content="${cleanDesc}" />
+    <meta name="twitter:image" content="${imageUrl}" />
+
+    ${!isBot ? `<meta http-equiv="refresh" content="0; url=${realProductUrl}" />` : ''}
+</head>
+<body>
+    ${isBot
+                ? `<h1>${product.name}</h1><img src="${imageUrl}" alt="${product.name}" /><p>${cleanDesc}</p>`
+                : '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;">Redirection en cours...</div>'
+            }
+    
+    <script>
+        ${!isBot ? `window.location.replace("${realProductUrl}");` : ''}
+    </script>
+</body>
+</html>`);
+
+    } catch (error) {
+        console.error("[SHARE ERROR]", error);
+        res.status(500).send("Server Error");
+    }
+});
+
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

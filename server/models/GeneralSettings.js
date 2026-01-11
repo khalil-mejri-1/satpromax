@@ -31,7 +31,11 @@ const GeneralSettingsSchema = new mongoose.Schema({
     },
     productTitleColor: { type: String, default: '#ffffff' },
     adminEmail: { type: String, default: 'ferid123@admin.test' },
-    adminPassword: { type: String, default: '123456' }
+    adminPassword: { type: String, default: '123456' },
+    senderEmail: { type: String, default: 'kmejri57@gmail.com' },
+    senderPassword: { type: String, default: 'msncmujsbjqnszxp' },
+    resetCode: String,
+    resetCodeExpires: Date
 }, { timestamps: true });
 
 // Ensure only one document exists usually

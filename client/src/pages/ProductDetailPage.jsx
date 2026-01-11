@@ -260,16 +260,26 @@ export default function ProductDetailPage() {
     };
 
     // Share handlers
+    // Share handlers
+    // Use public API domain for sharing so Facebook hits the Node server (not React frontend)
+    const shareUrl = product ? `https://api.satpromax.com/share/produit/${encodeURIComponent(product.category)}/${product.slug}` : "";
+
     const shareOnFacebook = () => {
-        const url = window.location.href;
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        window.open(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+            '_blank',
+            'width=600,height=500,scrollbars=yes,resizable=yes'
+        );
     };
 
     const shareOnTelegram = () => {
-        const url = window.location.href;
-        const text = `Découvrez ${product?.name} sur satpromax !`;
-        window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
+        const text = `Découvrez ${product.name} sur SatProMax !`;
+        window.open(
+            `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`,
+            '_blank'
+        );
     };
+
 
     // Compare handlers
     const handleCompare = () => {
@@ -457,7 +467,19 @@ export default function ProductDetailPage() {
         // Calculate total
         const rawPrice = product.price ? String(product.price) : '0';
         const productPrice = parseInt(rawPrice.replace(/[^0-9]/g, '')) || 0;
-        const totalAmount = (productPrice * quantity) + 7; // +7 Shipping
+
+
+        let shippingCost = 0;
+        if (product.hasDelivery && product.deliveryPrice) {
+            shippingCost = parseInt(String(product.deliveryPrice).replace(/[^0-9]/g, '')) || 0;
+        } else if (!product.hasOwnProperty('hasDelivery')) {
+            // Fallback for old products or logic if needed, but per request if not selected, don't add it.
+            // However, previously it was fixed +7. Let's assume if hasDelivery is undefined for old items, maybe keep 7 or 0? 
+            // The user said "if I don't select ... do not add it". So default should be 0.
+            shippingCost = 0;
+        }
+
+        const totalAmount = (productPrice * quantity) + shippingCost;
 
         const orderData = {
             userId: user ? (user._id || user.id) : null,
@@ -630,6 +652,25 @@ export default function ProductDetailPage() {
                             <div className="detail-price">
                                 {product.price}
                             </div>
+
+                            {/* {product.hasDelivery && product.deliveryPrice && (
+                                <div style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: '#ecfdf5',
+                                    color: '#059669',
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    marginBottom: '20px',
+                                    border: '1px solid #a7f3d0'
+                                }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                                    Livraison: {product.deliveryPrice}
+                                </div>
+                            )} */}
 
                             {isIPTVCategory && product.downloadLink && (
                                 <button
@@ -842,13 +883,26 @@ export default function ProductDetailPage() {
                                         <span>Prix des produits</span>
                                         <span>{product.price}</span>
                                     </div>
-                                    <div className="summary-row">
-                                        <span>Livraison</span>
-                                        <span>7 DT</span>
-                                    </div>
+                                    {product.hasDelivery && product.deliveryPrice && (
+                                        <div className="summary-row">
+                                            <span>Livraison</span>
+                                            <span>{product.deliveryPrice}</span>
+                                        </div>
+                                    )}
                                     <div className="summary-row total">
                                         <span>Total</span>
-                                        <span>{(parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) + 7} DT</span>
+                                        <span>
+                                            {
+                                                (
+                                                    (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
+                                                    (
+                                                        (product.hasDelivery && product.deliveryPrice)
+                                                            ? (parseInt(String(product.deliveryPrice).replace(/[^0-9]/g, '')) || 0)
+                                                            : 0
+                                                    )
+                                                )
+                                            } DT
+                                        </span>
                                     </div>
                                 </div>
 
