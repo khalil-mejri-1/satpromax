@@ -1280,11 +1280,11 @@
 
 .search-dropdown-container {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 3px);
     left: 0;
     width: 100%;
     background: white;
-    border-radius: 8px;
+    border-radius: 0 0 12px 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     border: 1px solid #f1f5f9;
     z-index: 10000;
@@ -1341,7 +1341,7 @@
 @media (max-width: 591px) {
     .search-dropdown-container {
         position: absolute;
-        top: calc(100% + 15px);
+        top: calc(100%);
         left: 0;
         width: 100%;
         border-radius: 0 0 12px 12px;
