@@ -131,7 +131,7 @@ export default function Header() {
             }
             try {
                 setIsSearching(true);
-                const res = await fetch(`http://localhost:3000/api/search?q=${searchTerm}`);
+                const res = await fetch(`https://satpromax.com/api/search?q=${searchTerm}`);
                 const data = await res.json();
                 if (data.success) {
                     setSearchResults({ categories: data.categories || [], products: data.products || [] });
@@ -166,7 +166,7 @@ export default function Header() {
         }
 
         // Fetch dynamic settings (Categories handled by Context now)
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {

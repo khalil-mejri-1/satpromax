@@ -15,7 +15,7 @@ const ContactUs = () => {
     const [status, setStatus] = useState(null);
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -32,7 +32,7 @@ const ContactUs = () => {
         setSubmitting(true);
         setStatus(null);
         try {
-            const res = await fetch('http://localhost:3000/api/contact-messages', {
+            const res = await fetch('https://satpromax.com/api/contact-messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

@@ -308,7 +308,7 @@ const PromoManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/products')
+        fetch('https://satpromax.com/api/products')
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -370,7 +370,7 @@ const PromoManager = () => {
         };
 
         try {
-            const response = await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
+            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -569,7 +569,7 @@ const ProductsManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/products')
+        fetch('https://satpromax.com/api/products')
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -590,7 +590,7 @@ const ProductsManager = () => {
 
     useEffect(() => {
         fetchProducts();
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -675,7 +675,7 @@ const ProductsManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        let url = 'http://localhost:3000/api/products';
+        let url = 'https://satpromax.com/api/products';
         let method = 'POST';
 
         if (modalType === 'edit') {
@@ -714,7 +714,7 @@ const ProductsManager = () => {
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
+            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -733,7 +733,7 @@ const ProductsManager = () => {
 
     const handleToggleStock = async (product) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/products/${product._id}`, {
+            const response = await fetch(`https://satpromax.com/api/products/${product._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inStock: !product.inStock })
@@ -1232,7 +1232,7 @@ const OrdersManager = () => {
 
     const fetchOrders = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/orders')
+        fetch('https://satpromax.com/api/orders')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1253,8 +1253,8 @@ const OrdersManager = () => {
     const handleConfirmDelete = async () => {
         try {
             const url = deleteModal.type === 'all'
-                ? 'http://localhost:3000/api/orders'
-                : `http://localhost:3000/api/orders/${deleteModal.targetId}`;
+                ? 'https://satpromax.com/api/orders'
+                : `https://satpromax.com/api/orders/${deleteModal.targetId}`;
 
             const response = await fetch(url, {
                 method: 'DELETE'
@@ -1275,7 +1275,7 @@ const OrdersManager = () => {
 
     const handleStatusUpdate = async (newStatus) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/orders/${statusModal.orderId}/status`, {
+            const response = await fetch(`https://satpromax.com/api/orders/${statusModal.orderId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -1568,7 +1568,7 @@ const ClientsManager = () => {
 
     const fetchUsers = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/users')
+        fetch('https://satpromax.com/api/users')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1603,7 +1603,7 @@ const ClientsManager = () => {
         const newRole = user.role === 'admin' ? 'client' : 'admin';
 
         try {
-            const response = await fetch(`http://localhost:3000/api/users/${user._id}/role`, {
+            const response = await fetch(`https://satpromax.com/api/users/${user._id}/role`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role: newRole })
@@ -1771,7 +1771,7 @@ const HomeManager = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -1815,7 +1815,7 @@ const HomeManager = () => {
                 ...footerData
             };
 
-            const response = await fetch('http://localhost:3000/api/settings', {
+            const response = await fetch('https://satpromax.com/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -2227,7 +2227,7 @@ const CategoryManager = () => {
 
     const fetchSettings = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -2250,7 +2250,7 @@ const CategoryManager = () => {
         if (!newCategory.name.trim()) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/settings/categories', {
+            const response = await fetch('https://satpromax.com/api/settings/categories', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCategory)
@@ -2271,7 +2271,7 @@ const CategoryManager = () => {
 
     const handleDeleteCategory = async (categoryName) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/categories/${encodeURIComponent(categoryName)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(categoryName)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2291,7 +2291,7 @@ const CategoryManager = () => {
         if (!newName.trim()) return;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/categories/${encodeURIComponent(oldName)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(oldName)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2513,7 +2513,7 @@ const SettingsManager = () => {
 
     const fetchSettings = () => {
         setLoading(true);
-        fetch('http://localhost:3000/api/settings')
+        fetch('https://satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -2536,7 +2536,7 @@ const SettingsManager = () => {
         if (!newMode.name.trim()) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/settings/payment-modes', {
+            const response = await fetch('https://satpromax.com/api/settings/payment-modes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newMode.name.trim(), logo: newMode.logo.trim() })
@@ -2556,7 +2556,7 @@ const SettingsManager = () => {
 
     const handleDeleteMode = async (mode) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2577,7 +2577,7 @@ const SettingsManager = () => {
         if (!newChoice.trim()) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/settings/device-choices', {
+            const response = await fetch('https://satpromax.com/api/settings/device-choices', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ choice: newChoice.trim() })
@@ -2597,7 +2597,7 @@ const SettingsManager = () => {
 
     const handleDeleteChoice = async (choice) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/device-choices/${encodeURIComponent(choice)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/device-choices/${encodeURIComponent(choice)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2617,7 +2617,7 @@ const SettingsManager = () => {
         e.preventDefault();
         if (!newResolution.name.trim()) return;
         try {
-            const response = await fetch('http://localhost:3000/api/settings/resolutions', {
+            const response = await fetch('https://satpromax.com/api/settings/resolutions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newResolution.name.trim(), image: newResolution.image.trim() })
@@ -2637,7 +2637,7 @@ const SettingsManager = () => {
 
     const handleDeleteResolution = async (name) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/resolutions/${encodeURIComponent(name)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/resolutions/${encodeURIComponent(name)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2657,7 +2657,7 @@ const SettingsManager = () => {
         e.preventDefault();
         if (!newRegion.name.trim()) return;
         try {
-            const response = await fetch('http://localhost:3000/api/settings/regions', {
+            const response = await fetch('https://satpromax.com/api/settings/regions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newRegion.name.trim(), image: newRegion.image.trim() })
@@ -2677,7 +2677,7 @@ const SettingsManager = () => {
 
     const handleDeleteRegion = async (name) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/settings/regions/${encodeURIComponent(name)}`, {
+            const response = await fetch(`https://satpromax.com/api/settings/regions/${encodeURIComponent(name)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2820,7 +2820,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('http://localhost:3000/api/settings', {
+                                const res = await fetch('https://satpromax.com/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -2865,7 +2865,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('http://localhost:3000/api/settings', {
+                                const res = await fetch('https://satpromax.com/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ whatsappNumber: settings.whatsappNumber })
@@ -2907,7 +2907,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('http://localhost:3000/api/settings', {
+                                const res = await fetch('https://satpromax.com/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ productTitleColor: settings.productTitleColor })
@@ -3226,13 +3226,13 @@ const GuidesManager = () => {
     const fetchGuides = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/api/guides');
+            const res = await fetch('https://satpromax.com/api/guides');
             const data = await res.json();
             if (data.success) {
                 setGuides(data.data);
             }
             // Fetch page settings
-            const settingsRes = await fetch('http://localhost:3000/api/settings');
+            const settingsRes = await fetch('https://satpromax.com/api/settings');
             const settingsData = await settingsRes.json();
             if (settingsData.success) {
                 setPageSettings({
@@ -3249,7 +3249,7 @@ const GuidesManager = () => {
 
     const handleSavePageSettings = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/settings', {
+            const res = await fetch('https://satpromax.com/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pageSettings)
@@ -3273,8 +3273,8 @@ const GuidesManager = () => {
         e.preventDefault();
         const method = editingGuide ? 'PUT' : 'POST';
         const url = editingGuide
-            ? `http://localhost:3000/api/guides/${editingGuide._id}`
-            : 'http://localhost:3000/api/guides';
+            ? `https://satpromax.com/api/guides/${editingGuide._id}`
+            : 'https://satpromax.com/api/guides';
 
         try {
             const res = await fetch(url, {
@@ -3300,7 +3300,7 @@ const GuidesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Voulez-vous vraiment supprimer cet article ?")) return;
         try {
-            const res = await fetch(`http://localhost:3000/api/guides/${id}`, { method: 'DELETE' });
+            const res = await fetch(`https://satpromax.com/api/guides/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification("Article supprimé", "success");
@@ -3566,7 +3566,7 @@ const ReviewsManager = () => {
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/reviews');
+            const response = await fetch('https://satpromax.com/api/reviews');
             const data = await response.json();
             if (data.success) {
                 setReviews(data.data);
@@ -3584,7 +3584,7 @@ const ReviewsManager = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/reviews/${id}`, {
+            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -3606,7 +3606,7 @@ const ReviewsManager = () => {
     const confirmDelete = async () => {
         const id = deleteModal.id;
         try {
-            const response = await fetch(`http://localhost:3000/api/reviews/${id}`, {
+            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -3796,7 +3796,7 @@ const GuideInquiriesManager = () => {
     const fetchInquiries = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/guide-inquiries');
+            const response = await fetch('https://satpromax.com/api/guide-inquiries');
             const data = await response.json();
             if (data.success) {
                 setInquiries(data.data);
@@ -3815,7 +3815,7 @@ const GuideInquiriesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer cette question ?")) return;
         try {
-            const response = await fetch(`http://localhost:3000/api/guide-inquiries/${id}`, {
+            const response = await fetch(`https://satpromax.com/api/guide-inquiries/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -4014,7 +4014,7 @@ const ContactMessagesManager = () => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/api/contact-messages');
+            const res = await fetch('https://satpromax.com/api/contact-messages');
             const data = await res.json();
             if (data.success) {
                 setMessages(data.data);
@@ -4033,7 +4033,7 @@ const ContactMessagesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer ce message ?")) return;
         try {
-            const res = await fetch(`http://localhost:3000/api/contact-messages/${id}`, {
+            const res = await fetch(`https://satpromax.com/api/contact-messages/${id}`, {
                 method: 'DELETE'
             });
             const data = await res.json();

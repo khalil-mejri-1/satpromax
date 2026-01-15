@@ -14,14 +14,14 @@ const GuideInstallation = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('http://localhost:3000/api/settings');
+                const settingsRes = await fetch('https://satpromax.com/api/settings');
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guides
-                const guidesRes = await fetch('http://localhost:3000/api/guides');
+                const guidesRes = await fetch('https://satpromax.com/api/guides');
                 const guidesData = await guidesRes.json();
                 if (guidesData.success) {
                     setGuides(guidesData.data);

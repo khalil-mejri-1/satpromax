@@ -14,14 +14,14 @@ const GuideDetailPage = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('http://localhost:3000/api/settings');
+                const settingsRes = await fetch('https://satpromax.com/api/settings');
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guide
-                const guideRes = await fetch(`http://localhost:3000/api/guides/slug/${slug}`);
+                const guideRes = await fetch(`https://satpromax.com/api/guides/slug/${slug}`);
                 const guideData = await guideRes.json();
                 if (guideData.success) {
                     setGuide(guideData.data);
@@ -133,7 +133,7 @@ const ArticleContactForm = ({ articleTitle, articleSlug }) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const res = await fetch('http://localhost:3000/api/guide-inquiries', {
+            const res = await fetch('https://satpromax.com/api/guide-inquiries', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, articleTitle, articleSlug })

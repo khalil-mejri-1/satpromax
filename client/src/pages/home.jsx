@@ -16,9 +16,9 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch Products
-    const fetchProducts = fetch('http://localhost:3000/api/products').then(res => res.json());
+    const fetchProducts = fetch('https://satpromax.com/api/products').then(res => res.json());
     // Fetch Settings (Categories & Promos)
-    const fetchSettings = fetch('http://localhost:3000/api/settings').then(res => res.json());
+    const fetchSettings = fetch('https://satpromax.com/api/settings').then(res => res.json());
 
     Promise.all([fetchProducts, fetchSettings])
       .then(([productsData, settingsData]) => {

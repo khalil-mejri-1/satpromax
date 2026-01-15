@@ -264,7 +264,7 @@ export default function ProductsPage() {
                 // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = 'http://localhost:3000/api/products';
+                let url = 'https://satpromax.com/api/products';
                 if (dbCategory && normalizedCategory !== 'promotions') {
                     url += `?category=${encodeURIComponent(dbCategory)}`;
                 } else if (categoryName && normalizedCategory !== 'promotions') {
