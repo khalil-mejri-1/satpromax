@@ -15,7 +15,7 @@ const ProfilePage = () => {
             setUser(parsedUser);
 
             // Fetch User Orders
-            fetch(`https://satpromax.com/api/orders/user/${parsedUser.id || parsedUser._id}`)
+            fetch(`http://localhost:3000/api/orders/user/${parsedUser.id || parsedUser._id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {

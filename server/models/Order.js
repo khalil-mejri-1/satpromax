@@ -17,7 +17,8 @@ const orderSchema = new mongoose.Schema({
         quantity: Number,
         price: String,
         image: String,
-        deviceChoice: String
+        deviceChoice: String,
+        receiverSerial: String
     }],
     totalAmount: Number,
     status: {

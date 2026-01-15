@@ -119,7 +119,20 @@ export default function ProductSection({ title, products = [], loading = false, 
                                     <div className="product-info">
                                         <div className="product-cat-tag">{product.category}</div>
                                         <h3 className="product-name">{product.name}</h3>
-                                        <div className="product-price">{product.price}</div>
+                                        <div className="product-price">
+                                            {isPromoActive ? (
+                                                <>
+                                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px' }}>
+                                                        {product.price}
+                                                    </span>
+                                                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                                                        {product.promoPrice}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                product.price
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="card-actions-overlay">

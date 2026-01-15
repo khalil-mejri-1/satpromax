@@ -8,6 +8,9 @@ import CheckoutPage from "./pages/CheckoutPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import GuideInstallation from "./pages/GuideInstallation.jsx";
+import GuideDetailPage from "./pages/GuideDetailPage.jsx";
+import ContactUs from "./pages/ContactUs.jsx";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 
 import { ShopContextProvider } from "./context/ShopContext.jsx";
@@ -44,6 +47,9 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/guide-installation" element={<GuideInstallation />} />
+            <Route path="/guide-installation/:slug" element={<GuideDetailPage />} />
+            <Route path="/contact" element={<ContactUs />} />
 
             <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
 import './Footer.css';
 
 export default function Footer() {
     const [settings, setSettings] = useState(null);
 
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -38,10 +40,18 @@ export default function Footer() {
                     settings?.footerColumn3 || { title: 'Cartes Cadeaux', links: ['Voucher Rewarble', 'Carte iTunes'] }
                 ].map((col, idx) => (
                     <div className="footer-col" key={idx}>
-                        <h3>{col.title}</h3>
+                        <h3>
+                            <Link to={`/category/${slugify(col.title)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                {col.title}
+                            </Link>
+                        </h3>
                         <ul>
                             {col.links && col.links.map((link, i) => (
-                                <li key={i}><a >{link}</a></li>
+                                <li key={i}>
+                                    <Link to={`/produit/${slugify(col.title)}/${slugify(link)}`}>
+                                        {link}
+                                    </Link>
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -50,7 +60,30 @@ export default function Footer() {
                 <div className="footer-col contact-col">
                     <span>Vous avez une question ?</span>
                     <div className="phone-number">{footerPhone}</div>
-                    <button className="btn btn-yellow contact-btn" onClick={handleWhatsAppClick}>Contactez-nous à tout moment !</button>
+
+                    <div className="social-icons">
+                        <a href={settings?.facebookUrl || "https://www.facebook.com"} target="_blank" rel="noopener noreferrer" className="social-icon facebook" title="Facebook">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="none">
+                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                            </svg>
+                        </a>
+                        <a href={settings?.telegramUrl || "https://t.me/"} target="_blank" rel="noopener noreferrer" className="social-icon telegram" title="Telegram">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" stroke="none">
+                                <path d="M21.816 2.466c.219-.574-.216-1.124-.816-.925L2.5 9.172c-.6.2-1.15.748-.95 1.348.2 1.35 1.5 2 2.5 2.5l3.5 1.5 1.5 4a1.002 1.002 0 0 0 1.642.616l2.358-2.358 4 3c.5.3 1 .1 1.2-.4l4-15a1 1 0 0 0 .016-1.812z" />
+                            </svg>
+                        </a>
+                        {settings?.socialLinks && settings.socialLinks.map((link, i) => (
+                            <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="social-icon" title={link.name}>
+                                {link.icon && link.icon.startsWith('http') ? (
+                                    <img src={link.icon} alt={link.name} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                ) : (
+                                    <span>●</span> // Fallback
+                                )}
+                            </a>
+                        ))}
+                    </div>
+
+                    <Link to="/contact" className="btn btn-yellow contact-btn" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>Contactez-nous à tout moment !</Link>
                 </div>
             </div>
 
@@ -67,3 +100,4 @@ export default function Footer() {
         </footer>
     )
 }
+

@@ -24,7 +24,29 @@ export const ShopContextProvider = ({ children }) => {
         }
     });
 
-    // Remove the separate useEffect for loading, as we now lazy initialize
+    // Categories State
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
+    const fetchCategories = () => {
+        setLoadingCategories(true);
+        fetch('http://localhost:3000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data && data.data.categories) {
+                    setCategories(data.data.categories);
+                }
+                setLoadingCategories(false);
+            })
+            .catch(err => {
+                console.error("Error fetching categories:", err);
+                setLoadingCategories(false);
+            });
+    };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     // Save to local storage whenever cart or wishlist changes
     // We can merge these or keep separate. 
@@ -141,6 +163,9 @@ export const ShopContextProvider = ({ children }) => {
     const contextValue = {
         cartItems,
         wishlistItems,
+        categories,
+        loadingCategories,
+        fetchCategories,
         addToCart,
         removeFromCart,
         updateCartItemQuantity,

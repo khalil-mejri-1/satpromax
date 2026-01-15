@@ -219,6 +219,7 @@ export default function ProductDetailPage() {
     const [similarProducts, setSimilarProducts] = useState([]);
     const [deviceChoices, setDeviceChoices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState('');
+    const [receiverSerial, setReceiverSerial] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
     const [activeImage, setActiveImage] = useState(null);
     const [settings, setSettings] = useState(null);
@@ -318,7 +319,7 @@ export default function ProductDetailPage() {
     // Fetch Similar Products
     useEffect(() => {
         if (product && product.category) {
-            fetch(`https://satpromax.com/api/products?category=${encodeURIComponent(product.category)}`)
+            fetch(`http://localhost:3000/api/products?category=${encodeURIComponent(product.category)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -332,7 +333,7 @@ export default function ProductDetailPage() {
 
     // Fetch Settings
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -382,7 +383,7 @@ export default function ProductDetailPage() {
 
                 try {
                     // Try fetch by slug first
-                    response = await fetch(`https://satpromax.com/api/products/slug/${category}/${slug}`);
+                    response = await fetch(`http://localhost:3000/api/products/slug/${category}/${slug}`);
                     data = await response.json();
                 } catch (e) {
                     console.log("DB Fetch failed");
@@ -397,7 +398,7 @@ export default function ProductDetailPage() {
 
                 // Temporary backward compatibility check for old IDs or direct names
                 if (slug.match(/^[0-9a-fA-F]{24}$/)) {
-                    response = await fetch(`https://satpromax.com/api/products/${slug}`);
+                    response = await fetch(`http://localhost:3000/api/products/${slug}`);
                     data = await response.json();
                     if (data.success) {
                         setProduct(data.data);
@@ -459,6 +460,11 @@ export default function ProductDetailPage() {
             return;
         }
 
+        if (isSharingCategory && !receiverSerial) {
+            setModal({ show: true, message: "Veuillez entrer le numéro de série de votre récepteur.", type: 'error' });
+            return;
+        }
+
         if (!billingInfo.whatsapp) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
@@ -495,14 +501,15 @@ export default function ProductDetailPage() {
                 quantity: quantity,
                 price: product.price,
                 image: product.image,
-                deviceChoice: isIPTVCategory ? selectedDevice : null
+                deviceChoice: isIPTVCategory ? selectedDevice : null,
+                receiverSerial: isSharingCategory ? receiverSerial : null
             }],
             totalAmount: totalAmount,
             paymentMethod: billingInfo.paymentMode || 'cod'
         };
 
         try {
-            const response = await fetch('https://satpromax.com/api/orders', {
+            const response = await fetch('http://localhost:3000/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
@@ -524,7 +531,9 @@ export default function ProductDetailPage() {
                     `Nom: ${billingInfo.name}\n` +
                     `Téléphone: ${billingInfo.whatsapp}\n` +
                     `Paiement: ${billingInfo.paymentMode || "COD"}\n` +
-                    `Appareil: ${isIPTVCategory ? selectedDevice : "N/A"}\n\n` +
+                    (isIPTVCategory ? `Appareil: ${selectedDevice || "N/A"}\n` : "") +
+                    (isSharingCategory ? `S/N Récepteur: ${receiverSerial || "N/A"}\n` : "") +
+                    `\n` +
                     `---------------------------\n\n` +
                     `Merci de confirmer cette commande.`;
 
@@ -566,6 +575,7 @@ export default function ProductDetailPage() {
 
     const currentCategory = categoryMapping[product.category] || { name: product.category, slug: product.category.toLowerCase().replace(/ /g, '-') };
     const isIPTVCategory = currentCategory.name === 'IPTV & Sharing' || product.category === 'IPTV Premium';
+    const isSharingCategory = product.category.toLowerCase().includes('sharing') || currentCategory.name.toLowerCase().includes('sharing');
 
     return (
         <div className="page-wrapper">
@@ -608,6 +618,11 @@ export default function ProductDetailPage() {
                             <div className="detail-image-wrapper">
                                 {/* Zoom Icon */}
                                 <div className="zoom-icon" onClick={() => setIsZoomOpen(true)}>⛶</div>
+                                {product.promoPrice && new Date(product.promoEndDate) > new Date() && (
+                                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '100px', height: '100px', zIndex: 5, pointerEvents: 'none' }}>
+                                        <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    </div>
+                                )}
                                 <img src={activeImage || product.image} alt={product.name} className="main-display-image" key={activeImage} />
                             </div>
 
@@ -647,10 +662,28 @@ export default function ProductDetailPage() {
                         )}
 
                         {/* Right: Info */}
+                        {/* Right: Info */}
                         <div className="product-info-section">
                             <h1 className="detail-title" style={{ color: settings?.productTitleColor || 'inherit' }}>{product.name}</h1>
-                            <div className="detail-price">
-                                {product.price}
+
+                            {product.promoPrice && new Date(product.promoEndDate) > new Date() ? (
+                                <div className="detail-price">
+                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600' }}>
+                                        {product.price}
+                                    </span>
+                                    <span style={{ color: '#ef4444' }}>
+                                        {product.promoPrice}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="detail-price">
+                                    {product.price}
+                                </div>
+                            )}
+
+                            <div className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`}>
+                                <div className="stock-dot"></div>
+                                {product.inStock !== false ? 'Disponible' : 'Épuisé'}
                             </div>
 
                             {/* {product.hasDelivery && product.deliveryPrice && (
@@ -672,39 +705,66 @@ export default function ProductDetailPage() {
                                 </div>
                             )} */}
 
-                            {isIPTVCategory && product.downloadLink && (
-                                <button
-                                    className="download-app-btn"
-                                    onClick={() => {
-                                        window.location.href = product.downloadLink;
-                                    }}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        padding: '12px 25px',
-                                        background: '#f1f5f9',
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: '12px',
-                                        color: '#0f172a',
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
-                                        marginBottom: '20px',
-                                        transition: 'all 0.2s',
-                                        width: 'fit-content'
-                                    }}
-                                >
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                        />
-                                    </svg>
-                                    Télécharger App
-                                </button>
+                            {isIPTVCategory && (
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                                    {product.downloadLink && (
+                                        <button
+                                            className="download-app-btn"
+                                            onClick={() => {
+                                                window.location.href = product.downloadLink;
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                padding: '12px 25px',
+                                                background: 'rgb(126, 34, 206)',
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '12px',
+                                                color: '#fff',
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                width: 'fit-content'
+                                            }}
+                                        >
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                                />
+                                            </svg>
+                                            Télécharger App
+                                        </button>
+                                    )}
+                                    <Link
+                                        to="/guide-installation"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            padding: '12px 25px',
+                                            background: '#fef3c7',
+                                            border: '1px solid #fde68a',
+                                            borderRadius: '12px',
+                                            color: '#92400e',
+                                            fontSize: '14px',
+                                            fontWeight: '700',
+                                            textDecoration: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            width: 'fit-content'
+                                        }}
+                                    >
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                        Guide d'installation
+                                    </Link>
+                                </div>
                             )}
 
                             {isIPTVCategory && (
@@ -760,6 +820,23 @@ export default function ProductDetailPage() {
                                 </div>
                             )}
 
+                            {isSharingCategory && (
+                                <div className="product-options">
+                                    <div className="option-row">
+                                        <label>{"Numéro de série du récepteur *"}</label>
+                                        <input
+                                            type="text"
+                                            className="option-select" // using same class for consistency
+                                            placeholder="S/N de votre récepteur"
+                                            value={receiverSerial}
+                                            onChange={(e) => setReceiverSerial(e.target.value)}
+                                            required
+                                            style={{ padding: '12px' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="add-to-cart-section">
                                 <div className="qty-input">
                                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
@@ -781,7 +858,15 @@ export default function ProductDetailPage() {
                                             setModal({ show: true, message: "Veuillez choisir votre appareil avant d'ajouter au panier.", type: 'error' });
                                             return;
                                         }
-                                        addToCart({ ...productWithId, selectedDevice: isIPTVCategory ? selectedDevice : null }, quantity);
+                                        if (isSharingCategory && !receiverSerial) {
+                                            setModal({ show: true, message: "Veuillez entrer le numéro de série de votre récepteur.", type: 'error' });
+                                            return;
+                                        }
+                                        addToCart({
+                                            ...productWithId,
+                                            selectedDevice: isIPTVCategory ? selectedDevice : null,
+                                            receiverSerial: isSharingCategory ? receiverSerial : null
+                                        }, quantity);
                                     }}
                                 >
                                     AJOUTER AU PANIER
@@ -893,14 +978,18 @@ export default function ProductDetailPage() {
                                         <span>Total</span>
                                         <span>
                                             {
-                                                (
-                                                    (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
-                                                    (
-                                                        (product.hasDelivery && product.deliveryPrice)
+                                                (() => {
+                                                    const total = (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
+                                                        ((product.hasDelivery && product.deliveryPrice)
                                                             ? (parseInt(String(product.deliveryPrice).replace(/[^0-9]/g, '')) || 0)
-                                                            : 0
-                                                    )
-                                                )
+                                                            : 0);
+
+                                                    const totalStr = String(total);
+                                                    if (totalStr.length > 3) {
+                                                        return totalStr.slice(0, -3) + '.' + totalStr.slice(-3);
+                                                    }
+                                                    return totalStr;
+                                                })()
                                             } DT
                                         </span>
                                     </div>

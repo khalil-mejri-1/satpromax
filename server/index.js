@@ -17,6 +17,9 @@ const User = require("./models/User");
 const Order = require("./models/Order");
 const GeneralSettings = require("./models/GeneralSettings");
 const Review = require("./models/Review");
+const Guide = require("./models/Guide");
+const GuideInquiry = require("./models/GuideInquiry");
+const ContactMessage = require("./models/ContactMessage");
 
 app.use(express.json());
 app.use(cors());
@@ -94,7 +97,10 @@ app.get("/api/products", async (req, res) => {
         let query = {};
 
         if (category) {
-            query.category = category;
+            // Use case-insensitive regex for category matching to handle slug/casing mismatches
+            // Escape special regex characters just in case
+            const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.category = { $regex: new RegExp(`^${escapedCategory}$`, 'i') };
         }
 
         const products = await Product.find(query);
@@ -504,8 +510,10 @@ app.post("/api/orders", async (req, res) => {
             return res.status(400).json({ success: false, message: "Données de commande invalides" });
         }
 
+        const validUserId = (userId === "admin" || !userId) ? null : userId;
+
         const newOrder = new Order({
-            userId,
+            userId: validUserId,
             userValidation,
             items,
             totalAmount,
@@ -523,7 +531,14 @@ app.post("/api/orders", async (req, res) => {
 // Get User Orders
 app.get("/api/orders/user/:userId", async (req, res) => {
     try {
-        const orders = await Order.find({ userId: req.params.userId }).sort({ createdAt: -1 });
+        const { userId } = req.params;
+
+        // If it's the special 'admin' ID or not a valid MongoDB ObjectId, it won't have orders linked this way
+        if (userId === "admin" || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(200).json({ success: true, count: 0, data: [] });
+        }
+
+        const orders = await Order.find({ userId }).sort({ createdAt: -1 });
         res.status(200).json({ success: true, count: orders.length, data: orders });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -616,7 +631,11 @@ const getSafeSettings = async () => {
                 const fixed = settings.categories.map(c => {
                     if (typeof c === 'string') {
                         changed = true;
-                        return { name: c, icon: '' };
+                        return { name: c, icon: '', slug: slugify(c), title: '', description: '' };
+                    }
+                    if (!c.slug) {
+                        changed = true;
+                        c.slug = slugify(c.name);
                     }
                     return c;
                 });
@@ -664,13 +683,13 @@ const getSafeSettings = async () => {
             { name: 'Main à main', logo: '' }
         ],
         categories: [
-            { name: 'Streaming', icon: '📺' },
-            { name: 'IPTV Premium', icon: '⚡' },
-            { name: 'Box Android', icon: '📦' },
-            { name: 'Music', icon: '🎵' },
-            { name: 'Gaming', icon: '🎮' },
-            { name: 'Gift Card', icon: '🎁' },
-            { name: 'Software', icon: '💻' }
+            { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Découvrez les meilleures offres de streaming en Tunisie : Netflix, Shahid VIP, OSN+, YouTube Premium et plus !" },
+            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV & Sharing', description: "Profitez d'une large sélection d'abonnements IPTV et Sharing pour toutes vos chaînes préférées." },
+            { name: 'Box Android', icon: '📦', slug: 'box-android-recepteur', title: 'Box Android & Recepteur', description: "Transformez votre TV avec nos Box Android et Récepteurs dernière génération." },
+            { name: 'Music', icon: '🎵', slug: 'music', title: 'Musique', description: "Écoutez votre musique préférée sans interruption avec nos abonnements premium." },
+            { name: 'Gaming', icon: '🎮', slug: 'gaming', title: 'Gaming', description: "Cartes cadeaux et abonnements pour PSN, Xbox, Steam et plus." },
+            { name: 'Gift Card', icon: '🎁', slug: 'gift-card', title: 'Cartes Cadeaux', description: "Offrez le cadeau parfait avec nos cartes cadeaux digitales." },
+            { name: 'Software', icon: '💻', slug: 'software', title: 'Logiciels', description: "Logiciels et outils de productivité pour professionnels et particuliers." }
         ]
     });
     await settings.save();
@@ -691,13 +710,22 @@ app.get("/api/settings", async (req, res) => {
 // Add Category
 app.post("/api/settings/categories", async (req, res) => {
     try {
-        const { name, icon } = req.body;
+        const { name, icon, title, description, slug, metaTitle, metaDescription, keywords } = req.body;
         if (!name) return res.status(400).json({ success: false, message: "Nom de catégorie requis" });
 
         let settings = await getSafeSettings();
         if (!settings.categories) settings.categories = [];
         if (!settings.categories.some(c => c.name === name)) {
-            settings.categories.push({ name, icon });
+            settings.categories.push({
+                name,
+                icon,
+                title: title || '',
+                description: description || '',
+                slug: slug || slugify(name),
+                metaTitle: metaTitle || '',
+                metaDescription: metaDescription || '',
+                keywords: keywords || ''
+            });
             await settings.save();
         }
         res.status(200).json({ success: true, data: settings });
@@ -727,7 +755,7 @@ app.delete("/api/settings/categories/:category", async (req, res) => {
 app.put("/api/settings/categories/:oldCategory", async (req, res) => {
     try {
         const { oldCategory } = req.params; // old name
-        const { newCategory, newIcon } = req.body;
+        const { newCategory, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords } = req.body;
         if (!newCategory) return res.status(400).json({ success: false, message: "Nouveau nom requis" });
 
         let settings = await getSafeSettings();
@@ -736,6 +764,13 @@ app.put("/api/settings/categories/:oldCategory", async (req, res) => {
             if (index !== -1) {
                 settings.categories[index].name = newCategory;
                 if (newIcon !== undefined) settings.categories[index].icon = newIcon;
+                if (newTitle !== undefined) settings.categories[index].title = newTitle;
+                if (newDescription !== undefined) settings.categories[index].description = newDescription;
+                if (newSlug !== undefined) settings.categories[index].slug = newSlug;
+                if (newMetaTitle !== undefined) settings.categories[index].metaTitle = newMetaTitle;
+                if (newMetaDescription !== undefined) settings.categories[index].metaDescription = newMetaDescription;
+                if (newKeywords !== undefined) settings.categories[index].keywords = newKeywords;
+                settings.markModified('categories'); // Necessary for Mixed types
                 await settings.save();
             }
         }
@@ -823,6 +858,80 @@ app.delete("/api/settings/device-choices/:choice", async (req, res) => {
                 settings.deviceChoices = settings.deviceChoices.filter(c => c !== choice);
                 await settings.save();
             }
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// --- RESOLUTIONS ROUTES ---
+app.post("/api/settings/resolutions", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+
+        let settings = await getSafeSettings();
+        if (!settings.resolutions) settings.resolutions = [];
+
+        // Check if exists
+        const exists = settings.resolutions.some(r => r.name === name);
+        if (!exists) {
+            settings.resolutions.push({ name, image });
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/resolutions/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        let settings = await getSafeSettings();
+        if (settings && settings.resolutions) {
+            settings.resolutions = settings.resolutions.filter(r => r.name !== name);
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// --- REGIONS ROUTES ---
+app.post("/api/settings/regions", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+
+        let settings = await getSafeSettings();
+        if (!settings.regions) settings.regions = [];
+
+        // Check if exists
+        const exists = settings.regions.some(r => r.name === name);
+        if (!exists) {
+            settings.regions.push({ name, image });
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/regions/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        let settings = await getSafeSettings();
+        if (settings && settings.regions) {
+            settings.regions = settings.regions.filter(r => r.name !== name);
+            await settings.save();
         }
         res.status(200).json({ success: true, data: settings });
     } catch (error) {
@@ -1064,6 +1173,160 @@ app.get('/share/produit/:category/:slug', async (req, res) => {
     } catch (error) {
         console.error("[SHARE ERROR]", error);
         res.status(500).send("Server Error");
+    }
+});
+
+// --- GUIDE / BLOG ROUTES ---
+
+// Get all guides
+app.get("/api/guides", async (req, res) => {
+    try {
+        const { search } = req.query;
+        let query = {};
+        if (search) {
+            query = {
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },
+                    { content: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+        const guides = await Guide.find(query).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: guides });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Get single guide by slug
+app.get("/api/guides/slug/:slug", async (req, res) => {
+    try {
+        const guide = await Guide.findOne({ slug: req.params.slug });
+        if (!guide) return res.status(404).json({ success: false, message: "Article non trouvé" });
+        res.status(200).json({ success: true, data: guide });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Create Guide (Admin)
+app.post("/api/guides", async (req, res) => {
+    try {
+        const { title, content, sections, excerpt, image, category, metaTitle, metaDescription, keywords } = req.body;
+        if (!title) return res.status(400).json({ success: false, message: "Titre requis" });
+
+        const slug = slugify(title) + '-' + Date.now(); // Ensure unique slug
+
+        const newGuide = new Guide({
+            title,
+            slug,
+            content,
+            sections,
+            excerpt,
+            image,
+            category,
+            metaTitle,
+            metaDescription,
+            keywords
+        });
+
+        await newGuide.save();
+        res.status(201).json({ success: true, data: newGuide });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Update Guide (Admin)
+app.put("/api/guides/:id", async (req, res) => {
+    try {
+        const updateData = req.body;
+        // If title changed, we might want to update slug, but usually better to keep it or handle redirects.
+        // For simplicity, let's just update fields.
+
+        const guide = await Guide.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        if (!guide) return res.status(404).json({ success: false, message: "Article non trouvé" });
+
+        res.status(200).json({ success: true, data: guide });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+
+// --- GUIDE INQUIRIES (QUESTION ABOUT ARTICLES) ---
+
+// Post an inquiry
+app.post("/api/guide-inquiries", async (req, res) => {
+    try {
+        const { name, whatsapp, question, articleTitle, articleSlug } = req.body;
+        if (!name || !whatsapp || !question) {
+            return res.status(400).json({ success: false, message: "Tous les champs sont obligatoires" });
+        }
+        const newInquiry = new GuideInquiry({ name, whatsapp, question, articleTitle, articleSlug });
+        await newInquiry.save();
+        res.status(201).json({ success: true, message: "Message envoyé avec succès" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Get all inquiries (Admin)
+app.get("/api/guide-inquiries", async (req, res) => {
+    try {
+        const inquiries = await GuideInquiry.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: inquiries });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+
+// --- CONTACT MESSAGES ---
+
+// Post a contact message
+app.post("/api/contact-messages", async (req, res) => {
+    try {
+        const { name, whatsapp, subject, message } = req.body;
+        if (!name || !whatsapp || !subject || !message) {
+            return res.status(400).json({ success: false, message: "Tous les champs sont obligatoires" });
+        }
+        const newMessage = new ContactMessage({ name, whatsapp, subject, message });
+        await newMessage.save();
+        res.status(201).json({ success: true, message: "Message envoyé avec succès" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Get all messages (Admin)
+app.get("/api/contact-messages", async (req, res) => {
+    try {
+        const messages = await ContactMessage.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: messages });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Mark as read (Admin)
+app.put("/api/contact-messages/:id/read", async (req, res) => {
+    try {
+        await ContactMessage.findByIdAndUpdate(req.params.id, { status: 'read' });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// Delete message (Admin)
+app.delete("/api/contact-messages/:id", async (req, res) => {
+    try {
+        await ContactMessage.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
     }
 });
 

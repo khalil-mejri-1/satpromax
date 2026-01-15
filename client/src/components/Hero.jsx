@@ -9,7 +9,7 @@ export default function Hero() {
 
     // Fetch settings
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -68,7 +68,13 @@ export default function Hero() {
                     <div className="hero-content">
                         <h2 className="hero-title">Abonnement<br />IPTV</h2>
                         <p className="hero-subtitle">IPTV Premium : Ultra-HD, Stable, Rapide, Illimité.</p>
-                        <Link to="/category/iptv-sharing" className="btn btn-outline-white">DÉCOUVREZ MAINTENANT</Link>
+                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                            <Link to="/category/iptv-sharing" className="btn btn-outline-white">DÉCOUVREZ MAINTENANT</Link>
+                            <Link to="/category/promotions" className="btn-promo-creative">
+                                <span className="promo-icon">🔥</span>
+                                <span className="promo-text">OFFRES SPÉCIALES</span>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Navigation Dots */}
@@ -87,7 +93,7 @@ export default function Hero() {
 
                 {/* Side Grid */}
                 <div className="hero-side-grid">
-                    <div className="hero-card card-box">
+                    <Link to="/category/box-android" className="hero-card card-box" style={{ textDecoration: 'none', color: 'inherit' }}>
                         {/* Background Slider Box */}
                         <div className="hero-slider-bg">
                             {boxImages.map((img, idx) => (
@@ -101,31 +107,37 @@ export default function Hero() {
                             ))}
                         </div>
                         <h3>Box Android<br />Et Recepteur</h3>
-                    </div>
-                    <div
+                    </Link>
+                    <Link
+                        to="/category/streaming"
                         className="hero-card card-netflix"
                         style={{
-                            backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 60%), url(${netflixBg})`
+                            backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 60%), url(${netflixBg})`,
+                            textDecoration: 'none', color: 'inherit'
                         }}
                     >
                         <h3>Netflix<br />Tunisie</h3>
-                    </div>
-                    <div
+                    </Link>
+                    <Link
+                        to="/category/gift-card"
                         className="hero-card card-gift"
                         style={{
-                            backgroundImage: `linear-gradient(180deg, rgba(88, 28, 135, 0.9) 0%, rgba(59, 7, 100, 0.1) 60%), url(${giftBg})`
+                            backgroundImage: `linear-gradient(180deg, rgba(88, 28, 135, 0.9) 0%, rgba(59, 7, 100, 0.1) 60%), url(${giftBg})`,
+                            textDecoration: 'none', color: 'inherit'
                         }}
                     >
                         <h3>Cartes Cadeaux<br />Digitales</h3>
-                    </div>
-                    <div
+                    </Link>
+                    <Link
+                        to="/category/software"
                         className="hero-card card-soft"
                         style={{
-                            backgroundImage: `linear-gradient(180deg, rgba(3, 105, 161, 0.9) 0%, rgba(8, 47, 73, 0.1) 60%), url(${softBg})`
+                            backgroundImage: `linear-gradient(180deg, rgba(3, 105, 161, 0.9) 0%, rgba(8, 47, 73, 0.1) 60%), url(${softBg})`,
+                            textDecoration: 'none', color: 'inherit'
                         }}
                     >
                         <h3>Logiciels</h3>
-                    </div>
+                    </Link>
                 </div>
             </div>
         </section>

@@ -6,7 +6,16 @@ const GeneralSettingsSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
-    categories: [mongoose.Schema.Types.Mixed],
+    categories: [{
+        name: { type: String, trim: true },
+        slug: { type: String, trim: true },
+        title: { type: String, trim: true },
+        description: { type: String, trim: true },
+        icon: { type: String, trim: true },
+        metaTitle: { type: String, trim: true },
+        metaDescription: { type: String, trim: true },
+        keywords: { type: String, trim: true }
+    }],
     whatsappNumber: { type: String, trim: true, default: "21697496300" },
     topStripText: { type: String, trim: true, default: "WhatsApp : +216 97 490 300" },
     topStripMessage: { type: String, trim: true, default: "Bienvenue sur satpromax !" },
@@ -15,8 +24,22 @@ const GeneralSettingsSchema = new mongoose.Schema({
     heroCardNetflixImage: String,
     heroCardGiftImage: String,
     heroCardSoftImage: String,
+    guideHeroImage: { type: String, default: "https://www.mysat.tn/wp-content/uploads/2023/11/Popcorn-in-striped-tub-scaled.jpg" },
+    guidePageBgImage: { type: String, default: "" },
+    promoCards: [{
+        title: { type: String, trim: true },
+        image: { type: String, trim: true },
+        link: { type: String, trim: true } // Should map to category slug usually
+    }],
     footerDescription: { type: String, trim: true, default: "satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique..." },
     footerContactPhone: { type: String, trim: true, default: "TN +216 97 490 300" },
+    socialLinks: [{
+        name: String,
+        icon: String,
+        url: String
+    }],
+    facebookUrl: { type: String, trim: true, default: "https://www.facebook.com" },
+    telegramUrl: { type: String, trim: true, default: "https://t.me/" },
     footerColumn1: {
         title: { type: String, default: 'IPTV Premium' },
         links: [String]
@@ -35,7 +58,15 @@ const GeneralSettingsSchema = new mongoose.Schema({
     senderEmail: { type: String, default: 'kmejri57@gmail.com' },
     senderPassword: { type: String, default: 'msncmujsbjqnszxp' },
     resetCode: String,
-    resetCodeExpires: Date
+    resetCodeExpires: Date,
+    resolutions: [{
+        name: { type: String, trim: true },
+        image: { type: String, trim: true }
+    }],
+    regions: [{
+        name: { type: String, trim: true },
+        image: { type: String, trim: true }
+    }]
 }, { timestamps: true });
 
 // Ensure only one document exists usually

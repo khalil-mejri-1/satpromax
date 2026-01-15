@@ -219,10 +219,18 @@
     padding: 12px 0;
 }
 
+.bottom-nav .container {
+    max-width: 100%;
+    padding: 0 40px;
+}
+
 .nav-links {
     display: flex;
-    gap: 40px;
-    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
 }
 
 .nav-link {
@@ -273,6 +281,8 @@
     font-size: 15px;
     transition: all 0.2s;
     position: relative;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .nav-link:hover::after {

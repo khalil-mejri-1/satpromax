@@ -50,6 +50,10 @@ const CATEGORIES_META = {
     logiciels: {
         title: 'Logiciels',
         description: "Logiciels et outils de productivité pour professionnels et particuliers.",
+    },
+    promotions: {
+        title: '🔥 Offres Spéciales',
+        description: "Profitez de nos meilleures réductions et offres limitées !",
     }
 };
 
@@ -65,7 +69,8 @@ const CATEGORY_DB_MAP = {
     'gift-card': 'Cartes Cadeaux',
     'cartes-cadeaux': 'Cartes Cadeaux',
     'software': 'Logiciels',
-    'logiciels': 'Logiciels'
+    'logiciels': 'Logiciels',
+    'promotions': 'Promotions' // Virtual
 };
 
 const SkeletonCard = () => {
@@ -128,7 +133,20 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
             </div>
             <div className="cat-product-info">
                 <h3 className="cat-product-title">{product.name}</h3>
-                <div className="cat-product-price">{product.price}</div>
+                <div className="cat-product-price">
+                    {isPromoActive ? (
+                        <>
+                            <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.9em', marginRight: '8px' }}>
+                                {product.price}
+                            </span>
+                            <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                                {product.promoPrice}
+                            </span>
+                        </>
+                    ) : (
+                        product.price
+                    )}
+                </div>
                 <div className="card-actions">
                     <button className="btn-options btn-details">détails</button>
                     <button
@@ -147,9 +165,67 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
     );
 };
 
+const ProductListCard = ({ product, addToCart }) => {
+    const isPromoActive = product.promoPrice && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
+
+    return (
+        <div className="product-list-card">
+            <div className="list-card-image-wrapper">
+                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`}>
+                    <img src={product.image} alt={product.name} />
+                </Link>
+                {isPromoActive && (
+                    <div className="list-promo-badge">PROMO</div>
+                )}
+            </div>
+            <div className="list-card-details">
+                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="list-card-title">
+                    {product.name}
+                </Link>
+                <div className="list-card-description">
+                    {product.description && product.description.length > 200
+                        ? product.description.substring(0, 200) + "..."
+                        : product.description}
+                </div>
+                {/* Fallback for Code for Downloader if in description or static */}
+                {product.description && product.description.includes('Code') && (
+                    <p style={{ color: 'red', fontSize: '12px', fontWeight: 'bold' }}>{/* Extracted or just shown in desc */}</p>
+                )}
+
+                {product.downloadLink && (
+                    <a href={product.downloadLink} target="_blank" rel="noopener noreferrer" className="btn-download-apk">
+                        Télécharger App
+                    </a>
+                )}
+            </div>
+            <div className="list-card-actions-col">
+                <div className="availability-status">
+                    Availability: <span className="in-stock">in stock</span>
+                </div>
+                <div className="list-card-price">
+                    {isPromoActive ? (
+                        <>
+                            <span className="old-price">{product.price}</span>
+                            <span className="promo-price">{product.promoPrice}</span>
+                        </>
+                    ) : (
+                        product.price
+                    )}
+                </div>
+                <button className="btn-list-add" onClick={() => addToCart(product)}>
+                    AJOUTER AU PANIER
+                </button>
+                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="btn-list-view">
+                    VUE RAPIDE
+                </Link>
+            </div>
+        </div>
+    );
+};
+
 export default function ProductsPage() {
     const { categoryName } = useParams();
-    const { addToCart, addToWishlist } = useContext(ShopContext);
+    const { addToCart, addToWishlist, categories } = useContext(ShopContext);
 
     const [viewMode, setViewMode] = useState('grid');
     const [products, setProducts] = useState([]);
@@ -166,9 +242,18 @@ export default function ProductsPage() {
     // Normalize categoryName for lookup
     const normalizedCategory = categoryName ? categoryName.toLowerCase() : '';
 
-    const meta = CATEGORIES_META[normalizedCategory] || {
-        title: categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : 'Produits',
-        description: 'Découvrez nos produits.'
+    // Find dynamic category metadata from DB
+    const dynamicCategory = categories.find(c =>
+        (c.slug && c.slug.toLowerCase() === normalizedCategory) ||
+        slugify(c.name) === normalizedCategory
+    );
+
+    const meta = dynamicCategory ? {
+        title: dynamicCategory.title || dynamicCategory.name,
+        description: dynamicCategory.description || `Découvrez notre sélection de produits ${dynamicCategory.name}.`
+    } : CATEGORIES_META[normalizedCategory] || {
+        title: categoryName ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1).replace(/-/g, ' ') : 'Produits',
+        description: `Découvrez notre sélection de produits ${categoryName ? categoryName.replace(/-/g, ' ') : ''}.`
     };
 
     useEffect(() => {
@@ -179,18 +264,11 @@ export default function ProductsPage() {
                 // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = 'https://satpromax.com/api/products';
-                if (dbCategory) {
+                let url = 'http://localhost:3000/api/products';
+                if (dbCategory && normalizedCategory !== 'promotions') {
                     url += `?category=${encodeURIComponent(dbCategory)}`;
-                } else if (normalizedCategory) {
-                    // If we have a category in URL but it's not in our map, 
-                    // we might want to fetch nothing or everything. 
-                    // Let's assume we fetch nothing or try to strict match if user typed something custom?
-                    // For now, let's just return empty if invalid category, or handle generically.
-                    // But to be safe and "fix" it, let's just not append category if not found, 
-                    // which means it fetches ALL. 
-                    // User asked to displaying products where category=Streaming.
-                    // So if dbCategory is found, we use it.
+                } else if (categoryName && normalizedCategory !== 'promotions') {
+                    url += `?category=${encodeURIComponent(categoryName.replace(/-/g, ' '))}`;
                 }
 
                 const response = await fetch(url);
@@ -198,14 +276,18 @@ export default function ProductsPage() {
                     throw new Error('Failed to fetch products');
                 }
                 const result = await response.json();
-                const fetchedProducts = result.data || [];
+                let fetchedProducts = result.data || [];
 
-                // If we filtered by category on server, data is already filtered.
-                if (normalizedCategory && !dbCategory) {
-                    setProducts([]);
-                } else {
-                    setProducts(fetchedProducts);
+                // Filter for Promotions if requested
+                if (normalizedCategory === 'promotions') {
+                    fetchedProducts = fetchedProducts.filter(p =>
+                        p.promoPrice &&
+                        p.promoPrice.trim() !== '' &&
+                        (!p.promoEndDate || new Date(p.promoEndDate) > new Date())
+                    );
                 }
+
+                setProducts(fetchedProducts);
 
             } catch (err) {
                 console.error("Error fetching products:", err);
@@ -217,7 +299,7 @@ export default function ProductsPage() {
         };
 
         fetchProducts();
-    }, [normalizedCategory]);
+    }, [normalizedCategory, categoryName]);
 
     // Apply filtering on the client side
     useEffect(() => {
@@ -370,12 +452,20 @@ export default function ProductsPage() {
                         ) : (
                             filteredProducts.length > 0 ? (
                                 filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(product => (
-                                    <ProductCard
-                                        key={product._id || product.id} // MongoDB uses _id
-                                        product={product}
-                                        addToCart={addToCart}
-                                        addToWishlist={addToWishlist}
-                                    />
+                                    viewMode === 'list' ? (
+                                        <ProductListCard
+                                            key={product._id || product.id}
+                                            product={product}
+                                            addToCart={addToCart}
+                                        />
+                                    ) : (
+                                        <ProductCard
+                                            key={product._id || product.id}
+                                            product={product}
+                                            addToCart={addToCart}
+                                            addToWishlist={addToWishlist}
+                                        />
+                                    )
                                 ))
                             ) : (
                                 <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#666' }}>

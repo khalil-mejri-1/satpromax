@@ -57,6 +57,44 @@
     margin: 5px 0;
 }
 
+.social-icons {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0 10px;
+    justify-content: flex-end;
+    /* Align to right as contact col is right aligned */
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-3px);
+    background: #fbbf24;
+    /* Fallback for accent-yellow */
+    background: var(--accent-yellow, #fbbf24);
+    color: #111;
+}
+
+.social-icon.facebook:hover {
+    background: #1877F2;
+    color: white;
+}
+
+.social-icon.telegram:hover {
+    background: #0088cc;
+    color: white;
+}
+
 .contact-btn {
     margin-top: 15px;
     font-size: 12px;

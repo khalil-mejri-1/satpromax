@@ -9,7 +9,8 @@ import './CheckoutPage.css';
 export default function CheckoutPage() {
     const { cartItems, getCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
     const cartTotal = getCartTotal();
-    const shippingCost = 7;
+    const hasShipping = cartItems.some(item => item.hasDelivery);
+    const shippingCost = hasShipping ? 7 : 0;
     const finalTotal = cartTotal + shippingCost;
     const navigate = useNavigate();
 
@@ -34,7 +35,7 @@ export default function CheckoutPage() {
 
     // Fetch Payment Modes
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -95,6 +96,15 @@ export default function CheckoutPage() {
             return;
         }
 
+        const missingSerial = cartItems.find(item =>
+            (item.category && item.category.toLowerCase().includes('sharing')) && !item.receiverSerial
+        );
+
+        if (missingSerial) {
+            setModal({ show: true, message: `Veuillez entrer le numéro de série du récepteur pour: ${missingSerial.name}`, type: 'error' });
+            return;
+        }
+
         const orderData = {
             userId: user ? (user._id || user.id) : null,
             isGuest: !user,
@@ -108,14 +118,15 @@ export default function CheckoutPage() {
                 quantity: item.quantity,
                 price: item.price,
                 image: item.image,
-                deviceChoice: item.selectedDevice || null
+                deviceChoice: item.selectedDevice || null,
+                receiverSerial: item.receiverSerial || null
             })),
             totalAmount: finalTotal,
             paymentMethod: billingInfo.paymentMode || 'cod'
         };
 
         try {
-            const response = await fetch('https://satpromax.com/api/orders', {
+            const response = await fetch('http://localhost:3000/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -133,6 +144,7 @@ export default function CheckoutPage() {
                         `   Quantite: ${item.quantity}\n` +
                         `   Prix: ${item.price}\n` +
                         (item.selectedDevice ? `   Appareil: ${item.selectedDevice}\n` : "") +
+                        (item.receiverSerial ? `   S/N Récepteur: ${item.receiverSerial}\n` : "") +
                         `\n`;
                 });
 
@@ -259,6 +271,13 @@ export default function CheckoutPage() {
                                                     )}
                                                 </div>
                                             )}
+                                            {item.receiverSerial && (
+                                                <div className="checkout-product-device" style={{ marginTop: '5px' }}>
+                                                    <span className="device-tag" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                                                        S/N: {item.receiverSerial}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="checkout-product-total desktop-only">
                                             <div className="price-tag">{item.price}</div>
@@ -280,10 +299,12 @@ export default function CheckoutPage() {
                                 <span>Sous-total</span>
                                 <span>{cartTotal} DT</span>
                             </div>
-                            <div className="total-row">
-                                <span>Expédition</span>
-                                <span>{shippingCost} DT</span>
-                            </div>
+                            {hasShipping && (
+                                <div className="total-row">
+                                    <span>Expédition</span>
+                                    <span>{shippingCost} DT</span>
+                                </div>
+                            )}
                             <div className="total-row final">
                                 <span>Total</span>
                                 <span>{finalTotal} DT</span>

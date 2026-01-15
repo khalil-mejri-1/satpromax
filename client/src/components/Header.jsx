@@ -92,6 +92,13 @@ const SoftwareIcon = () => (
     </svg>
 );
 
+const GuideIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
 export default function Header() {
     const {
         cartItems,
@@ -101,14 +108,14 @@ export default function Header() {
         removeFromCart,
         removeFromWishlist,
         getWishlistCount,
-        addAllToCart
+        addAllToCart,
+        categories,
+        loadingCategories
     } = useContext(ShopContext);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
     const [user, setUser] = useState(null);
-    const [categories, setCategories] = useState([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -124,7 +131,7 @@ export default function Header() {
             }
             try {
                 setIsSearching(true);
-                const res = await fetch(`https://satpromax.com/api/search?q=${searchTerm}`);
+                const res = await fetch(`http://localhost:3000/api/search?q=${searchTerm}`);
                 const data = await res.json();
                 if (data.success) {
                     setSearchResults({ categories: data.categories || [], products: data.products || [] });
@@ -158,21 +165,17 @@ export default function Header() {
             setUser(JSON.parse(storedUser));
         }
 
-        // Fetch dynamic categories and settings
-        setLoadingCategories(true);
-        fetch('https://satpromax.com/api/settings')
+        // Fetch dynamic settings (Categories handled by Context now)
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
-                    if (data.data.categories) setCategories(data.data.categories);
                     if (data.data.topStripText) setTopStripText(data.data.topStripText);
                     if (data.data.topStripMessage) setTopStripMessage(data.data.topStripMessage);
                 }
-                setLoadingCategories(false);
             })
             .catch(err => {
                 console.error("Error fetching settings:", err);
-                setLoadingCategories(false);
             });
     }, []);
 
@@ -625,6 +628,16 @@ export default function Header() {
                             <Link to="/category/software" className="nav-link"><span className="icon"><SoftwareIcon /></span> Logiciels</Link>
                         </>
                     )}
+                    <Link to="/guide-installation" className="nav-link guide-btn-nav" style={{
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        borderRadius: '12px',
+                        padding: '8px 16px',
+                        border: '1px solid #fde68a'
+                    }}>
+                        <span className="icon"><GuideIcon /></span>
+                        Guide d'installation
+                    </Link>
                 </div>
             </div>
 
@@ -723,8 +736,13 @@ export default function Header() {
                             </Link>
                         </>
                     )}
+                    <Link to="/guide-installation" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)} style={{ marginTop: '10px', background: '#fffbeb' }}>
+                        <span className="sidebar-icon"><GuideIcon /></span>
+                        <span className="sidebar-text" style={{ color: '#92400e', fontWeight: '700' }}>Guide d'installation</span>
+                        <span className="sidebar-arrow">›</span>
+                    </Link>
                 </div>
             </div>
-        </header>
+        </header >
     )
 }

@@ -1,11 +1,27 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import './Admin.css';
+import { ShopContext } from '../context/ShopContext';
 
 // SVG Icons (Simple placeholders)
 const IconProduct = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>;
 const IconOrder = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
 const IconClient = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
 const IconHome = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
+const IconCategory = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>;
+const IconGuide = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" /></svg>;
+
+const slugify = (text) => {
+    return text
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+};
 
 export default function Admin() {
     const [activeTab, setActiveTab] = useState('products');
@@ -22,10 +38,18 @@ export default function Admin() {
                 return <ClientsManager />;
             case 'home':
                 return <HomeManager />;
+            case 'categories':
+                return <CategoryManager />;
             case 'reviews':
                 return <ReviewsManager />;
             case 'details':
                 return <SettingsManager />;
+            case 'guides':
+                return <GuidesManager />;
+            case 'inquiries':
+                return <GuideInquiriesManager />;
+            case 'messages':
+                return <ContactMessagesManager />;
             default:
                 return <ProductsManager />;
         }
@@ -68,11 +92,35 @@ export default function Admin() {
                         <IconHome /> Gestion de page home
                     </button>
                     <button
+                        className={`admin-nav-item ${activeTab === 'categories' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('categories')}
+                    >
+                        <IconCategory /> Gestion des Catégories
+                    </button>
+                    <button
                         className={`admin-nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
                         onClick={() => setActiveTab('reviews')}
                     >
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
                         Gestion de commentaires
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'guides' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('guides')}
+                    >
+                        <IconGuide /> Gestion des Guides
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'inquiries' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('inquiries')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>❓</span> Questions Articles
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('messages')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>💬</span> Messages Contact
                     </button>
                     <button
                         className={`admin-nav-item ${activeTab === 'details' ? 'active' : ''}`}
@@ -92,7 +140,11 @@ export default function Admin() {
                         {activeTab === 'orders' && 'Gestion de Commandes'}
                         {activeTab === 'clients' && 'Gestion de Clients'}
                         {activeTab === 'home' && 'Gestion de Page Accueil'}
+                        {activeTab === 'categories' && 'Gestion des Catégories'}
                         {activeTab === 'reviews' && 'Gestion de Commentaires'}
+                        {activeTab === 'guides' && 'Gestion des Guides'}
+                        {activeTab === 'inquiries' && 'Questions sur les Articles'}
+                        {activeTab === 'messages' && 'Messages de Contact'}
                         {activeTab === 'details' && 'Détails Généraux'}
                     </div>
                     <div className="admin-user-info">Admin User</div>
@@ -102,7 +154,7 @@ export default function Admin() {
                     {renderContent()}
                 </div>
             </main>
-        </div>
+        </div >
     );
 }
 
@@ -238,6 +290,8 @@ const MultiInput = ({ items, onAdd, onRemove, placeholder }) => {
 const PromoManager = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showOnlyPromos, setShowOnlyPromos] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [currentProduct, setCurrentProduct] = useState(null);
     const [promoData, setPromoData] = useState({
@@ -254,7 +308,7 @@ const PromoManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/products')
+        fetch('http://localhost:3000/api/products')
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -282,16 +336,8 @@ const PromoManager = () => {
 
         if (product.promoEndDate && product.promoStartDate) {
             const end = new Date(product.promoEndDate);
-            const now = new Date(); // Or start date if preferred, but usually we want remaining time or total duration set previously
-            // Let's calculate duration from now if active, or just what was potentially saved? 
-            // Actually requirement says "input when it starts/ends in days/hours/minutes".
-            // Let's simplify: Input is "Duration from NOW". 
-
-            // If editing, maybe we want to see current remaining time? 
-            // For simplicity based on prompt: "input ... when it starts and ends in days/hours/minutes"
-            // Interpreting as: User enters duration, we calculate End Date. Start Date is Now.
-
-            const diffMs = end - new Date(product.promoStartDate); // Total duration of the promo
+            const now = new Date();
+            const diffMs = end - new Date(product.promoStartDate);
             if (diffMs > 0) {
                 days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                 hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -324,7 +370,7 @@ const PromoManager = () => {
         };
 
         try {
-            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
+            const response = await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -343,8 +389,18 @@ const PromoManager = () => {
         }
     };
 
-    // Group items
-    const groupedProducts = products.reduce((acc, product) => {
+    // Filter and Group items
+    const filteredProducts = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+
+        if (showOnlyPromos) {
+            return matchesSearch && isPromoActive;
+        }
+        return matchesSearch;
+    });
+
+    const groupedProducts = filteredProducts.reduce((acc, product) => {
         const category = product.category || 'Non classé';
         if (!acc[category]) acc[category] = [];
         acc[category].push(product);
@@ -363,7 +419,27 @@ const PromoManager = () => {
                 />
             )}
             <h2>Gestion des Promos</h2>
-            <p style={{ marginBottom: '20px', color: '#666' }}>Sélectionnez un produit pour ajouter ou modifier une promotion.</p>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <p style={{ margin: 0, color: '#666' }}>Sélectionnez un produit pour ajouter ou modifier une promotion.</p>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                        className={`btn ${showOnlyPromos ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setShowOnlyPromos(!showOnlyPromos)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <span style={{ fontSize: '16px' }}>{showOnlyPromos ? '★' : '☆'}</span>
+                        {showOnlyPromos ? 'Voir Tout' : 'Voir Promos Actives'}
+                    </button>
+                    <input
+                        type="text"
+                        placeholder="Rechercher un produit..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="form-input"
+                        style={{ maxWidth: '300px' }}
+                    />
+                </div>
+            </div>
 
             {Object.keys(groupedProducts).map(category => (
                 <div key={category} style={{ marginBottom: '30px' }}>
@@ -471,8 +547,10 @@ const PromoManager = () => {
 };
 
 const ProductsManager = () => {
+    const { categories } = useContext(ShopContext);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add', 'edit', 'delete'
     const [currentProduct, setCurrentProduct] = useState(null);
@@ -483,23 +561,7 @@ const ProductsManager = () => {
     });
     const [notification, setNotification] = useState(null);
 
-    const [categories, setCategories] = useState(['Streaming', 'IPTV Premium', 'Music', 'Box Android', 'Gaming', 'Gift Card', 'Software']);
 
-    useEffect(() => {
-        // Fetch dynamic categories from settings
-        fetch('https://satpromax.com/api/settings')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data && data.data.categories && data.data.categories.length > 0) {
-                    setCategories(data.data.categories);
-                    // Update default category in form if currently on the old default
-                    if (formData.category === 'Streaming' && !data.data.categories.includes('Streaming')) {
-                        setFormData(prev => ({ ...prev, category: data.data.categories[0] }));
-                    }
-                }
-            })
-            .catch(err => console.error("Error fetching categories:", err));
-    }, []);
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
@@ -507,7 +569,7 @@ const ProductsManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/products')
+        fetch('http://localhost:3000/api/products')
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -524,8 +586,18 @@ const ProductsManager = () => {
             });
     };
 
+    const [settings, setSettings] = useState({ resolutions: [], regions: [] });
+
     useEffect(() => {
         fetchProducts();
+        fetch('http://localhost:3000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setSettings(data.data);
+                }
+            })
+            .catch(err => console.error(err));
     }, []);
 
     const handleInputChange = (e) => {
@@ -603,7 +675,7 @@ const ProductsManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        let url = 'https://satpromax.com/api/products';
+        let url = 'http://localhost:3000/api/products';
         let method = 'POST';
 
         if (modalType === 'edit') {
@@ -642,7 +714,7 @@ const ProductsManager = () => {
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
+            const response = await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -659,8 +731,33 @@ const ProductsManager = () => {
         }
     };
 
-    // Group products by category
-    const groupedProducts = products.reduce((acc, product) => {
+    const handleToggleStock = async (product) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/products/${product._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inStock: !product.inStock })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification(`Produit marqué comme ${!product.inStock ? 'Disponible' : 'Indisponible'}`, "success");
+                fetchProducts();
+            } else {
+                showNotification(data.message || "Erreur lors de la mise à jour", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur de connexion au serveur", "error");
+        }
+    };
+
+    // Filter and Group products
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const groupedProducts = filteredProducts.reduce((acc, product) => {
         const category = product.category || 'Non classé';
         if (!acc[category]) acc[category] = [];
         acc[category].push(product);
@@ -679,11 +776,21 @@ const ProductsManager = () => {
                 />
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
                 <h2>Gestion des Produits</h2>
-                <button className="btn btn-primary" onClick={openAddModal}>
-                    + Ajouter un produit
-                </button>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <input
+                        type="text"
+                        placeholder="Rechercher un produit (Nom, SKU)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="form-input"
+                        style={{ width: '250px' }}
+                    />
+                    <button className="btn btn-primary" onClick={openAddModal}>
+                        + Ajouter un produit
+                    </button>
+                </div>
             </div>
 
             {Object.keys(groupedProducts).length === 0 ? (
@@ -761,6 +868,23 @@ const ProductsManager = () => {
                                                     }}
                                                 >
                                                     Éditer
+                                                </button>
+                                                <button
+                                                    onClick={() => handleToggleStock(product)}
+                                                    style={{
+                                                        marginRight: '8px',
+                                                        padding: '6px 12px',
+                                                        border: `1px solid ${product.inStock !== false ? '#86efac' : '#fca5a5'}`,
+                                                        borderRadius: '6px',
+                                                        background: product.inStock !== false ? '#dcfce7' : '#fee2e2',
+                                                        color: product.inStock !== false ? '#166534' : '#ef4444',
+                                                        fontSize: '12px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: '600',
+                                                        minWidth: '80px'
+                                                    }}
+                                                >
+                                                    {product.inStock !== false ? 'Disponible' : 'Épuisé'}
                                                 </button>
                                                 <button
                                                     onClick={() => openDeleteModal(product)}
@@ -845,12 +969,64 @@ const ProductsManager = () => {
                         <>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div className="form-group">
-                                    <label className="form-label">Résolution (ex: 4K, FHD)</label>
-                                    <input type="text" name="resolution" className="form-input" value={formData.resolution} onChange={handleInputChange} placeholder="Ex: 4K" />
+                                    <label className="form-label">Résolution</label>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '200px', overflowY: 'auto', padding: '5px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc' }}>
+                                        {settings.resolutions && settings.resolutions.length > 0 ? settings.resolutions.map(res => (
+                                            <div
+                                                key={res.name}
+                                                onClick={() => setFormData({ ...formData, resolution: res.name })}
+                                                style={{
+                                                    border: formData.resolution === res.name ? '2px solid #fbbf24' : '1px solid #e2e8f0',
+                                                    borderRadius: '8px',
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    background: formData.resolution === res.name ? '#fffbeb' : '#fff',
+                                                    textAlign: 'center',
+                                                    width: '90px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                <div style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
+                                                    {res.image ? (
+                                                        <img src={res.image} alt={res.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <span style={{ fontSize: '20px' }}>📺</span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#334155' }}>{res.name}</div>
+                                            </div>
+                                        )) : <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Aucune résolution configurée (Allez dans Détails Généraux)</p>}
+                                    </div>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Région (ex: Tunisie, Global)</label>
-                                    <input type="text" name="region" className="form-input" value={formData.region} onChange={handleInputChange} placeholder="Ex: Tunisie" />
+                                    <label className="form-label">Région</label>
+                                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '200px', overflowY: 'auto', padding: '5px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc' }}>
+                                        {settings.regions && settings.regions.length > 0 ? settings.regions.map(reg => (
+                                            <div
+                                                key={reg.name}
+                                                onClick={() => setFormData({ ...formData, region: reg.name })}
+                                                style={{
+                                                    border: formData.region === reg.name ? '2px solid #10b981' : '1px solid #e2e8f0',
+                                                    borderRadius: '8px',
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    background: formData.region === reg.name ? '#ecfdf5' : '#fff',
+                                                    textAlign: 'center',
+                                                    width: '90px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                <div style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
+                                                    {reg.image ? (
+                                                        <img src={reg.image} alt={reg.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <span style={{ fontSize: '20px' }}>🌍</span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#334155' }}>{reg.name}</div>
+                                            </div>
+                                        )) : <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Aucune région configurée (Allez dans Détails Généraux)</p>}
+                                    </div>
                                 </div>
                             </div>
                             <div className="form-group">
@@ -1050,12 +1226,13 @@ const ProductsManager = () => {
 const OrdersManager = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const [statusModal, setStatusModal] = useState({ open: false, orderId: null, currentStatus: '' });
     const [deleteModal, setDeleteModal] = useState({ open: false, type: 'single', targetId: null });
 
     const fetchOrders = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/orders')
+        fetch('http://localhost:3000/api/orders')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1076,8 +1253,8 @@ const OrdersManager = () => {
     const handleConfirmDelete = async () => {
         try {
             const url = deleteModal.type === 'all'
-                ? 'https://satpromax.com/api/orders'
-                : `https://satpromax.com/api/orders/${deleteModal.targetId}`;
+                ? 'http://localhost:3000/api/orders'
+                : `http://localhost:3000/api/orders/${deleteModal.targetId}`;
 
             const response = await fetch(url, {
                 method: 'DELETE'
@@ -1098,7 +1275,7 @@ const OrdersManager = () => {
 
     const handleStatusUpdate = async (newStatus) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/orders/${statusModal.orderId}/status`, {
+            const response = await fetch(`http://localhost:3000/api/orders/${statusModal.orderId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -1118,6 +1295,18 @@ const OrdersManager = () => {
     };
 
 
+    const filteredOrders = orders.filter(order => {
+        const term = searchTerm.toLowerCase();
+        const clientName = (order.userValidation?.name || order.userId?.username || 'Client').toLowerCase();
+        const contact = (order.userValidation?.whatsapp || '').toLowerCase();
+        const status = order.status.toLowerCase();
+        const id = order._id.toLowerCase();
+        // Check items as well
+        const itemsMatch = order.items.some(item => item.name.toLowerCase().includes(term));
+
+        return clientName.includes(term) || contact.includes(term) || status.includes(term) || id.includes(term) || itemsMatch;
+    });
+
     if (loading) return <div>Chargement des commandes...</div>;
 
     return (
@@ -1127,27 +1316,39 @@ const OrdersManager = () => {
                     <h2>Gestion de Commandes</h2>
                     <p className="text-muted">Suivez et traitez les commandes des clients.</p>
                 </div>
-                {orders.length > 0 && (
-                    <button
-                        onClick={() => setDeleteModal({ open: true, type: 'all', targetId: null })}
-                        style={{
-                            padding: '8px 16px',
-                            background: '#fee2e2',
-                            color: '#dc2626',
-                            border: '1px solid #fecaca',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            fontSize: '13px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        🗑️ Supprimer tout
-                    </button>
-                )}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input
+                        type="text"
+                        placeholder="Rechercher (Client, Tel, Statut)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="form-input"
+                        style={{ width: '250px' }}
+                    />
+                    {orders.length > 0 && (
+                        <button
+                            onClick={() => setDeleteModal({ open: true, type: 'all', targetId: null })}
+                            style={{
+                                padding: '8px 16px',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: '1px solid #fecaca',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                fontSize: '13px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s',
+                                height: '42px',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            🗑️ Tout supprimer
+                        </button>
+                    )}
+                </div>
             </div>
             <br />
 
@@ -1245,9 +1446,9 @@ const OrdersManager = () => {
             </Modal>
 
 
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#666', background: '#f9fafb', borderRadius: '8px' }}>
-                    Aucune commande trouvée.
+                    {orders.length === 0 ? 'Aucune commande trouvée.' : 'Aucune commande ne correspond à votre recherche.'}
                 </div>
             ) : (
                 <div style={{ overflowX: 'auto' }}>
@@ -1264,7 +1465,7 @@ const OrdersManager = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.map(order => (
+                            {filteredOrders.map(order => (
                                 <tr key={order._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                     <td style={{ padding: '12px' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1278,6 +1479,11 @@ const OrdersManager = () => {
                                                             {item.deviceChoice && (
                                                                 <span style={{ marginLeft: '10px', color: '#0284c7', background: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
                                                                     {item.deviceChoice}
+                                                                </span>
+                                                            )}
+                                                            {item.receiverSerial && (
+                                                                <span style={{ marginLeft: '10px', color: '#7e22ce', background: '#f3e8ff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                                                                    S/N: {item.receiverSerial}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1362,7 +1568,7 @@ const ClientsManager = () => {
 
     const fetchUsers = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/users')
+        fetch('http://localhost:3000/api/users')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1397,7 +1603,7 @@ const ClientsManager = () => {
         const newRole = user.role === 'admin' ? 'client' : 'admin';
 
         try {
-            const response = await fetch(`https://satpromax.com/api/users/${user._id}/role`, {
+            const response = await fetch(`http://localhost:3000/api/users/${user._id}/role`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role: newRole })
@@ -1539,13 +1745,19 @@ const HomeManager = () => {
         heroCardBoxImages: [],
         heroCardNetflixImage: '',
         heroCardGiftImage: '',
-        heroCardSoftImage: ''
+        heroCardSoftImage: '',
+        guideHeroImage: '',
+        guidePageBgImage: '',
+        promoCards: []
     });
 
     // Footer Data
     const [footerData, setFooterData] = useState({
         footerDescription: '',
         footerContactPhone: '',
+        facebookUrl: '',
+        telegramUrl: '',
+        socialLinks: [],
         footerColumn1: { title: 'IPTV Premium', links: [] },
         footerColumn2: { title: 'Streaming', links: [] },
         footerColumn3: { title: 'Cartes Cadeaux', links: [] }
@@ -1559,7 +1771,7 @@ const HomeManager = () => {
     };
 
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -1570,11 +1782,17 @@ const HomeManager = () => {
                         heroCardBoxImages: data.data.heroCardBoxImages || [],
                         heroCardNetflixImage: data.data.heroCardNetflixImage || '',
                         heroCardGiftImage: data.data.heroCardGiftImage || '',
-                        heroCardSoftImage: data.data.heroCardSoftImage || ''
+                        heroCardSoftImage: data.data.heroCardSoftImage || '',
+                        guideHeroImage: data.data.guideHeroImage || '',
+                        guidePageBgImage: data.data.guidePageBgImage || '',
+                        promoCards: data.data.promoCards || []
                     });
                     setFooterData({
                         footerDescription: data.data.footerDescription || '',
                         footerContactPhone: data.data.footerContactPhone || '',
+                        facebookUrl: data.data.facebookUrl || '',
+                        telegramUrl: data.data.telegramUrl || '',
+                        socialLinks: data.data.socialLinks || [],
                         footerColumn1: data.data.footerColumn1 || { title: 'IPTV Premium', links: [] },
                         footerColumn2: data.data.footerColumn2 || { title: 'Streaming', links: [] },
                         footerColumn3: data.data.footerColumn3 || { title: 'Cartes Cadeaux', links: [] }
@@ -1597,7 +1815,7 @@ const HomeManager = () => {
                 ...footerData
             };
 
-            const response = await fetch('https://satpromax.com/api/settings', {
+            const response = await fetch('http://localhost:3000/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -1621,6 +1839,22 @@ const HomeManager = () => {
         setHeroData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
     };
 
+    const updatePromoCard = (index, field, value) => {
+        const newCards = [...heroData.promoCards];
+        // If card doesn't exist at index, initialize it
+        if (!newCards[index]) newCards[index] = { title: '', image: '', link: '' };
+        newCards[index][field] = value;
+        setHeroData(prev => ({ ...prev, promoCards: newCards }));
+    };
+
+    const addPromoCard = () => {
+        setHeroData(prev => ({ ...prev, promoCards: [...prev.promoCards, { title: 'Nouveau', image: '', link: '' }] }));
+    };
+
+    const removePromoCard = (index) => {
+        setHeroData(prev => ({ ...prev, promoCards: prev.promoCards.filter((_, i) => i !== index) }));
+    };
+
     // Helper for Footer Links
     const updateFooterCol = (colName, key, value) => {
         setFooterData(prev => ({
@@ -1641,6 +1875,24 @@ const HomeManager = () => {
             ...prev,
             [colName]: { ...prev[colName], links: prev[colName].links.filter((_, i) => i !== index) }
         }));
+    };
+
+    const addSocialLink = () => {
+        setFooterData(prev => ({
+            ...prev,
+            socialLinks: [...prev.socialLinks, { name: '', icon: '', url: '' }]
+        }));
+    };
+
+    const updateSocialLink = (index, field, value) => {
+        const newLinks = [...footerData.socialLinks];
+        newLinks[index][field] = value;
+        setFooterData(prev => ({ ...prev, socialLinks: newLinks }));
+    };
+
+    const removeSocialLink = (index) => {
+        const newLinks = footerData.socialLinks.filter((_, i) => i !== index);
+        setFooterData(prev => ({ ...prev, socialLinks: newLinks }));
     };
 
     if (loading) return <div>Chargement...</div>;
@@ -1722,7 +1974,69 @@ const HomeManager = () => {
                             onChange={(e) => setHeroData({ ...heroData, heroCardSoftImage: e.target.value })}
                         />
                     </div>
+                    <div className="form-group">
+                        <label className="form-label">Image Hero Guide (Page Guide)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={heroData.guideHeroImage}
+                            onChange={(e) => setHeroData({ ...heroData, guideHeroImage: e.target.value })}
+                            placeholder="Image de fond pour /guide-installation"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Image Fond de Page Guide (Background)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={heroData.guidePageBgImage}
+                            onChange={(e) => setHeroData({ ...heroData, guidePageBgImage: e.target.value })}
+                            placeholder="Image de fond pour toute la page"
+                        />
+                    </div>
                 </div>
+            </div>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Cartes Promo (Section "Abonnements")</h3>
+                <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '15px' }}>Ces 3 cartes s'affichent sous le slider principal. Cliquez sur "+" pour en ajouter si nécessaire.</p>
+
+                {heroData.promoCards && heroData.promoCards.map((card, index) => (
+                    <div key={index} style={{ marginBottom: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <h4 style={{ fontSize: '14px', margin: 0 }}>Carte #{index + 1}</h4>
+                            <button onClick={() => removePromoCard(index)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Supprimer</button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Titre (ex: Abonnement Sharing)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={card.title || ''}
+                                    onChange={(e) => updatePromoCard(index, 'title', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Image URL</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={card.image || ''}
+                                    onChange={(e) => updatePromoCard(index, 'image', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                <button
+                    onClick={addPromoCard}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '13px' }}
+                >
+                    + Ajouter une carte
+                </button>
             </div>
 
             <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -1744,6 +2058,70 @@ const HomeManager = () => {
                         value={footerData.footerContactPhone}
                         onChange={(e) => setFooterData({ ...footerData, footerContactPhone: e.target.value })}
                     />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="form-group">
+                        <label className="form-label">Lien Facebook</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={footerData.facebookUrl}
+                            onChange={(e) => setFooterData({ ...footerData, facebookUrl: e.target.value })}
+                            placeholder="https://facebook.com/..."
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Lien Telegram</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={footerData.telegramUrl}
+                            onChange={(e) => setFooterData({ ...footerData, telegramUrl: e.target.value })}
+                            placeholder="https://t.me/..."
+                        />
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '20px', padding: '15px', background: '#fefce8', borderRadius: '8px', border: '1px solid #fef08a' }}>
+                    <h4 style={{ fontSize: '14px', marginBottom: '10px', color: '#854d0e' }}>Réseaux Sociaux Dynamiques (Icônes supplémentaires)</h4>
+                    {footerData.socialLinks && footerData.socialLinks.map((link, idx) => (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Nom (ex: Instagram)"
+                                value={link.name}
+                                onChange={(e) => updateSocialLink(idx, 'name', e.target.value)}
+                            />
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="URL Icône"
+                                value={link.icon}
+                                onChange={(e) => updateSocialLink(idx, 'icon', e.target.value)}
+                            />
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Lien (URL)"
+                                value={link.url}
+                                onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
+                            />
+                            <button
+                                onClick={() => removeSocialLink(idx)}
+                                style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer' }}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        onClick={addSocialLink}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '12px', padding: '6px 12px', marginTop: '5px' }}
+                    >
+                        + Ajouter un réseau social
+                    </button>
                 </div>
 
                 <h4 style={{ fontSize: '14px', marginTop: '20px', marginBottom: '10px', color: '#64748b' }}>Colonnes de Liens</h4>
@@ -1822,13 +2200,301 @@ const HomeManager = () => {
     );
 };
 
+const CategoryManager = () => {
+    const { fetchCategories } = useContext(ShopContext);
+    const [settings, setSettings] = useState({ categories: [] });
+    const [newCategory, setNewCategory] = useState({ name: '', icon: '', title: '', description: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
+    const [editCategoryModal, setEditCategoryModal] = useState({
+        isOpen: false,
+        oldName: '',
+        newName: '',
+        newIcon: '',
+        newTitle: '',
+        newDescription: '',
+        newSlug: '',
+        newMetaTitle: '',
+        newMetaDescription: '',
+        newKeywords: ''
+    });
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, item: null });
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
+
+    const fetchSettings = () => {
+        setLoading(true);
+        fetch('http://localhost:3000/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setSettings(data.data);
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
+    };
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const handleAddCategory = async (e) => {
+        e.preventDefault();
+        if (!newCategory.name.trim()) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/settings/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCategory)
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                setNewCategory({ name: '', icon: '', title: '', description: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
+                fetchCategories();
+                showNotification("Catégorie ajoutée", "success");
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDeleteCategory = async (categoryName) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/settings/categories/${encodeURIComponent(categoryName)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                fetchCategories();
+                showNotification("Catégorie supprimée", "success");
+                setConfirmModal({ isOpen: false, item: null });
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleUpdateCategory = async () => {
+        const { oldName, newName, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords } = editCategoryModal;
+        if (!newName.trim()) return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/settings/categories/${encodeURIComponent(oldName)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    newCategory: newName.trim(),
+                    newIcon: newIcon.trim(),
+                    newTitle: newTitle.trim(),
+                    newDescription: newDescription.trim(),
+                    newSlug: newSlug.trim(),
+                    newMetaTitle: newMetaTitle.trim(),
+                    newMetaDescription: newMetaDescription.trim(),
+                    newKeywords: newKeywords.trim()
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                setEditCategoryModal({ ...editCategoryModal, isOpen: false });
+                fetchCategories();
+                showNotification("Catégorie mise à jour", "success");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    if (loading) return <div>Chargement...</div>;
+
+    return (
+        <div className="admin-card">
+            {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+
+            {confirmModal.isOpen && (
+                <div className="modal-overlay" style={{ zIndex: 1100 }}>
+                    <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h3>Confirmation</h3>
+                        <p>Supprimer <strong>{confirmModal.item}</strong> ?</p>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                            <button className="btn" style={{ flex: 1 }} onClick={() => setConfirmModal({ isOpen: false, item: null })}>Annuler</button>
+                            <button className="btn" style={{ flex: 1, background: '#ef4444', color: '#fff' }} onClick={() => handleDeleteCategory(confirmModal.item)}>Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editCategoryModal.isOpen && (
+                <div className="modal-overlay" style={{ zIndex: 1100 }}>
+                    <div className="modal-content" style={{ maxWidth: '600px' }}>
+                        <h3>Modifier Catégorie</h3>
+                        <div className="form-group">
+                            <label className="form-label">Nom</label>
+                            <input
+                                className="form-input"
+                                value={editCategoryModal.newName}
+                                onChange={e => {
+                                    const name = e.target.value;
+                                    setEditCategoryModal(prev => ({
+                                        ...prev,
+                                        newName: name,
+                                        newSlug: slugify(name)
+                                    }));
+                                }}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Slug (URL)</label>
+                            <input className="form-input" value={editCategoryModal.newSlug} onChange={e => setEditCategoryModal({ ...editCategoryModal, newSlug: e.target.value })} />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Icône (Emoji أو URL صورة)</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input className="form-input" value={editCategoryModal.newIcon} onChange={e => setEditCategoryModal({ ...editCategoryModal, newIcon: e.target.value })} placeholder="🔥 أو https://..." />
+                                <div style={{ width: '42px', height: '42px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                                    {editCategoryModal.newIcon && (editCategoryModal.newIcon.startsWith('http') || editCategoryModal.newIcon.startsWith('/') || editCategoryModal.newIcon.includes('.')) ? (
+                                        <img src={editCategoryModal.newIcon} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                    ) : (
+                                        <span style={{ fontSize: '20px' }}>{editCategoryModal.newIcon || '📁'}</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Titre (Page Catégorie)</label>
+                            <input className="form-input" value={editCategoryModal.newTitle} onChange={e => setEditCategoryModal({ ...editCategoryModal, newTitle: e.target.value })} />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Description (Page Catégorie)</label>
+                            <textarea className="form-input" style={{ height: '80px' }} value={editCategoryModal.newDescription} onChange={e => setEditCategoryModal({ ...editCategoryModal, newDescription: e.target.value })} />
+                        </div>
+                        <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', marginTop: '10px', marginBottom: '15px', border: '1px solid #e2e8f0' }}>
+                            <h4 style={{ marginBottom: '15px', fontSize: '14px', color: '#64748b', fontWeight: '800' }}>PARAMÈTRES SEO</h4>
+                            <div className="form-group">
+                                <label className="form-label">Meta Nom</label>
+                                <input className="form-input" value={editCategoryModal.newMetaTitle} onChange={e => setEditCategoryModal({ ...editCategoryModal, newMetaTitle: e.target.value })} placeholder="Titre pour Google" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Meta Description</label>
+                                <textarea className="form-input" style={{ height: '60px' }} value={editCategoryModal.newMetaDescription} onChange={e => setEditCategoryModal({ ...editCategoryModal, newMetaDescription: e.target.value })} placeholder="Description pour Google" />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Mot Clé</label>
+                                <input className="form-input" value={editCategoryModal.newKeywords} onChange={e => setEditCategoryModal({ ...editCategoryModal, newKeywords: e.target.value })} placeholder="Ex: iptv, streaming, abonnement..." />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button className="btn" onClick={() => setEditCategoryModal({ ...editCategoryModal, isOpen: false })}>Annuler</button>
+                            <button className="btn btn-primary" onClick={handleUpdateCategory}>Enregistrer</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <h2>Gestion des Catégories</h2>
+
+            <form onSubmit={handleAddCategory} className="form-inline" style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', marginBottom: '30px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '15px', marginBottom: '15px' }}>
+                    <input
+                        className="form-input"
+                        placeholder="Nom de catégorie"
+                        value={newCategory.name}
+                        onChange={e => {
+                            const name = e.target.value;
+                            setNewCategory(prev => ({
+                                ...prev,
+                                name,
+                                slug: slugify(name)
+                            }));
+                        }}
+                    />
+                    <input
+                        className="form-input"
+                        placeholder="Slug (ex: streaming)"
+                        value={newCategory.slug}
+                        onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input className="form-input" placeholder="Icône (Emoji/URL)" value={newCategory.icon} onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })} />
+                        <div style={{ width: '42px', height: '42px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                            {newCategory.icon && (newCategory.icon.startsWith('http') || newCategory.icon.startsWith('/') || newCategory.icon.includes('.')) ? (
+                                <img src={newCategory.icon} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                            ) : (
+                                <span style={{ fontSize: '20px' }}>{newCategory.icon || '📁'}</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '15px', marginBottom: '15px' }}>
+                    <input className="form-input" placeholder="Titre SEO (Page)" value={newCategory.title} onChange={e => setNewCategory({ ...newCategory, title: e.target.value })} />
+                    <input className="form-input" placeholder="Description courte (Page)" value={newCategory.description} onChange={e => setNewCategory({ ...newCategory, description: e.target.value })} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr auto', gap: '15px', padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <input className="form-input" placeholder="Meta Nom SEO" value={newCategory.metaTitle} onChange={e => setNewCategory({ ...newCategory, metaTitle: e.target.value })} />
+                    <input className="form-input" placeholder="Meta Description SEO" value={newCategory.metaDescription} onChange={e => setNewCategory({ ...newCategory, metaDescription: e.target.value })} />
+                    <input className="form-input" placeholder="Mot Clé SEO" value={newCategory.keywords} onChange={e => setNewCategory({ ...newCategory, keywords: e.target.value })} />
+                    <button type="submit" className="btn btn-primary">Ajouter</button>
+                </div>
+            </form>
+
+            <div style={{ display: 'grid', gap: '15px' }}>
+                {settings.categories && settings.categories.map((cat, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', flexShrink: 0 }}>
+                                {cat.icon && (cat.icon.startsWith('http') || cat.icon.startsWith('/') || cat.icon.includes('.')) ? (
+                                    <img src={cat.icon} alt={cat.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                    <span style={{ fontSize: '20px' }}>{cat.icon || '📁'}</span>
+                                )}
+                            </div>
+                            <div>
+                                <div style={{ fontWeight: 'bold' }}>{cat.name}</div>
+                                <div style={{ fontSize: '11px', color: '#64748b' }}>Slug: {cat.slug} | {cat.title}</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => setEditCategoryModal({
+                                isOpen: true,
+                                oldName: cat.name,
+                                newName: cat.name,
+                                newIcon: cat.icon || '',
+                                newTitle: cat.title || '',
+                                newDescription: cat.description || '',
+                                newSlug: cat.slug || '',
+                                newMetaTitle: cat.metaTitle || '',
+                                newMetaDescription: cat.metaDescription || '',
+                                newKeywords: cat.keywords || ''
+                            })}>Modifier</button>
+                            <button className="btn" style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444' }} onClick={() => setConfirmModal({ isOpen: true, item: cat.name })}>Supprimer</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const SettingsManager = () => {
-    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [] });
+    const { fetchCategories } = useContext(ShopContext);
+    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [], resolutions: [], regions: [] });
     const [newMode, setNewMode] = useState({ name: '', logo: '' });
     const [newChoice, setNewChoice] = useState('');
-    const [newCategory, setNewCategory] = useState({ name: '', icon: '' });
-    const [editingCategory, setEditingCategory] = useState(null); // original name
-    const [editValue, setEditValue] = useState({ name: '', icon: '' }); // new name and icon
+    const [newResolution, setNewResolution] = useState({ name: '', image: '' });
+    const [newRegion, setNewRegion] = useState({ name: '', image: '' });
+
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, item: null, type: '' });
@@ -1843,14 +2509,11 @@ const SettingsManager = () => {
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
-        // Use the same timeout as the main Notification component (3s)
-        // Note: The main Notification component handles its own timeout via useEffect, 
-        // so we just need to set the state here.
     };
 
     const fetchSettings = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/settings')
+        fetch('http://localhost:3000/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1873,7 +2536,7 @@ const SettingsManager = () => {
         if (!newMode.name.trim()) return;
 
         try {
-            const response = await fetch('https://satpromax.com/api/settings/payment-modes', {
+            const response = await fetch('http://localhost:3000/api/settings/payment-modes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newMode.name.trim(), logo: newMode.logo.trim() })
@@ -1893,7 +2556,7 @@ const SettingsManager = () => {
 
     const handleDeleteMode = async (mode) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
+            const response = await fetch(`http://localhost:3000/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -1914,7 +2577,7 @@ const SettingsManager = () => {
         if (!newChoice.trim()) return;
 
         try {
-            const response = await fetch('https://satpromax.com/api/settings/device-choices', {
+            const response = await fetch('http://localhost:3000/api/settings/device-choices', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ choice: newChoice.trim() })
@@ -1934,7 +2597,7 @@ const SettingsManager = () => {
 
     const handleDeleteChoice = async (choice) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/device-choices/${encodeURIComponent(choice)}`, {
+            const response = await fetch(`http://localhost:3000/api/settings/device-choices/${encodeURIComponent(choice)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -1950,21 +2613,20 @@ const SettingsManager = () => {
         }
     };
 
-    const handleAddCategory = async (e) => {
+    const handleAddResolution = async (e) => {
         e.preventDefault();
-        if (!newCategory.name.trim()) return;
-
+        if (!newResolution.name.trim()) return;
         try {
-            const response = await fetch('https://satpromax.com/api/settings/categories', {
+            const response = await fetch('http://localhost:3000/api/settings/resolutions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newCategory.name.trim(), icon: newCategory.icon.trim() })
+                body: JSON.stringify({ name: newResolution.name.trim(), image: newResolution.image.trim() })
             });
             const data = await response.json();
             if (data.success) {
                 setSettings(data.data);
-                setNewCategory({ name: '', icon: '' });
-                showNotification("Catégorie ajoutée avec succès", "success");
+                setNewResolution({ name: '', image: '' });
+                showNotification("Résolution ajoutée", "success");
             } else {
                 showNotification(data.message, "error");
             }
@@ -1973,15 +2635,15 @@ const SettingsManager = () => {
         }
     };
 
-    const handleDeleteCategory = async (categoryName) => {
+    const handleDeleteResolution = async (name) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(categoryName)}`, {
+            const response = await fetch(`http://localhost:3000/api/settings/resolutions/${encodeURIComponent(name)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
             if (data.success) {
                 setSettings(data.data);
-                showNotification("Catégorie supprimée", "success");
+                showNotification("Résolution supprimée", "success");
                 closeConfirmModal();
             } else {
                 showNotification(data.message, "error");
@@ -1991,26 +2653,38 @@ const SettingsManager = () => {
         }
     };
 
-    const handleUpdateCategory = async (oldCategoryName) => {
-        if (!editValue.name.trim()) {
-            setEditingCategory(null);
-            return;
-        }
-
+    const handleAddRegion = async (e) => {
+        e.preventDefault();
+        if (!newRegion.name.trim()) return;
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(oldCategoryName)}`, {
-                method: 'PUT',
+            const response = await fetch('http://localhost:3000/api/settings/regions', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    newCategory: editValue.name.trim(),
-                    newIcon: editValue.icon.trim()
-                })
+                body: JSON.stringify({ name: newRegion.name.trim(), image: newRegion.image.trim() })
             });
             const data = await response.json();
             if (data.success) {
                 setSettings(data.data);
-                setEditingCategory(null);
-                showNotification("Catégorie mise à jour", "success");
+                setNewRegion({ name: '', image: '' });
+                showNotification("Région ajoutée", "success");
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDeleteRegion = async (name) => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/settings/regions/${encodeURIComponent(name)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                showNotification("Région supprimée", "success");
+                closeConfirmModal();
             } else {
                 showNotification(data.message, "error");
             }
@@ -2063,7 +2737,8 @@ const SettingsManager = () => {
                                 onClick={() => {
                                     if (confirmModal.type === 'paymentMode') handleDeleteMode(confirmModal.item);
                                     else if (confirmModal.type === 'deviceChoice') handleDeleteChoice(confirmModal.item);
-                                    else if (confirmModal.type === 'category') handleDeleteCategory(confirmModal.item);
+                                    else if (confirmModal.type === 'resolution') handleDeleteResolution(confirmModal.item);
+                                    else if (confirmModal.type === 'region') handleDeleteRegion(confirmModal.item);
                                 }}
                                 style={{
                                     flex: 1,
@@ -2145,7 +2820,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch('http://localhost:3000/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -2190,7 +2865,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch('http://localhost:3000/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ whatsappNumber: settings.whatsappNumber })
@@ -2232,7 +2907,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch('http://localhost:3000/api/settings', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ productTitleColor: settings.productTitleColor })
@@ -2249,6 +2924,110 @@ const SettingsManager = () => {
                     >
                         Mettre à jour
                     </button>
+                </div>
+            </div>
+
+            {/* Resolutions Management */}
+            <div style={{ marginTop: '30px' }}>
+                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Résolutions</h3>
+
+                <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <form onSubmit={handleAddResolution} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Nom de la résolution</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="ex: 4K, FHD"
+                                value={newResolution.name}
+                                onChange={(e) => setNewResolution({ ...newResolution, name: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <div style={{ flex: 2 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="https://..."
+                                value={newResolution.image}
+                                onChange={(e) => setNewResolution({ ...newResolution, image: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
+                            Ajouter
+                        </button>
+                    </form>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
+                    {settings.resolutions && settings.resolutions.map((res, index) => (
+                        <div key={index} style={{ background: '#fff', borderRadius: '12px', padding: '15px', border: '1px solid #e2e8f0', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {res.image ? <img src={res.image} alt={res.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '24px' }}>📺</span>}
+                            </div>
+                            <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{res.name}</span>
+                            <button
+                                onClick={() => openConfirmModal(res.name, 'resolution')}
+                                style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Regions Management */}
+            <div style={{ marginTop: '30px' }}>
+                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Régions</h3>
+
+                <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <form onSubmit={handleAddRegion} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Nom de la région</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="ex: Europe, Monde, USA"
+                                value={newRegion.name}
+                                onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <div style={{ flex: 2 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="https://..."
+                                value={newRegion.image}
+                                onChange={(e) => setNewRegion({ ...newRegion, image: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
+                            Ajouter
+                        </button>
+                    </form>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
+                    {settings.regions && settings.regions.map((reg, index) => (
+                        <div key={index} style={{ background: '#fff', borderRadius: '12px', padding: '15px', border: '1px solid #e2e8f0', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {reg.image ? <img src={reg.image} alt={reg.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '24px' }}>🌍</span>}
+                            </div>
+                            <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{reg.name}</span>
+                            <button
+                                onClick={() => openConfirmModal(reg.name, 'region')}
+                                style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -2412,108 +3191,367 @@ const SettingsManager = () => {
                     )}
                 </div>
             </div>
+        </div>
+    );
+};
 
-            <div style={{ marginTop: '50px' }}>
-                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Catégories</h3>
+const GuidesManager = () => {
+    const [guides, setGuides] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingGuide, setEditingGuide] = useState(null);
+    const [newGuide, setNewGuide] = useState({
+        title: '',
+        content: '',
+        excerpt: '',
+        image: '',
+        category: "Guides d'installation",
+        sections: [],
+        metaTitle: '',
+        metaDescription: '',
+        keywords: ''
+    });
+    const [pageSettings, setPageSettings] = useState({
+        guideHeroImage: '',
+        guidePageBgImage: ''
+    });
 
-                <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                    <input
-                        type="text"
-                        value={newCategory.name}
-                        onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Nom de catégorie (ex: Streaming)"
-                        className="form-input"
-                        style={{ maxWidth: '250px' }}
-                    />
-                    <input
-                        type="text"
-                        value={newCategory.icon}
-                        onChange={(e) => setNewCategory(prev => ({ ...prev, icon: e.target.value }))}
-                        placeholder="Icône (emoji ou lien URL)"
-                        className="form-input"
-                        style={{ maxWidth: '200px' }}
-                    />
-                    <button type="submit" className="btn btn-primary">Ajouter</button>
-                </form>
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
 
-                <div className="categories-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    {settings.categories && settings.categories.map((cat, index) => {
-                        const catName = typeof cat === 'object' ? cat.name : cat;
-                        const catIcon = typeof cat === 'object' ? cat.icon : '';
+    const fetchGuides = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('http://localhost:3000/api/guides');
+            const data = await res.json();
+            if (data.success) {
+                setGuides(data.data);
+            }
+            // Fetch page settings
+            const settingsRes = await fetch('http://localhost:3000/api/settings');
+            const settingsData = await settingsRes.json();
+            if (settingsData.success) {
+                setPageSettings({
+                    guideHeroImage: settingsData.data.guideHeroImage || '',
+                    guidePageBgImage: settingsData.data.guidePageBgImage || ''
+                });
+            }
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
+    };
 
-                        return (
-                            <div key={index} style={{
-                                background: editingCategory === catName ? '#fff' : '#f1f5f9',
-                                padding: '8px 12px',
-                                borderRadius: '6px',
-                                border: editingCategory === catName ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                fontWeight: '500',
-                                color: '#475569',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                            }}>
-                                {editingCategory === catName ? (
-                                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                                        <input
-                                            type="text"
-                                            value={editValue.name}
-                                            onChange={(e) => setEditValue(prev => ({ ...prev, name: e.target.value }))}
-                                            autoFocus
-                                            style={{ fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px', padding: '2px 6px', width: '100px' }}
-                                        />
-                                        <input
-                                            type="text"
-                                            value={editValue.icon || ''}
-                                            onChange={(e) => setEditValue(prev => ({ ...prev, icon: e.target.value }))}
-                                            placeholder="Icône"
-                                            style={{ fontSize: '14px', border: '1px solid #ddd', borderRadius: '4px', padding: '2px 6px', width: '80px' }}
-                                        />
-                                        <button onClick={() => handleUpdateCategory(catName)} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '12px' }}>OK</button>
-                                        <button onClick={() => setEditingCategory(null)} style={{ background: '#94a3b8', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '12px' }}>×</button>
+    const handleSavePageSettings = async () => {
+        try {
+            const res = await fetch('http://localhost:3000/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pageSettings)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification("Paramètres de la page mis à jour", "success");
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    useEffect(() => {
+        fetchGuides();
+    }, []);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const method = editingGuide ? 'PUT' : 'POST';
+        const url = editingGuide
+            ? `http://localhost:3000/api/guides/${editingGuide._id}`
+            : 'http://localhost:3000/api/guides';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newGuide)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification(editingGuide ? "Article mis à jour" : "Article créé", "success");
+                setIsModalOpen(false);
+                setEditingGuide(null);
+                setNewGuide({ title: '', content: '', excerpt: '', image: '', category: "Guides d'installation", sections: [], metaTitle: '', metaDescription: '', keywords: '' });
+                fetchGuides();
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Voulez-vous vraiment supprimer cet article ?")) return;
+        try {
+            const res = await fetch(`http://localhost:3000/api/guides/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showNotification("Article supprimé", "success");
+                fetchGuides();
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const addSection = () => {
+        setNewGuide({
+            ...newGuide,
+            sections: [...newGuide.sections, { title: '', content: '', image: '' }]
+        });
+    };
+
+    const updateSection = (index, field, value) => {
+        const updatedSections = [...newGuide.sections];
+        updatedSections[index] = { ...updatedSections[index], [field]: value };
+        setNewGuide({ ...newGuide, sections: updatedSections });
+    };
+
+    const removeSection = (index) => {
+        const updatedSections = newGuide.sections.filter((_, i) => i !== index);
+        setNewGuide({ ...newGuide, sections: updatedSections });
+    };
+
+    const handleEdit = (guide) => {
+        setEditingGuide(guide);
+        setNewGuide({
+            title: guide.title,
+            content: guide.content,
+            excerpt: guide.excerpt || '',
+            image: guide.image || '',
+            category: guide.category || "Guides d'installation",
+            sections: guide.sections || [],
+            metaTitle: guide.metaTitle || '',
+            metaDescription: guide.metaDescription || '',
+            keywords: guide.keywords || ''
+        });
+        setIsModalOpen(true);
+    };
+
+    const filteredGuides = guides.filter(g =>
+        g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        g.content.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (loading) return <div>Chargement...</div>;
+
+    return (
+        <div className="admin-card">
+            {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <h2>Gestion des Guides d'installation</h2>
+                <button className="btn btn-primary" onClick={() => { setEditingGuide(null); setIsModalOpen(true); }}>
+                    + Ajouter un Article
+                </button>
+            </div>
+
+            {/* Page Settings Section */}
+            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', marginBottom: '15px' }}>Paramètres de la page Guide</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Image Hero (Bouton Blog & Article)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={pageSettings.guideHeroImage}
+                            onChange={(e) => setPageSettings({ ...pageSettings, guideHeroImage: e.target.value })}
+                            placeholder="URL de l'image Hero"
+                        />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Image Fond de Page (Background)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={pageSettings.guidePageBgImage}
+                            onChange={(e) => setPageSettings({ ...pageSettings, guidePageBgImage: e.target.value })}
+                            placeholder="URL de l'image de fond"
+                        />
+                    </div>
+                </div>
+                <button
+                    className="btn btn-primary"
+                    style={{ marginTop: '20px', padding: '10px 20px', fontSize: '14px' }}
+                    onClick={handleSavePageSettings}
+                >
+                    Enregistrer les paramètres de page
+                </button>
+            </div>
+
+            <div className="form-group" style={{ maxWidth: '400px', marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Chercher un article..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
+            <div className="admin-table-container">
+                <table className="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Titre</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredGuides.map(guide => (
+                            <tr key={guide._id}>
+                                <td>
+                                    <img src={guide.image || "https://premium.satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }} />
+                                </td>
+                                <td style={{ fontWeight: 'bold' }}>{guide.title}</td>
+                                <td>{new Date(guide.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn" onClick={() => handleEdit(guide)}>Modifier</button>
+                                        <button className="btn" style={{ color: '#ef4444' }} onClick={() => handleDelete(guide._id)}>Supprimer</button>
                                     </div>
-                                ) : (
-                                    <>
-                                        {catIcon ? (
-                                            catIcon.startsWith('http') ? (
-                                                <img src={catIcon} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-                                            ) : (
-                                                <span style={{ fontSize: '18px' }}>{catIcon}</span>
-                                            )
-                                        ) : (
-                                            <span style={{ fontSize: '18px' }}>📁</span>
-                                        )}
-                                        <span style={{ cursor: 'pointer' }} onClick={() => { setEditingCategory(catName); setEditValue({ name: catName, icon: catIcon || '' }); }}>{catName}</span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {isModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '800px' }}>
+                        <h3>{editingGuide ? "Modifier l'Article" : "Nouvel Article"}</h3>
+                        <form onSubmit={handleSave}>
+                            <div className="form-group">
+                                <label className="form-label">Titre *</label>
+                                <input
+                                    className="form-input"
+                                    value={newGuide.title}
+                                    onChange={e => setNewGuide({ ...newGuide, title: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Image URL</label>
+                                <input
+                                    className="form-input"
+                                    value={newGuide.image}
+                                    onChange={e => setNewGuide({ ...newGuide, image: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Extrait (Excerpt)</label>
+                                <textarea
+                                    className="form-input"
+                                    style={{ height: '60px' }}
+                                    value={newGuide.excerpt}
+                                    onChange={e => setNewGuide({ ...newGuide, excerpt: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Introduction (Optionnel)</label>
+                                <textarea
+                                    className="form-input"
+                                    style={{ height: '100px' }}
+                                    value={newGuide.content}
+                                    onChange={e => setNewGuide({ ...newGuide, content: e.target.value })}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '25px', padding: '20px', background: '#f1f5f9', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '15px', color: '#334155', fontWeight: '800' }}>SECTIONS DE L'ARTICLE</h4>
+                                    <button type="button" className="btn btn-primary" style={{ padding: '5px 12px', fontSize: '12px' }} onClick={addSection}>+ Ajouter Section</button>
+                                </div>
+
+                                {newGuide.sections.map((section, index) => (
+                                    <div key={index} style={{ background: '#fff', padding: '15px', borderRadius: '12px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'relative' }}>
                                         <button
                                             type="button"
-                                            onClick={() => openConfirmModal(catName, 'category')}
-                                            style={{
-                                                background: '#fee2e2',
-                                                border: 'none',
-                                                color: '#ef4444',
-                                                cursor: 'pointer',
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '50%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: 'bold'
-                                            }}
+                                            onClick={() => removeSection(index)}
+                                            style={{ position: 'absolute', top: '10px', right: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
                                         >
                                             &times;
                                         </button>
-                                    </>
-                                )}
+                                        <div className="form-group">
+                                            <label className="form-label" style={{ fontSize: '12px' }}>Titre de Section</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={section.title}
+                                                onChange={e => updateSection(index, 'title', e.target.value)}
+                                                placeholder="Ex: Comment installer..."
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label" style={{ fontSize: '12px' }}>Texte de Section</label>
+                                            <textarea
+                                                className="form-input"
+                                                style={{ height: '100px' }}
+                                                value={section.content}
+                                                onChange={e => updateSection(index, 'content', e.target.value)}
+                                                placeholder="Contenu de cette section..."
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '12px' }}>Image explicative (Optionnel)</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={section.image}
+                                                onChange={e => updateSection(index, 'image', e.target.value)}
+                                                placeholder="URL de l'image"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                {newGuide.sections.length === 0 && <p style={{ textAlign: 'center', color: '#64748b', fontSize: '13px' }}>Aucune section ajoutée. Cliquez sur le bouton ci-dessus pour commencer.</p>}
                             </div>
-                        );
-                    })}
-                    {(!settings.categories || settings.categories.length === 0) && (
-                        <div style={{ color: '#94a3b8', fontStyle: 'italic' }}>Aucune catégorie définie. Ajoutez-en une ci-dessus.</div>
-                    )}
+
+                            <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
+                                <h4 style={{ marginBottom: '15px', fontSize: '14px', color: '#64748b', fontWeight: '800' }}>PARAMÈTRES SEO (Article)</h4>
+                                <div className="form-group">
+                                    <label className="form-label">Meta Nom</label>
+                                    <input className="form-input" value={newGuide.metaTitle} onChange={e => setNewGuide({ ...newGuide, metaTitle: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Meta Description</label>
+                                    <textarea className="form-input" style={{ height: '60px' }} value={newGuide.metaDescription} onChange={e => setNewGuide({ ...newGuide, metaDescription: e.target.value })} />
+                                </div>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label">Mot Clé</label>
+                                    <input className="form-input" value={newGuide.keywords} onChange={e => setNewGuide({ ...newGuide, keywords: e.target.value })} />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="button" className="btn" onClick={() => setIsModalOpen(false)}>Annuler</button>
+                                <button type="submit" className="btn btn-primary">Enregistrer</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
@@ -2528,7 +3566,7 @@ const ReviewsManager = () => {
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            const response = await fetch('https://satpromax.com/api/reviews');
+            const response = await fetch('http://localhost:3000/api/reviews');
             const data = await response.json();
             if (data.success) {
                 setReviews(data.data);
@@ -2546,7 +3584,7 @@ const ReviewsManager = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/reviews/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -2568,7 +3606,7 @@ const ReviewsManager = () => {
     const confirmDelete = async () => {
         const id = deleteModal.id;
         try {
-            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
+            const response = await fetch(`http://localhost:3000/api/reviews/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2745,6 +3783,443 @@ const ReviewsManager = () => {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}} />
+        </div>
+    );
+};
+
+// Guide Inquiries Manager Component
+const GuideInquiriesManager = () => {
+    const [inquiries, setInquiries] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+
+    const fetchInquiries = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:3000/api/guide-inquiries');
+            const data = await response.json();
+            if (data.success) {
+                setInquiries(data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching inquiries:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchInquiries();
+    }, []);
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Supprimer cette question ?")) return;
+        try {
+            const response = await fetch(`http://localhost:3000/api/guide-inquiries/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNotification({ message: "Question supprimée", type: 'success' });
+                fetchInquiries();
+            }
+        } catch (error) {
+            setNotification({ message: "Erreur lors de la suppression", type: 'error' });
+        }
+    };
+
+    return (
+        <div className="manager-view">
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+
+            <div className="view-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '30px',
+                background: '#fff',
+                padding: '25px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                    }}>
+                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1e293b', margin: 0 }}>Questions sur les Articles</h2>
+                        <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{inquiries.length} question(s) en attente de réponse</p>
+                    </div>
+                </div>
+            </div>
+
+            {loading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <div className="admin-loader"></div>
+                    <p style={{ color: '#64748b', marginTop: '15px' }}>Chargement des questions...</p>
+                </div>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                    gap: '20px'
+                }}>
+                    {inquiries.map((inquiry) => (
+                        <div key={inquiry._id} style={{
+                            background: '#fff',
+                            borderRadius: '16px',
+                            padding: '20px',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                            border: '1px solid #f1f5f9',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            transition: 'transform 0.2s',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        background: '#eff6ff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#3b82f6',
+                                        fontWeight: '800',
+                                        fontSize: '18px'
+                                    }}>
+                                        {inquiry.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{inquiry.name}</div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{new Date(inquiry.createdAt).toLocaleString('fr-FR')}</div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleDelete(inquiry._id)}
+                                    style={{
+                                        background: '#fee2e2',
+                                        color: '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        padding: '8px',
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Supprimer"
+                                >
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 2 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+
+                            <div style={{
+                                background: '#f8fafc',
+                                padding: '10px 15px',
+                                borderRadius: '10px',
+                                marginBottom: '15px',
+                                fontSize: '13px',
+                                color: '#475569',
+                                borderLeft: '4px solid #3b82f6'
+                            }}>
+                                <span style={{ fontWeight: 'bold', color: '#334155' }}>Article :</span> {inquiry.articleTitle}
+                            </div>
+
+                            <div style={{
+                                flex: 1,
+                                padding: '15px',
+                                background: '#fff',
+                                borderRadius: '12px',
+                                border: '1px solid #f1f5f9',
+                                marginBottom: '20px',
+                                position: 'relative'
+                            }}>
+                                <svg width="20" height="20" fill="#f1f5f9" style={{ position: 'absolute', top: '-10px', left: '10px' }} viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C20.1216 16 21.017 16.8954 21.017 18V21C21.017 22.1046 20.1216 23 19.017 23H16.017C14.9124 23 14.017 22.1046 14.017 21ZM14.017 21V18C14.017 14.134 17.151 11 21.017 11V14.334C19.1837 14.334 17.6837 15.834 17.6837 17.6673H21.017V21C21.017 22.1046 20.1216 23 19.017 23H16.017C14.9124 23 14.017 22.1046 14.017 21ZM5.01697 21L5.01697 18C5.01697 16.8954 5.9124 16 7.01697 16H10.017C11.1216 16 12.017 16.8954 12.017 18V21C12.017 22.1046 11.1216 23 10.017 23H7.01697C5.9124 23 5.01697 22.1046 5.01697 21ZM5.01697 21V18C5.01697 14.134 8.15097 11 12.017 11V14.334C10.1836 14.334 8.68364 15.834 8.68364 17.6673H12.017V21C12.017 22.1046 11.1216 23 10.017 23H7.01697C5.9124 23 5.01697 22.1046 5.01697 21Z" /></svg>
+                                <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#334155', fontWeight: '500' }}>
+                                    {inquiry.question}
+                                </p>
+                            </div>
+
+                            <a
+                                href={`https://wa.me/${inquiry.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Bonjour ${inquiry.name}, à propos de votre question sur l'article "${inquiry.articleTitle}" : `)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    padding: '14px',
+                                    background: '#25d366',
+                                    color: '#fff',
+                                    textDecoration: 'none',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    fontSize: '14px',
+                                    transition: 'background 0.2s',
+                                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.2)'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#128c7e'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#25d366'}
+                            >
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82c1.516.903 3.124 1.379 4.773 1.38h.005c5.441 0 9.869-4.427 9.871-9.87.001-2.636-1.026-5.115-2.892-6.983-1.866-1.868-4.346-2.895-6.983-2.896-5.442 0-9.87 4.427-9.873 9.871-.001 1.739.456 3.437 1.321 4.925l-.83 3.033 3.108-.815zm11.411-7.55c-.171-.086-1.014-.5-1.171-.557-.157-.057-.271-.086-.385.086-.114.172-.442.557-.542.671-.1.114-.2.128-.371.043-.171-.086-.723-.266-1.377-.849-.51-.454-.853-1.014-.953-1.186-.1-.171-.011-.264.075-.349.076-.076.171-.2.257-.3.085-.1.114-.171.171-.3.057-.128.028-.243-.014-.328-.043-.086-.385-.929-.528-1.272-.14-.335-.282-.289-.385-.294-.1-.005-.214-.006-.328-.006-.114 0-.3.043-.457.214-.157.172-.6.586-.6 1.429 0 .843.614 1.657.7 1.771.086.115 1.209 1.846 2.928 2.587.409.176.728.281.977.36.41.13.784.112 1.078.068.329-.049 1.014-.414 1.157-.814.143-.4.143-.743.1-.814-.043-.071-.157-.114-.328-.2z" /></svg>
+                                Répondre sur WhatsApp
+                            </a>
+                        </div>
+                    ))}
+                    {inquiries.length === 0 && (
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            padding: '60px',
+                            textAlign: 'center',
+                            background: '#fff',
+                            borderRadius: '20px',
+                            border: '2px dashed #e2e8f0'
+                        }}>
+                            <div style={{ fontSize: '50px', marginBottom: '20px' }}>📁</div>
+                            <h3 style={{ color: '#1e293b', fontWeight: '800' }}>Aucune question pour le moment</h3>
+                            <p style={{ color: '#64748b' }}>Les questions posées par les clients sur les articles apparaîtront ici.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Contact Messages Manager Component
+const ContactMessagesManager = () => {
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+
+    const fetchMessages = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('http://localhost:3000/api/contact-messages');
+            const data = await res.json();
+            if (data.success) {
+                setMessages(data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMessages();
+    }, []);
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Supprimer ce message ?")) return;
+        try {
+            const res = await fetch(`http://localhost:3000/api/contact-messages/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.success) {
+                setNotification({ message: "Message supprimé", type: 'success' });
+                fetchMessages();
+            }
+        } catch (error) {
+            setNotification({ message: "Erreur lors de la suppression", type: 'error' });
+        }
+    };
+
+    return (
+        <div className="manager-view">
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+
+            <div className="view-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '30px',
+                background: '#fff',
+                padding: '25px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                    }}>
+                        <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#1e293b', margin: 0 }}>Messages de Contact</h2>
+                        <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{messages.length} message(s) reçu(s)</p>
+                    </div>
+                </div>
+            </div>
+
+            {loading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <div className="admin-loader"></div>
+                    <p style={{ color: '#64748b', marginTop: '15px' }}>Chargement des messages...</p>
+                </div>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
+                    gap: '20px'
+                }}>
+                    {messages.map((msg) => (
+                        <div key={msg._id} style={{
+                            background: '#fff',
+                            borderRadius: '16px',
+                            padding: '25px',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
+                            border: '1px solid #f1f5f9',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            position: 'relative',
+                            transition: 'transform 0.2s'
+                        }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        width: '45px',
+                                        height: '45px',
+                                        borderRadius: '12px',
+                                        background: '#f1f5f9',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#475569',
+                                        fontWeight: '800'
+                                    }}>
+                                        {msg.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '16px' }}>{msg.name}</div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{new Date(msg.createdAt).toLocaleString('fr-FR')}</div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleDelete(msg._id)}
+                                    style={{
+                                        background: '#fee2e2',
+                                        color: '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '10px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '700', color: '#94a3b8', marginBottom: '4px' }}>Sujet</div>
+                                <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{msg.subject}</div>
+                            </div>
+
+                            <div style={{
+                                flex: 1,
+                                padding: '18px',
+                                background: '#f8fafc',
+                                borderRadius: '12px',
+                                border: '1px solid #f1f5f9',
+                                marginBottom: '20px',
+                                color: '#475569',
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                whiteSpace: 'pre-wrap'
+                            }}>
+                                {msg.message}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <a
+                                    href={`https://wa.me/${msg.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Bonjour ${msg.name}, à propos de votre message : "${msg.subject}"...`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        flex: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '10px',
+                                        padding: '12px',
+                                        background: '#25d366',
+                                        color: '#fff',
+                                        textDecoration: 'none',
+                                        borderRadius: '10px',
+                                        fontWeight: '700',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82c1.516.903 3.124 1.379 4.773 1.38h.005c5.441 0 9.869-4.427 9.871-9.87.001-2.636-1.026-5.115-2.892-6.983-1.866-1.868-4.346-2.895-6.983-2.896-5.442 0-9.87 4.427-9.873 9.871-.001 1.739.456 3.437 1.321 4.925l-.83 3.033 3.108-.815zm11.411-7.55c-.171-.086-1.014-.5-1.171-.557-.157-.057-.271-.086-.385.086-.114.172-.442.557-.542.671-.1.114-.2.128-.371.043-.171-.086-.723-.266-1.377-.849-.51-.454-.853-1.014-.953-1.186-.1-.171-.011-.264.075-.349.076-.076.171-.2.257-.3.085-.1.114-.171.171-.3.057-.128.028-.243-.014-.328-.043-.086-.385-.929-.528-1.272-.14-.335-.282-.289-.385-.294-.1-.005-.214-.006-.328-.006-.114 0-.3.043-.457.214-.157.172-.6.586-.6 1.429 0 .843.614 1.657.7 1.771.086.115 1.209 1.846 2.928 2.587.409.176.728.281.977.36.41.13.784.112 1.078.068.329-.049 1.014-.414 1.157-.814.143-.4.143-.743.1-.814-.043-.071-.157-.114-.328-.2z" /></svg>
+                                    WhatsApp
+                                </a>
+                                <div style={{
+                                    flex: 1,
+                                    background: '#f1f5f9',
+                                    padding: '12px',
+                                    borderRadius: '10px',
+                                    textAlign: 'center',
+                                    fontSize: '13px',
+                                    fontWeight: '700',
+                                    color: '#475569'
+                                }}>
+                                    {msg.whatsapp}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {messages.length === 0 && (
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            padding: '100px 20px',
+                            textAlign: 'center',
+                            background: '#fff',
+                            borderRadius: '24px',
+                            border: '2px dashed #e2e8f0'
+                        }}>
+                            <div style={{ fontSize: '64px', marginBottom: '20px' }}>✉️</div>
+                            <h3 style={{ color: '#1e293b', fontWeight: '800', fontSize: '24px' }}>Aucun message reçu</h3>
+                            <p style={{ color: '#64748b' }}>Les messages envoyés via la page de contact s'afficheront ici.</p>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

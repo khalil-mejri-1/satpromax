@@ -6,66 +6,128 @@ import Footer from '../components/Footer';
 
 import ReviewCarousel from '../components/ReviewCarousel';
 
+import { slugify } from '../utils/slugify';
+
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [promoCards, setPromoCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://satpromax.com/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setProducts(data.data);
+    // Fetch Products
+    const fetchProducts = fetch('http://localhost:3000/api/products').then(res => res.json());
+    // Fetch Settings (Categories & Promos)
+    const fetchSettings = fetch('http://localhost:3000/api/settings').then(res => res.json());
+
+    Promise.all([fetchProducts, fetchSettings])
+      .then(([productsData, settingsData]) => {
+        if (productsData.success) {
+          setProducts(productsData.data);
+        }
+        if (settingsData.success && settingsData.data) {
+          if (settingsData.data.categories) setCategories(settingsData.data.categories);
+          if (settingsData.data.promoCards) setPromoCards(settingsData.data.promoCards);
         }
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch products", err);
+        console.error("Failed to fetch data", err);
         setLoading(false);
       });
   }, []);
 
   // Helper to filter products by category
-  const getProductsByCategory = (category) => {
-    // Case-insensitive check just in case
-    return products.filter(p => p.category && p.category.toLowerCase().includes(category.toLowerCase()));
+  const getProductsByCategory = (categoryName) => {
+    if (!categoryName) return [];
+    return products.filter(p => p.category && p.category.toLowerCase() === categoryName.toLowerCase());
   };
-
-  // Filter into categories
-  const iptvProducts = getProductsByCategory('IPTV');
-  const boxProducts = getProductsByCategory('Box');
-  const streamingProducts = getProductsByCategory('Streaming');
-  const giftCardProducts = getProductsByCategory('Gift Card');
-  const softwareProducts = getProductsByCategory('Software');
-  const gamingProducts = getProductsByCategory('Gaming');
-  const musicProducts = getProductsByCategory('Music');
 
   return (
     <div className="home-page">
       <Header />
       <Hero />
 
-      <ProductSection title="IPTV Premium" products={iptvProducts} loading={loading} categoryLink="/category/iptv-sharing" />
-      <ProductSection title="Box Android Et Recepteur" products={boxProducts} loading={loading} categoryLink="/category/box-android" />
-      <ProductSection title="Streaming" products={streamingProducts} loading={loading} categoryLink="/category/streaming" />
-      <ProductSection title="Gaming" products={gamingProducts} loading={loading} categoryLink="/category/gaming" />
-      <ProductSection title="Musique" products={musicProducts} loading={loading} categoryLink="/category/music" />
-      <ProductSection title="Cartes Cadeaux" products={giftCardProducts} loading={loading} categoryLink="/category/gift-card" />
-      <ProductSection title="Logiciels" products={softwareProducts} loading={loading} categoryLink="/category/software" />
+      {categories.map((category, index) => {
+        // Try exact match first, then partial if needed, but exact is better for DB driven categories
+        // actually, let's allow partial match if exact fails or just be loose?
+        // The user manually filtered 'Box' for 'Box Android'. 
+        // If DB category is 'Box Android' and product is 'Box Android', exact works.
+        // Let's stick to a robust check: include check is safer for slight variations.
+        const categoryProducts = products.filter(p =>
+          p.category && (
+            p.category.toLowerCase() === category.name.toLowerCase() ||
+            p.category.toLowerCase().includes(category.name.toLowerCase()) ||
+            category.name.toLowerCase().includes(p.category.toLowerCase())
+          )
+        );
+
+        // Don't show empty sections if not loading (optional, but cleaner)
+        // actually user might want to see empty sections to know they exist? 
+        // Standard is usually hide if empty. But let's show all for now as requested "display categories".
+
+        return (
+          <ProductSection
+            key={index}
+            title={category.name}
+            products={categoryProducts}
+            loading={loading}
+            categoryLink={`/category/${slugify(category.name)}`}
+          />
+        );
+      })}
 
       <ReviewCarousel />
 
-      {/* Promo Banner Section (Generic 3 images from image 4) */}
-      <section className="promo-banners container mt-10">
-        <div className="promo-banner-card bg-streaming ">
-          Abonnement Streaming
-        </div>
-        <div className="promo-banner-card bg-sharing">
-          Abonnement Sharing
-        </div>
-        <div className="promo-banner-card bg-software">
-          Logiciels
-        </div>
+      {/* Promo Banner Section (Dynamic) */}
+      <section className="promo-banners container mt-10" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+        {promoCards && promoCards.length > 0 ? (
+          promoCards.map((card, idx) => (
+            <div
+              key={idx}
+              className="promo-banner-card"
+              style={{
+                backgroundImage: `url(${card.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative',
+                cursor: 'pointer',
+                overflow: 'hidden'
+              }}
+              onClick={() => window.location.href = `/category/${slugify(card.title)}`}
+            >
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(0,0,0,0.4)', // Darker overlay for readability
+                display: 'flex',
+                alignItems: 'flex-end',
+                padding: '20px',
+                transition: 'background 0.3s'
+              }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.4)'}
+              >
+                <h3 style={{
+                  color: 'white',
+                  fontSize: '24px',
+                  fontWeight: '800',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                  margin: 0
+                }}>
+                  {card.title}
+                </h3>
+              </div>
+            </div>
+          ))
+        ) : (
+          /* Fallback if no promo cards configured */
+          <div style={{ display: 'contents' }}>
+            <div className="promo-banner-card bg-streaming">Abonnement Streaming</div>
+            <div className="promo-banner-card bg-sharing">Abonnement Sharing</div>
+            <div className="promo-banner-card bg-software">Logiciels</div>
+          </div>
+        )}
       </section>
 
       <Footer />
