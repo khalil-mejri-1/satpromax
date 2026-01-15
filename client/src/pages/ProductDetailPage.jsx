@@ -565,7 +565,7 @@ export default function ProductDetailPage() {
     // Category Mapping for consistent breadcrumbs
     const categoryMapping = {
         'Streaming': { name: 'Streaming', slug: 'streaming' },
-        'IPTV Premium': { name: 'IPTV & Sharing', slug: 'iptv-sharing' },
+        'IPTV Premium': { name: 'Abonnement IPTV', slug: 'iptv-sharing' },
         'Box Android': { name: 'Box Android & Recepteur', slug: 'box-android' },
         'Music': { name: 'Musique', slug: 'music' },
         'Gaming': { name: 'Gaming', slug: 'gaming' },
@@ -574,7 +574,7 @@ export default function ProductDetailPage() {
     };
 
     const currentCategory = categoryMapping[product.category] || { name: product.category, slug: product.category.toLowerCase().replace(/ /g, '-') };
-    const isIPTVCategory = currentCategory.name === 'IPTV & Sharing' || product.category === 'IPTV Premium';
+    const isIPTVCategory = currentCategory.name === 'Abonnement IPTV' || product.category === 'IPTV Premium';
     const isSharingCategory = product.category.toLowerCase().includes('sharing') || currentCategory.name.toLowerCase().includes('sharing');
 
     return (

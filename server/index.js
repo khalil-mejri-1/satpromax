@@ -684,7 +684,7 @@ const getSafeSettings = async () => {
         ],
         categories: [
             { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Découvrez les meilleures offres de streaming en Tunisie : Netflix, Shahid VIP, OSN+, YouTube Premium et plus !" },
-            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV & Sharing', description: "Profitez d'une large sélection d'abonnements IPTV et Sharing pour toutes vos chaînes préférées." },
+            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'Abonnement IPTV', description: "Profitez d'une large sélection d'abonnements IPTV et Sharing pour toutes vos chaînes préférées." },
             { name: 'Box Android', icon: '📦', slug: 'box-android-recepteur', title: 'Box Android & Recepteur', description: "Transformez votre TV avec nos Box Android et Récepteurs dernière génération." },
             { name: 'Music', icon: '🎵', slug: 'music', title: 'Musique', description: "Écoutez votre musique préférée sans interruption avec nos abonnements premium." },
             { name: 'Gaming', icon: '🎮', slug: 'gaming', title: 'Gaming', description: "Cartes cadeaux et abonnements pour PSN, Xbox, Steam et plus." },

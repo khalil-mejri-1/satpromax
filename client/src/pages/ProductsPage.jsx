@@ -12,7 +12,7 @@ const CATEGORIES_META = {
         description: "Découvrez les meilleures offres de streaming en Tunisie sur satpromax : Netflix, Shahid VIP, OSN+, YouTube Premium et plus, à prix imbattables !",
     },
     'iptv-sharing': {
-        title: 'IPTV & Sharing',
+        title: 'Abonnement IPTV',
         description: "Profitez d'une large sélection d'abonnements IPTV et Sharing pour toutes vos chaînes préférées.",
     },
     music: {
@@ -59,7 +59,7 @@ const CATEGORIES_META = {
 
 const CATEGORY_DB_MAP = {
     'streaming': 'Streaming',
-    'iptv-sharing': 'IPTV & Sharing',
+    'iptv-sharing': 'Abonnement IPTV',
     'iptv-premium': 'IPTV Premium',
     'music': 'Musique',
     'musique': 'Musique',

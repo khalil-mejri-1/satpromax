@@ -965,7 +965,7 @@ const ProductsManager = () => {
                         )}
                     </div>
 
-                    {(formData.category === 'IPTV Premium' || formData.category === 'IPTV & Sharing') && (
+                    {(formData.category === 'IPTV Premium' || formData.category === 'Abonnement IPTV') && (
                         <>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div className="form-group">
@@ -3218,9 +3218,27 @@ const GuidesManager = () => {
         guidePageBgImage: ''
     });
 
+    const [availableProducts, setAvailableProducts] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
+    const [linkGenerator, setLinkGenerator] = useState({ type: 'product', id: '', customTitle: '', customUrl: '' });
+
     const showNotification = (message, type) => {
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
+    };
+
+    const fetchOtherData = async () => {
+        try {
+            const [pRes, cRes] = await Promise.all([
+                fetch('https://satpromax.com/api/products'),
+                fetch('https://satpromax.com/api/categories')
+            ]);
+            const [pData, cData] = await Promise.all([pRes.json(), cRes.json()]);
+            if (pData.success) setAvailableProducts(pData.data);
+            if (cData.success) setAvailableCategories(cData.data);
+        } catch (error) {
+            console.error("Error fetching helper data:", error);
+        }
     };
 
     const fetchGuides = async () => {
@@ -3267,6 +3285,7 @@ const GuidesManager = () => {
 
     useEffect(() => {
         fetchGuides();
+        fetchOtherData();
     }, []);
 
     const handleSave = async (e) => {
@@ -3478,6 +3497,49 @@ const GuidesManager = () => {
                                 />
                             </div>
 
+                            <div style={{ marginBottom: '25px', padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
+                                    CRÉER UN LIEN DANS LE TEXTE (Lien Bleu)
+                                </h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr auto', gap: '8px' }}>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Le mot ou la phrase à cliquer..."
+                                        value={linkGenerator.customTitle}
+                                        onChange={e => setLinkGenerator({ ...linkGenerator, customTitle: e.target.value })}
+                                        style={{ height: '38px', fontSize: '13px' }}
+                                    />
+
+                                    <input
+                                        className="form-input"
+                                        placeholder="Lien ou URL (ex: /contact ou https://...)"
+                                        value={linkGenerator.customUrl}
+                                        onChange={e => setLinkGenerator({ ...linkGenerator, customUrl: e.target.value })}
+                                        style={{ height: '38px', fontSize: '13px' }}
+                                    />
+
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            const text = linkGenerator.customTitle || "Cliquez ici";
+                                            const url = linkGenerator.customUrl;
+                                            if (!url) return showNotification("Veuillez saisir une destination", "error");
+
+                                            const html = `<a href="${url}">${text}</a>`;
+                                            navigator.clipboard.writeText(html);
+                                            showNotification("Lien copié !", "success");
+                                        }}
+                                        style={{ height: '38px', padding: '0 15px', fontSize: '12px' }}
+                                    >
+                                        Copier HTML
+                                    </button>
+                                </div>
+                                <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>* Écrivez le texte, collez l'URL, copiez puis collez le code HTML dans votre article.</p>
+                            </div>
+
+
                             <div style={{ marginBottom: '25px', padding: '20px', background: '#f1f5f9', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                                     <h4 style={{ margin: 0, fontSize: '15px', color: '#334155', fontWeight: '800' }}>SECTIONS DE L'ARTICLE</h4>
@@ -3552,7 +3614,7 @@ const GuidesManager = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 

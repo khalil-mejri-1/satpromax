@@ -620,7 +620,7 @@ export default function Header() {
                     ) : (
                         <>
                             <Link to="/category/streaming" className="nav-link"><span className="icon"><StreamingIcon /></span> Streaming <span className="arrow"></span></Link>
-                            <Link to="/category/iptv-sharing" className="nav-link"><span className="icon"><IPTVIcon /></span> IPTV & Sharing <span className="arrow"></span></Link>
+                            <Link to="/category/iptv-sharing" className="nav-link"><span className="icon"><IPTVIcon /></span> Abonnement IPTV <span className="arrow"></span></Link>
                             <Link to="/category/music" className="nav-link"><span className="icon"><MusicIcon /></span> Musique</Link>
                             <Link to="/category/box-android" className="nav-link"><span className="icon"><BoxIcon /></span> Box Android & Recepteur</Link>
                             <Link to="/category/gaming" className="nav-link"><span className="icon"><GamingIcon /></span> Gaming</Link>
@@ -629,8 +629,8 @@ export default function Header() {
                         </>
                     )}
                     <Link to="/guide-installation" className="nav-link guide-btn-nav" style={{
-                        background: '#fef3c7',
-                        color: '#92400e',
+                        background: 'rgb(255, 214, 0)',
+                        color: '#000000ff',
                         borderRadius: '12px',
                         padding: '8px 16px',
                         border: '1px solid #fde68a'
@@ -711,7 +711,7 @@ export default function Header() {
                             </Link>
                             <Link to="/category/iptv-sharing" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><IPTVIcon /></span>
-                                <span className="sidebar-text">IPTV & Sharing</span>
+                                <span className="sidebar-text">Abonnement IPTV</span>
                                 <span className="sidebar-arrow">›</span>
                             </Link>
                             <Link to="/category/music" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>

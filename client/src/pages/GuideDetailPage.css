@@ -264,3 +264,98 @@
         padding: 25px;
     }
 }
+
+/* Professional Internal Link Card */
+.article-inner-link-container {
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.article-internal-link {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 16px 24px;
+    border-radius: 16px;
+    text-decoration: none !important;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 15px;
+    color: #1e293b !important;
+    font-weight: 600;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    font-style: normal;
+    /* Reset italic from intro if needed */
+}
+
+/* Regular links inside article body */
+.guide-body-content a:not(.article-internal-link) {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.2s;
+    padding: 0 2px;
+}
+
+.guide-body-content a:not(.article-internal-link):hover {
+    border-bottom-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 4px;
+}
+
+
+.article-internal-link:hover {
+    background: #f8fafc;
+    border-color: #3b82f6;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-3px);
+}
+
+.article-internal-link .link-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 12px;
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+.article-internal-link .link-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.article-internal-link .link-label {
+    font-size: 11px;
+    color: #3b82f6;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+}
+
+.article-internal-link .link-title {
+    font-size: 16px;
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.article-internal-link .link-arrow {
+    color: #94a3b8;
+    transition: transform 0.2s;
+}
+
+.article-internal-link:hover .link-arrow {
+    transform: translateX(5px);
+    color: #3b82f6;
+}

@@ -88,7 +88,7 @@ export default function CheckoutPage() {
         }
 
         const missingDevice = cartItems.find(item =>
-            (item.category === 'IPTV Premium' || item.category === 'IPTV & Sharing') && !item.selectedDevice
+            (item.category === 'IPTV Premium' || item.category === 'Abonnement IPTV') && !item.selectedDevice
         );
 
         if (missingDevice) {
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                                             </Link>
 
                                             {/* Device Choice Display/Select - Moved outside Link */}
-                                            {((item.category === 'IPTV Premium' || item.category === 'IPTV & Sharing')) && (
+                                            {((item.category === 'IPTV Premium' || item.category === 'Abonnement IPTV')) && (
                                                 <div className="checkout-product-device">
                                                     {item.selectedDevice ? (
                                                         <span className="device-tag">Appareil: {item.selectedDevice}</span>
