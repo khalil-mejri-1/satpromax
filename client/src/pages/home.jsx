@@ -15,6 +15,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Helper to shuffle array
+    const shuffleArray = (array) => {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    };
+
     // Fetch Products
     const fetchProducts = fetch('https://satpromax.com/api/products').then(res => res.json());
     // Fetch Settings (Categories & Promos)
@@ -23,7 +33,8 @@ export default function Home() {
     Promise.all([fetchProducts, fetchSettings])
       .then(([productsData, settingsData]) => {
         if (productsData.success) {
-          setProducts(productsData.data);
+          // Shuffle products every time the page refreshes
+          setProducts(shuffleArray(productsData.data));
         }
         if (settingsData.success && settingsData.data) {
           if (settingsData.data.categories) setCategories(settingsData.data.categories);

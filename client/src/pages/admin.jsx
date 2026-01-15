@@ -1743,11 +1743,18 @@ const HomeManager = () => {
     const [heroData, setHeroData] = useState({
         heroMainImages: [],
         heroCardBoxImages: [],
+        heroCardBoxImage: '',
+        heroCardBoxTitle: '',
+        heroCardBoxLink: '',
         heroCardNetflixImage: '',
+        heroCardNetflixTitle: '',
+        heroCardNetflixLink: '',
         heroCardGiftImage: '',
+        heroCardGiftTitle: '',
+        heroCardGiftLink: '',
         heroCardSoftImage: '',
-        guideHeroImage: '',
-        guidePageBgImage: '',
+        heroCardSoftTitle: '',
+        heroCardSoftLink: '',
         promoCards: []
     });
 
@@ -1780,11 +1787,18 @@ const HomeManager = () => {
                     setHeroData({
                         heroMainImages: data.data.heroMainImages || [],
                         heroCardBoxImages: data.data.heroCardBoxImages || [],
+                        heroCardBoxImage: data.data.heroCardBoxImage || '',
+                        heroCardBoxTitle: data.data.heroCardBoxTitle || '',
+                        heroCardBoxLink: data.data.heroCardBoxLink || '',
                         heroCardNetflixImage: data.data.heroCardNetflixImage || '',
+                        heroCardNetflixTitle: data.data.heroCardNetflixTitle || '',
+                        heroCardNetflixLink: data.data.heroCardNetflixLink || '',
                         heroCardGiftImage: data.data.heroCardGiftImage || '',
+                        heroCardGiftTitle: data.data.heroCardGiftTitle || '',
+                        heroCardGiftLink: data.data.heroCardGiftLink || '',
                         heroCardSoftImage: data.data.heroCardSoftImage || '',
-                        guideHeroImage: data.data.guideHeroImage || '',
-                        guidePageBgImage: data.data.guidePageBgImage || '',
+                        heroCardSoftTitle: data.data.heroCardSoftTitle || '',
+                        heroCardSoftLink: data.data.heroCardSoftLink || '',
                         promoCards: data.data.promoCards || []
                     });
                     setFooterData({
@@ -1936,65 +1950,64 @@ const HomeManager = () => {
             <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Cartes Secondaires</h3>
 
-                <div className="form-group">
-                    <label className="form-label">Carte "Box Android" (Slider)</label>
-                    <MultiInput
-                        items={heroData.heroCardBoxImages}
-                        onAdd={(val) => addImage('heroCardBoxImages', val)}
-                        onRemove={(idx) => removeImage('heroCardBoxImages', idx)}
-                        placeholder="https://... + Entrée"
-                    />
-                </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                    <div className="form-group">
-                        <label className="form-label">Carte Netflix (Image Unique)</label>
+                    <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <label className="form-label">Carte 1 (ex: Box Android)</label>
                         <input
                             type="text"
                             className="form-input"
+                            placeholder="URL Image"
+                            value={heroData.heroCardBoxImage}
+                            onChange={(e) => setHeroData({ ...heroData, heroCardBoxImage: e.target.value })}
+                            style={{ marginBottom: '10px' }}
+                        />
+                        <textarea className="form-input" placeholder="Titre" value={heroData.heroCardBoxTitle} onChange={e => setHeroData({ ...heroData, heroCardBoxTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
+                        <input className="form-input" placeholder="Lien" value={heroData.heroCardBoxLink} onChange={e => setHeroData({ ...heroData, heroCardBoxLink: e.target.value })} />
+                    </div>
+
+                    <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <label className="form-label">Carte 2 (ex: Netflix)</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="URL Image"
                             value={heroData.heroCardNetflixImage}
                             onChange={(e) => setHeroData({ ...heroData, heroCardNetflixImage: e.target.value })}
+                            style={{ marginBottom: '10px' }}
                         />
+                        <textarea className="form-input" placeholder="Titre" value={heroData.heroCardNetflixTitle} onChange={e => setHeroData({ ...heroData, heroCardNetflixTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
+                        <input className="form-input" placeholder="Lien" value={heroData.heroCardNetflixLink} onChange={e => setHeroData({ ...heroData, heroCardNetflixLink: e.target.value })} />
                     </div>
-                    <div className="form-group">
-                        <label className="form-label">Carte Cartes Cadeaux (Image Unique)</label>
+
+                    <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <label className="form-label">Carte 3 (ex: Gift Cards)</label>
                         <input
                             type="text"
                             className="form-input"
+                            placeholder="URL Image"
                             value={heroData.heroCardGiftImage}
                             onChange={(e) => setHeroData({ ...heroData, heroCardGiftImage: e.target.value })}
+                            style={{ marginBottom: '10px' }}
                         />
+                        <textarea className="form-input" placeholder="Titre" value={heroData.heroCardGiftTitle} onChange={e => setHeroData({ ...heroData, heroCardGiftTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
+                        <input className="form-input" placeholder="Lien" value={heroData.heroCardGiftLink} onChange={e => setHeroData({ ...heroData, heroCardGiftLink: e.target.value })} />
                     </div>
-                    <div className="form-group">
-                        <label className="form-label">Carte Logiciels (Image Unique)</label>
+
+                    <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <label className="form-label">Carte 4 (ex: Software)</label>
                         <input
                             type="text"
                             className="form-input"
+                            placeholder="URL Image"
                             value={heroData.heroCardSoftImage}
                             onChange={(e) => setHeroData({ ...heroData, heroCardSoftImage: e.target.value })}
+                            style={{ marginBottom: '10px' }}
                         />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Image Hero Guide (Page Guide)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={heroData.guideHeroImage}
-                            onChange={(e) => setHeroData({ ...heroData, guideHeroImage: e.target.value })}
-                            placeholder="Image de fond pour /guide-installation"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Image Fond de Page Guide (Background)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={heroData.guidePageBgImage}
-                            onChange={(e) => setHeroData({ ...heroData, guidePageBgImage: e.target.value })}
-                            placeholder="Image de fond pour toute la page"
-                        />
+                        <textarea className="form-input" placeholder="Titre" value={heroData.heroCardSoftTitle} onChange={e => setHeroData({ ...heroData, heroCardSoftTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
+                        <input className="form-input" placeholder="Lien" value={heroData.heroCardSoftLink} onChange={e => setHeroData({ ...heroData, heroCardSoftLink: e.target.value })} />
                     </div>
                 </div>
+
             </div>
 
             <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -2196,7 +2209,7 @@ const HomeManager = () => {
             </div>
 
             <button className="btn btn-primary" style={{ width: '100%', padding: '15px', fontSize: '16px' }} onClick={handleSave}>Enregistrer Tout</button>
-        </div>
+        </div >
     );
 };
 

@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 export default function Hero() {
     const [settings, setSettings] = useState(null);
     const [mainIndex, setMainIndex] = useState(0);
-    const [boxIndex, setBoxIndex] = useState(0);
 
     // Fetch settings
     useEffect(() => {
@@ -23,7 +22,6 @@ export default function Hero() {
     useEffect(() => {
         const interval = setInterval(() => {
             setMainIndex(prev => prev + 1);
-            setBoxIndex(prev => prev + 1);
         }, 3000);
         return () => clearInterval(interval);
     }, []);
@@ -41,7 +39,6 @@ export default function Hero() {
     const defaultSoft = "https://www.mysat.tn/wp-content/uploads/2025/10/the-phases-of-a-software-development-life-cycle-scaled-1-scaled.webp";
 
     const mainImages = settings ? getHeroImages(settings.heroMainImages, defaultMain) : [defaultMain];
-    const boxImages = settings ? getHeroImages(settings.heroCardBoxImages, defaultBox) : [defaultBox];
 
     const netflixBg = (settings && settings.heroCardNetflixImage) ? settings.heroCardNetflixImage : defaultNetflix;
     const giftBg = (settings && settings.heroCardGiftImage) ? settings.heroCardGiftImage : defaultGift;
@@ -93,50 +90,45 @@ export default function Hero() {
 
                 {/* Side Grid */}
                 <div className="hero-side-grid">
-                    <Link to="/category/box-android" className="hero-card card-box" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        {/* Background Slider Box */}
-                        <div className="hero-slider-bg">
-                            {boxImages.map((img, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`slider-slide ${idx === (boxIndex % boxImages.length) ? 'active' : ''}`}
-                                    style={{
-                                        backgroundImage: `linear-gradient(180deg, rgba(8, 47, 73, 0.9) 0%, rgba(15, 23, 42, 0.1) 60%), url(${img})`
-                                    }}
-                                />
-                            ))}
-                        </div>
-                        <h3>Box Android<br />Et Recepteur</h3>
+                    <Link
+                        to={settings?.heroCardBoxLink || "/category/box-android"}
+                        className="hero-card card-box"
+                        style={{
+                            backgroundImage: `linear-gradient(180deg, rgba(8, 47, 73, 0.9) 0%, rgba(15, 23, 42, 0.1) 60%), url(${settings?.heroCardBoxImage || defaultBox})`,
+                            textDecoration: 'none', color: 'inherit'
+                        }}
+                    >
+                        <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardBoxTitle || "Box Android\nEt Recepteur"}</h3>
                     </Link>
                     <Link
-                        to="/category/streaming"
+                        to={settings?.heroCardNetflixLink || "/category/streaming"}
                         className="hero-card card-netflix"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 60%), url(${netflixBg})`,
                             textDecoration: 'none', color: 'inherit'
                         }}
                     >
-                        <h3>Netflix<br />Tunisie</h3>
+                        <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardNetflixTitle || "Netflix\nTunisie"}</h3>
                     </Link>
                     <Link
-                        to="/category/gift-card"
+                        to={settings?.heroCardGiftLink || "/category/gift-card"}
                         className="hero-card card-gift"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(88, 28, 135, 0.9) 0%, rgba(59, 7, 100, 0.1) 60%), url(${giftBg})`,
                             textDecoration: 'none', color: 'inherit'
                         }}
                     >
-                        <h3>Cartes Cadeaux<br />Digitales</h3>
+                        <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardGiftTitle || "Cartes Cadeaux\nDigitales"}</h3>
                     </Link>
                     <Link
-                        to="/category/software"
+                        to={settings?.heroCardSoftLink || "/category/software"}
                         className="hero-card card-soft"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(3, 105, 161, 0.9) 0%, rgba(8, 47, 73, 0.1) 60%), url(${softBg})`,
                             textDecoration: 'none', color: 'inherit'
                         }}
                     >
-                        <h3>Logiciels</h3>
+                        <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardSoftTitle || "Logiciels"}</h3>
                     </Link>
                 </div>
             </div>

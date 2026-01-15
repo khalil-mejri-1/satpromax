@@ -324,12 +324,31 @@ export default function ProductDetailPage() {
                 .then(data => {
                     if (data.success) {
                         const filtered = data.data.filter(p => (p._id || p.id) !== productWithId.id);
-                        setSimilarProducts(filtered.slice(0, 4));
+                        setSimilarProducts(filtered);
                     }
                 })
                 .catch(err => console.error(err));
         }
     }, [product]);
+
+    // Auto-slide similar products every 2 seconds
+    useEffect(() => {
+        if (similarProducts.length > 0) {
+            const interval = setInterval(() => {
+                if (carouselRef.current) {
+                    const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+                    // Check if we are at the end
+                    if (Math.ceil(scrollLeft + clientWidth) >= scrollWidth - 5) {
+                        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        // Scroll by one card width + gap (approx 260 + 15 = 275)
+                        carouselRef.current.scrollBy({ left: 275, behavior: 'smooth' });
+                    }
+                }
+            }, 2000);
+            return () => clearInterval(interval);
+        }
+    }, [similarProducts]);
 
     // Fetch Settings
     useEffect(() => {
