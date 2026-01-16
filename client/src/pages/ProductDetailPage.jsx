@@ -490,7 +490,9 @@ export default function ProductDetailPage() {
         }
 
         // Calculate total
-        const rawPrice = product.price ? String(product.price) : '0';
+        const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+        const displayPrice = isPromoActive ? product.promoPrice : product.price;
+        const rawPrice = displayPrice ? String(displayPrice) : '0';
         const productPrice = parseInt(rawPrice.replace(/[^0-9]/g, '')) || 0;
 
 
@@ -518,7 +520,7 @@ export default function ProductDetailPage() {
                 productId: productWithId.id,
                 name: product.name,
                 quantity: quantity,
-                price: product.price,
+                price: displayPrice,
                 image: product.image,
                 deviceChoice: isIPTVCategory ? selectedDevice : null,
                 receiverSerial: isSharingCategory ? receiverSerial : null
@@ -543,7 +545,7 @@ export default function ProductDetailPage() {
                     `*Nouvelle Commande Express*\n\n` +
                     `Produit: ${product.name}\n` +
                     `Lien: ${productUrl}\n` +
-                    `Prix: ${product.price}\n` +
+                    `Prix: ${displayPrice}\n` +
                     `Quantité: ${quantity}\n\n` +
                     `---------------------------\n\n` +
                     `Informations Client:\n` +
@@ -579,6 +581,48 @@ export default function ProductDetailPage() {
     const closeModal = () => {
         setModal({ show: false, message: '', type: 'success', title: null, btnText: null, onClose: null });
         if (modal.onClose) modal.onClose();
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        if (isSubmittingReview) return;
+
+        setIsSubmittingReview(true);
+        try {
+            const response = await fetch('https://satpromax.com/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: productWithId.id,
+                    username: reviewForm.username || 'Anonyme',
+                    rating: reviewForm.rating,
+                    comment: reviewForm.comment,
+                    status: 'pending'
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setModal({
+                    show: true,
+                    message: "Votre avis a été envoyé avec succès ! Il sera publié après validation par l'administrateur.",
+                    type: 'success'
+                });
+                setReviewModalOpen(false);
+                setReviewForm({
+                    username: user ? user.username : '',
+                    comment: '',
+                    rating: 5
+                });
+            } else {
+                setModal({ show: true, message: data.message || "Une erreur est survenue lors de l'envoi de l'avis.", type: 'error' });
+            }
+        } catch (error) {
+            console.error("Review error:", error);
+            setModal({ show: true, message: "Erreur de connexion au serveur.", type: 'error' });
+        } finally {
+            setIsSubmittingReview(false);
+        }
     };
 
     // Category Mapping for consistent breadcrumbs
