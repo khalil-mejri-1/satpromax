@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './CheckoutPage.css';
+import { countryCodes } from '../data/countryCodes';
 
 export default function CheckoutPage() {
     const { cartItems, getCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
@@ -16,6 +17,9 @@ export default function CheckoutPage() {
 
     const [paymentMethod, setPaymentMethod] = useState('cod'); // cod or online
     const user = JSON.parse(localStorage.getItem('user'));
+
+    const [selectedCountryCode, setSelectedCountryCode] = useState('+216');
+    const [localWhatsapp, setLocalWhatsapp] = useState('');
 
     // Billing State
     const [billingInfo, setBillingInfo] = useState({
@@ -77,7 +81,7 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!billingInfo.whatsapp) {
+        if (!billingInfo.whatsapp || !localWhatsapp || localWhatsapp.trim().length === 0) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
         }
@@ -376,14 +380,46 @@ export default function CheckoutPage() {
 
                             <div className="form-field">
                                 <label>Numéro WhatsApp *</label>
-                                <input
-                                    type="number" // changed to number as per recent user edit
-                                    name="whatsapp"
-                                    placeholder="21 345 678 - Pour le suivi de commande"
-                                    value={billingInfo.whatsapp}
-                                    onChange={handleInputChange}
-                                    required
-                                />
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <select
+                                        style={{
+                                            padding: '12px 15px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #cbd5e1',
+                                            width: '140px',
+                                            paddingRight: '5px',
+                                            textOverflow: 'ellipsis'
+                                        }}
+                                        value={selectedCountryCode}
+                                        onChange={(e) => {
+                                            setSelectedCountryCode(e.target.value);
+                                            setBillingInfo(prev => ({ ...prev, whatsapp: e.target.value + localWhatsapp }));
+                                        }}
+                                    >
+                                        {countryCodes.map((c, i) => (
+                                            <option key={i} value={c.code}>
+                                                {c.country} ({c.code})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        name="localWhatsapp"
+                                        placeholder="21 345 678"
+                                        value={localWhatsapp}
+                                        onChange={(e) => {
+                                            setLocalWhatsapp(e.target.value);
+                                            setBillingInfo(prev => ({ ...prev, whatsapp: selectedCountryCode + e.target.value }));
+                                        }}
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px 15px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #cbd5e1'
+                                        }}
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div className="form-field">

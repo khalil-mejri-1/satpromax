@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './ProductDetailPage.css';
+import { countryCodes } from '../data/countryCodes';
 
 // Extended Mock Data (In a real app, this would come from an API)
 const allProducts = [
@@ -229,6 +230,9 @@ export default function ProductDetailPage() {
     const [compareModalOpen, setCompareModalOpen] = useState(false);
     const [compareProduct, setCompareProduct] = useState(null);
     const [isZoomOpen, setIsZoomOpen] = useState(false);
+
+    const [selectedCountryCode, setSelectedCountryCode] = useState('+216');
+    const [localWhatsapp, setLocalWhatsapp] = useState('');
 
     const user = JSON.parse(localStorage.getItem('user'));
 
@@ -484,7 +488,7 @@ export default function ProductDetailPage() {
             return;
         }
 
-        if (!billingInfo.whatsapp) {
+        if (!billingInfo.whatsapp || !localWhatsapp || localWhatsapp.trim().length === 0) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
         }
@@ -949,17 +953,36 @@ export default function ProductDetailPage() {
                                         required
                                     />
                                 </div>
-                                {/* Address Input Removed */}
                                 <div className="form-group">
-                                    <input
-                                        type="tel"
-                                        className="form-input"
-                                        name="whatsapp"
-                                        placeholder="Numéro WhatsApp *"
-                                        value={billingInfo.whatsapp}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <select
+                                            className="form-input"
+                                            style={{ width: '140px', paddingRight: '5px', textOverflow: 'ellipsis' }}
+                                            value={selectedCountryCode}
+                                            onChange={(e) => {
+                                                setSelectedCountryCode(e.target.value);
+                                                setBillingInfo(prev => ({ ...prev, whatsapp: e.target.value + localWhatsapp }));
+                                            }}
+                                        >
+                                            {countryCodes.map((c, i) => (
+                                                <option key={i} value={c.code}>
+                                                    {c.country} ({c.code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="tel"
+                                            className="form-input"
+                                            name="localWhatsapp"
+                                            placeholder="Numéro WhatsApp *"
+                                            value={localWhatsapp}
+                                            onChange={(e) => {
+                                                setLocalWhatsapp(e.target.value);
+                                                setBillingInfo(prev => ({ ...prev, whatsapp: selectedCountryCode + e.target.value }));
+                                            }}
+                                            required
+                                        />
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label" style={{ marginBottom: '10px', display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#64748b' }}>Mode de paiement *</label>
