@@ -66,6 +66,9 @@ const GeneralSettingsSchema = new mongoose.Schema({
     adminPassword: { type: String, default: '123456' },
     senderEmail: { type: String, default: 'kmejri57@gmail.com' },
     senderPassword: { type: String, default: 'msncmujsbjqnszxp' },
+    notificationSenderEmail: { type: String, default: 'kmejri57@gmail.com' },
+    notificationSenderPassword: { type: String, default: 'msncmujsbjqnszxp' },
+    notificationReceiverEmail: { type: String, default: 'mejrik1888@gmail.com' },
     resetCode: String,
     resetCodeExpires: Date,
     resolutions: [{

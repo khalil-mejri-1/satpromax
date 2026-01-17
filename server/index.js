@@ -521,6 +521,62 @@ app.post("/api/orders", async (req, res) => {
         });
 
         await newOrder.save();
+
+        // Send Email Notification
+        try {
+            // Fetch settings for dynamic credentials
+            const settings = await GeneralSettings.findOne();
+            const senderEmail = settings?.notificationSenderEmail || 'kmejri57@gmail.com';
+            const senderPass = settings?.notificationSenderPassword || 'msncmujsbjqnszxp';
+            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: senderEmail,
+                    pass: senderPass
+                }
+            });
+
+            const itemsHtml = items.map(item => `
+                <li>
+                    <strong>${item.name}</strong><br>
+                    Quantité: ${item.quantity}<br>
+                    Prix: ${item.price}<br>
+                    ${item.deviceChoice ? `Appareil: ${item.deviceChoice}<br>` : ''}
+                    ${item.receiverSerial ? `S/N Récepteur: ${item.receiverSerial}<br>` : ''}
+                </li>
+            `).join('');
+
+            const mailOptions = {
+                from: senderEmail,
+                to: receiverEmail,
+                subject: `Nouvelle Commande - ${newOrder._id}`,
+                html: `
+                    <h2>Nouvelle commande reçue !</h2>
+                    <h3>Détails de la commande :</h3>
+                    <ul>
+                        ${itemsHtml}
+                    </ul>
+                    <h3>Total : ${totalAmount} DT</h3>
+                    <hr>
+                    <h3>Informations Client :</h3>
+                    <p><strong>Nom :</strong> ${userValidation.name}</p>
+                    <p><strong>WhatsApp :</strong> ${userValidation.whatsapp}</p>
+                    <p><strong>Paiement :</strong> ${paymentMethod}</p>
+                    <br>
+                    <p>Commande ID : ${newOrder._id}</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log("Order notification email sent to mejrik1888@gmail.com");
+
+        } catch (emailError) {
+            console.error("Error sending order email:", emailError);
+            // Don't fail the request if email fails, just log it
+        }
+
         res.status(201).json({ success: true, message: "Commande créée avec succès", order: newOrder });
     } catch (error) {
         console.error("Error creating order:", error);
@@ -964,10 +1020,52 @@ app.get("/api/reviews", async (req, res) => {
 });
 
 // Submit a new review
+// Submit a new review
 app.post("/api/reviews", async (req, res) => {
     try {
         const review = new Review(req.body);
         await review.save();
+
+        // Send Email Notification
+        try {
+            const settings = await GeneralSettings.findOne();
+            const senderEmail = settings?.notificationSenderEmail || 'kmejri57@gmail.com';
+            const senderPass = settings?.notificationSenderPassword || 'msncmujsbjqnszxp';
+            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: senderEmail,
+                    pass: senderPass
+                }
+            });
+
+            const mailOptions = {
+                from: senderEmail,
+                to: receiverEmail,
+                subject: `Nouvel Avis Reçu - ${review.username}`,
+                html: `
+                    <h2>Nouvel avis sur le site !</h2>
+                    <p><strong>Utilisateur :</strong> ${review.username}</p>
+                    <p><strong>Note :</strong> ${review.rating}/5</p>
+                    <p><strong>Commentaire :</strong></p>
+                    <blockquote style="background: #f9f9f9; padding: 15px; border-left: 5px solid #ccc;">
+                        ${review.comment}
+                    </blockquote>
+                    <p>Statut : ${review.status === 'approved' ? 'Approuvé' : 'En attente'}</p>
+                    <br>
+                    <p>Connectez-vous à l'administration pour gérer cet avis.</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log("Review notification email sent.");
+
+        } catch (emailError) {
+            console.error("Error sending review email:", emailError);
+        }
+
         res.status(201).json({ success: true, data: review });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -1117,12 +1215,12 @@ app.get('/share/produit/:category/:slug', async (req, res) => {
             return res.status(404).send('<h1>Produit introuvable</h1>');
         }
 
-        const realProductUrl = `https://satpromax.com/produit/${encodeURIComponent(category)}/${slug}`;
+        const realProductUrl = `http://localhost:3000/produit/${encodeURIComponent(category)}/${slug}`;
         const shareApiUrl = `https://api.satpromax.com/share/produit/${encodeURIComponent(category)}/${slug}`;
 
         let imageUrl = product.image || '';
         if (imageUrl && !imageUrl.startsWith('http')) {
-            imageUrl = `https://satpromax.com${imageUrl}`;
+            imageUrl = `http://localhost:3000${imageUrl}`;
         }
 
         // Clean description
@@ -1294,6 +1392,48 @@ app.post("/api/contact-messages", async (req, res) => {
         }
         const newMessage = new ContactMessage({ name, whatsapp, subject, message });
         await newMessage.save();
+
+        // Send Email Notification
+        try {
+            const settings = await GeneralSettings.findOne();
+            const senderEmail = settings?.notificationSenderEmail || 'satpromax2026@gmail.com';
+            const senderPass = settings?.notificationSenderPassword || 'ywjatvegygdylvth';
+            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: senderEmail,
+                    pass: senderPass
+                }
+            });
+
+            const mailOptions = {
+                from: senderEmail,
+                to: receiverEmail,
+                subject: `Nouveau Message Contact - ${subject}`,
+                html: `
+                    <h2>Nouveau message depuis la page Contact</h2>
+                    <p><strong>Nom :</strong> ${name}</p>
+                    <p><strong>WhatsApp :</strong> ${whatsapp}</p>
+                    <p><strong>Sujet :</strong> ${subject}</p>
+                    <br>
+                    <p><strong>Message :</strong></p>
+                    <blockquote style="background: #f9f9f9; padding: 15px; border-left: 5px solid #ccc;">
+                        ${message}
+                    </blockquote>
+                    <br>
+                    <p>Connectez-vous à l'administration pour répondre.</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log("Contact message notification email sent.");
+
+        } catch (emailError) {
+            console.error("Error sending contact email:", emailError);
+        }
+
         res.status(201).json({ success: true, message: "Message envoyé avec succès" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
