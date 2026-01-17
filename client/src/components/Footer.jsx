@@ -17,6 +17,13 @@ export default function Footer() {
             .catch(err => console.error(err));
     }, []);
 
+    // Reload Trustpilot widgets on mount
+    useEffect(() => {
+        if (window.Trustpilot) {
+            window.Trustpilot.loadFromElement(document.querySelector('.footer .trustpilot-widget'));
+        }
+    }, []);
+
     const footerDesc = (settings && settings.footerDescription) ? settings.footerDescription : "satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique. Forts de nombreuses années d'expérience, nous offrons des solutions innovantes et fiables pour vous garantir une expérience fluide et sans interruption.";
     const footerPhone = (settings && settings.footerContactPhone) ? settings.footerContactPhone : "TN +216 97 490 300";
     const whatsappNumber = (settings && settings.whatsappNumber) ? settings.whatsappNumber.replace(/\D/g, '') : "21697496300";
@@ -83,7 +90,26 @@ export default function Footer() {
                         ))}
                     </div>
 
-                    <Link to="/contact" className="btn btn-yellow contact-btn" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>Contactez-nous à tout moment !</Link>
+                    <div className="footer-contact-actions">
+                        <Link to="/contact" className="btn btn-yellow contact-btn" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center', width: '100%', margin: '15px 0 0' }}>
+                            Contactez-nous à tout moment !
+                        </Link>
+
+                        {/* Trustpilot Widget Wrapper to match button width */}
+                        <div className="footer-trustpilot-wrapper">
+                            <div
+                                className="trustpilot-widget"
+                                data-locale="en-US"
+                                data-template-id="56278e9abfbbba0bdcd568bc"
+                                data-businessunit-id="69693f33a1c7054e87aa85b8"
+                                data-style-height="52px"
+                                data-style-width="100%"
+                                data-token="2a0b3e50-b416-4a8e-be20-5d3da4454f2d"
+                            >
+                                <a href="https://www.trustpilot.com/review/satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -393,6 +393,12 @@ export default function ProductDetailPage() {
             updateMeta('og:description', product.description || "Découvrez ce produit sur satpromax.");
             updateMeta('og:image', product.image);
             updateMeta('og:url', window.location.href);
+
+            // Reload Trustpilot widgets
+            if (window.Trustpilot) {
+                const widget = document.querySelector('.product-info-section .trustpilot-widget');
+                if (widget) window.Trustpilot.loadFromElement(widget);
+            }
         }
     }, [product]);
 
@@ -609,6 +615,7 @@ export default function ProductDetailPage() {
             if (data.success) {
                 setModal({
                     show: true,
+                    title: "votre avi Reçue",
                     message: "Votre avis a été envoyé avec succès ! Il sera publié après validation par l'administrateur.",
                     type: 'success'
                 });
@@ -732,6 +739,20 @@ export default function ProductDetailPage() {
                         {/* Right: Info */}
                         <div className="product-info-section">
                             <h1 className="detail-title" style={{ color: settings?.productTitleColor || 'inherit' }}>{product.name}</h1>
+
+                            {/* Trustpilot Widget */}
+                            <div
+                                className="trustpilot-widget"
+                                data-locale="en-US"
+                                data-template-id="56278e9abfbbba0bdcd568bc"
+                                data-businessunit-id="69693f33a1c7054e87aa85b8"
+                                data-style-height="52px"
+                                data-style-width="100%"
+                                data-token="2a0b3e50-b416-4a8e-be20-5d3da4454f2d"
+                                style={{ transform: 'scale(0.8)', transformOrigin: 'left center', marginBottom: '15px' }}
+                            >
+                                <a href="https://www.trustpilot.com/review/satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+                            </div>
 
                             {product.promoPrice && new Date(product.promoEndDate) > new Date() ? (
                                 <div className="detail-price">

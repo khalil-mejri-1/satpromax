@@ -161,4 +161,35 @@
         color: white;
         margin: 5px 0;
     }
+
+    .footer-contact-actions {
+        width: 100% !important;
+        align-items: center !important;
+    }
+
+    .footer-trustpilot-wrapper .trustpilot-widget {
+        transform: none !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+    }
+}
+
+.footer-contact-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: fit-content;
+    margin-left: auto;
+}
+
+.footer-trustpilot-wrapper {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.footer-trustpilot-wrapper .trustpilot-widget {
+    width: 100% !important;
+    min-width: 100%;
 }

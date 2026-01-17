@@ -2870,7 +2870,7 @@ const SettingsManager = () => {
                             value={settings.senderPassword || ''}
                             onChange={(e) => setSettings({ ...settings, senderPassword: e.target.value })}
                             className="form-input"
-                            placeholder="ex: msncmujsbjqnszxp"
+                            placeholder="ex: msbcmujsbkqnsabc"
                         />
                     </div>
                     <button
@@ -2890,6 +2890,68 @@ const SettingsManager = () => {
                                 const data = await res.json();
                                 if (data.success) {
                                     showNotification("Configuration Email mise à jour", "success");
+                                }
+                            } catch (err) {
+                                showNotification("Erreur", "error");
+                            }
+                        }}
+                        className="btn btn-primary"
+                        style={{ height: '42px', background: '#10b981', borderColor: '#059669' }}
+                    >
+                        Mettre à jour
+                    </button>
+                </div>
+            </div>
+
+            <div style={{ marginTop: '20px', padding: '20px', background: '#ecfdf5', borderRadius: '12px', border: '1px solid #a7f3d0', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#065f46', marginBottom: '10px' }}>Configuration Email notification</h3>
+                <p style={{ fontSize: '13px', color: '#047857', marginBottom: '15px' }}>Ces identifiants sont utilisés pour envoyer les notifications de commande (Gmail App Password requis).</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '15px', alignItems: 'flex-end' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Email Expéditeur</label>
+                        <input
+                            type="email"
+                            value={settings.notificationSenderEmail || ''}
+                            onChange={(e) => setSettings({ ...settings, notificationSenderEmail: e.target.value })}
+                            className="form-input"
+                            placeholder="ex: kmejri57@gmail.com"
+                        />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Mot de passe d'application</label>
+                        <input
+                            type="text"
+                            value={settings.notificationSenderPassword || ''}
+                            onChange={(e) => setSettings({ ...settings, notificationSenderPassword: e.target.value })}
+                            className="form-input"
+                            placeholder="ex: msacmuasnjmnszxp"
+                        />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Email Destinataire</label>
+                        <input
+                            type="email"
+                            value={settings.notificationReceiverEmail || ''}
+                            onChange={(e) => setSettings({ ...settings, notificationReceiverEmail: e.target.value })}
+                            className="form-input"
+                            placeholder="ex: mejrik1888@gmail.com"
+                        />
+                    </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('https://satpromax.com/api/settings', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        notificationSenderEmail: settings.notificationSenderEmail,
+                                        notificationSenderPassword: settings.notificationSenderPassword,
+                                        notificationReceiverEmail: settings.notificationReceiverEmail
+                                    })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    showNotification("Configuration Notification Email mise à jour", "success");
                                 }
                             } catch (err) {
                                 showNotification("Erreur", "error");

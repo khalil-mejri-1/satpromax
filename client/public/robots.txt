@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /register
+Disallow: /checkout
+Disallow: /profile
+Disallow: /admin
+
+Sitemap: https://satpromax.com/sitemap.xml

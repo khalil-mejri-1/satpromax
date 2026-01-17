@@ -285,3 +285,7 @@ ul {
     background-position: center;
   }
 }
+
+.tp-widget-wrapper {
+  border: red solid;
+}

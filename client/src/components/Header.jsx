@@ -221,6 +221,7 @@ export default function Header() {
     return (
         <header className="header">
             {/* Top Strip */}
+
             <div className="top-strip">
                 <div className="container" style={{ justifyContent: 'space-between', display: 'flex' }}>
                     <span>{topStripText}</span>
