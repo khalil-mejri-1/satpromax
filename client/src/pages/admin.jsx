@@ -3745,6 +3745,7 @@ const GuidesManager = () => {
                     </div>
                 </div>
             )}
+
         </div >
     );
 };
@@ -3755,6 +3756,28 @@ const ReviewsManager = () => {
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
     const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [products, setProducts] = useState([]);
+    const [reviewType, setReviewType] = useState('general'); // 'general' or 'product'
+    const [newReviewForm, setNewReviewForm] = useState({
+        username: '',
+        comment: '',
+        rating: 5,
+        status: 'approved',
+        productId: ''
+    });
+
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/products`);
+            const data = await response.json();
+            if (data.success) {
+                setProducts(data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
 
     const fetchReviews = async () => {
         setLoading(true);
@@ -3813,6 +3836,36 @@ const ReviewsManager = () => {
         }
     };
 
+    const handleAddReview = async (e) => {
+        e.preventDefault();
+        try {
+            const body = { ...newReviewForm };
+            if (reviewType === 'general') {
+                delete body.productId;
+            }
+            const response = await fetch(`${API_BASE_URL}/api/reviews`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNotification({ message: "Avis ajouté avec succès", type: 'success' });
+                setIsAddModalOpen(false);
+                setNewReviewForm({ username: '', comment: '', rating: 5, status: 'approved', productId: '' });
+                fetchReviews();
+            }
+        } catch (error) {
+            setNotification({ message: "Erreur lors de l'ajout", type: 'error' });
+        }
+    };
+
+    useEffect(() => {
+        if (isAddModalOpen) {
+            fetchProducts();
+        }
+    }, [isAddModalOpen]);
+
     return (
         <div className="manager-view">
             {notification && (
@@ -3847,16 +3900,32 @@ const ReviewsManager = () => {
                         <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>Gérez et modérez les avis de vos clients</p>
                     </div>
                 </div>
-                <div style={{
-                    background: '#f8fafc',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#475569',
-                    border: '1px solid #e2e8f0'
-                }}>
-                    Total: {reviews.length}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{
+                        background: '#f8fafc',
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#475569',
+                        border: '1px solid #e2e8f0'
+                    }}>
+                        Total: {reviews.length}
+                    </div>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="btn btn-primary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 20px',
+                            fontWeight: '700'
+                        }}
+                    >
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                        Ajouter un avis
+                    </button>
                 </div>
             </div>
 
@@ -3976,6 +4045,119 @@ const ReviewsManager = () => {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}} />
+
+            {/* Add Review Modal */}
+            {isAddModalOpen && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 3000,
+                    backdropFilter: 'blur(4px)'
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        padding: '35px',
+                        borderRadius: '24px',
+                        width: '90%',
+                        maxWidth: '500px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                        animation: 'modalFadeUp 0.3s ease-out'
+                    }}>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', marginBottom: '25px', textAlign: 'center' }}>Ajouter un nouvel avis</h2>
+
+                        <form onSubmit={handleAddReview} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontWeight: '700', color: '#475569', fontSize: '13px' }}>Nom d'utilisateur</label>
+                                <input
+                                    className="form-input"
+                                    value={newReviewForm.username}
+                                    onChange={e => setNewReviewForm({ ...newReviewForm, username: e.target.value })}
+                                    placeholder="Ex: Ahmed Ben Salem"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontWeight: '700', color: '#475569', fontSize: '13px' }}>Note (Étoiles)</label>
+                                <select
+                                    className="form-input"
+                                    value={newReviewForm.rating}
+                                    onChange={e => setNewReviewForm({ ...newReviewForm, rating: parseInt(e.target.value) })}
+                                >
+                                    {[5, 4, 3, 2, 1].map(num => (
+                                        <option key={num} value={num}>{num} Étoiles</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontWeight: '700', color: '#475569', fontSize: '13px' }}>Commentaire</label>
+                                <textarea
+                                    className="form-input"
+                                    style={{ height: '100px', padding: '12px' }}
+                                    value={newReviewForm.comment}
+                                    onChange={e => setNewReviewForm({ ...newReviewForm, comment: e.target.value })}
+                                    placeholder="Rédigez l'avis ici..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label" style={{ fontWeight: '700', color: '#475569', fontSize: '13px' }}>Type d'avis</label>
+                                <div style={{ display: 'flex', gap: '15px', marginTop: '5px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: reviewType === 'general' ? '#3b82f6' : '#64748b' }}>
+                                        <input type="radio" checked={reviewType === 'general'} onChange={() => setReviewType('general')} />
+                                        Général (Home)
+                                    </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: reviewType === 'product' ? '#3b82f6' : '#64748b' }}>
+                                        <input type="radio" checked={reviewType === 'product'} onChange={() => setReviewType('product')} />
+                                        Spécifique à un produit
+                                    </label>
+                                </div>
+                            </div>
+
+                            {reviewType === 'product' && (
+                                <div className="form-group" style={{ marginBottom: 0, animation: 'fadeIn 0.3s' }}>
+                                    <label className="form-label" style={{ fontWeight: '700', color: '#475569', fontSize: '13px' }}>Sélectionner le produit</label>
+                                    <select
+                                        className="form-input"
+                                        value={newReviewForm.productId}
+                                        onChange={e => setNewReviewForm({ ...newReviewForm, productId: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">-- Choisir un produit --</option>
+                                        {products.map(p => (
+                                            <option key={p._id} value={p._id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                    style={{ flex: 1, padding: '12px', background: '#f8fafc', fontWeight: '700' }}
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    style={{ flex: 1, padding: '12px', fontWeight: '800' }}
+                                >
+                                    Enregistrer l'avis
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

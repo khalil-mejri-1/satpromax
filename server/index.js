@@ -1189,6 +1189,16 @@ app.get("/api/reviews/approved", async (req, res) => {
     }
 });
 
+// Get reviews for a specific product
+app.get("/api/reviews/product/:productId", async (req, res) => {
+    try {
+        const reviews = await Review.find({ productId: req.params.productId, status: 'approved' }).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: reviews });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Get all reviews for admin
 app.get("/api/reviews", async (req, res) => {
     try {

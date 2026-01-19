@@ -7,6 +7,10 @@ import { slugify } from '../utils/slugify';
 import './ProductDetailPage.css';
 import { countryCodes } from '../data/countryCodes';
 
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://satpromax.com';
+
 // Extended Mock Data (In a real app, this would come from an API)
 const allProducts = [
     // Streaming
@@ -213,6 +217,8 @@ export default function ProductDetailPage() {
     const [quantity, setQuantity] = useState(1);
     const { addToCart, addToWishlist } = useContext(ShopContext);
     const carouselRef = React.useRef(null);
+    const reviewsSectionRef = React.useRef(null);
+    const [reviews, setReviews] = useState([]);
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -451,6 +457,52 @@ export default function ProductDetailPage() {
 
     // Ensure product object structure is consistent
     const productWithId = product ? { ...product, id: product._id || product.id || product.sku } : null;
+
+    // Fetch reviews for this product
+    useEffect(() => {
+        if (productWithId && productWithId.id) {
+            fetch(`${API_BASE_URL}/api/reviews/product/${productWithId.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setReviews(data.data);
+                    }
+                })
+                .catch(err => console.error("Error fetching reviews:", err));
+        }
+    }, [productWithId?.id]);
+
+    const scrollToReviews = () => {
+        if (reviewsSectionRef.current) {
+            reviewsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const calculateAverageRating = () => {
+        if (reviews.length === 0) return 0;
+        const sum = reviews.reduce((acc, rev) => acc + rev.rating, 0);
+        return (sum / reviews.length).toFixed(1);
+    };
+
+    const renderStars = (rating, size = '16px') => {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        const stars = [];
+
+        for (let i = 1; i <= 5; i++) {
+            if (i <= fullStars) {
+                stars.push(<span key={i} style={{ color: '#fbbf24', fontSize: size }}>★</span>);
+            } else if (i === fullStars + 1 && hasHalfStar) {
+                stars.push(<span key={i} style={{ color: '#fbbf24', fontSize: size, position: 'relative' }}>
+                    <span style={{ position: 'absolute', width: '50%', overflow: 'hidden' }}>★</span>
+                    <span style={{ color: '#e2e8f0' }}>★</span>
+                </span>);
+            } else {
+                stars.push(<span key={i} style={{ color: '#e2e8f0', fontSize: size }}>★</span>);
+            }
+        }
+        return stars;
+    };
 
     if (loading) {
         return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement...</main><Footer /></div>;
@@ -738,7 +790,27 @@ export default function ProductDetailPage() {
                         {/* Right: Info */}
                         {/* Right: Info */}
                         <div className="product-info-section">
-                            <h1 className="detail-title" style={{ color: settings?.productTitleColor || 'inherit' }}>{product.name}</h1>
+                            <h1 className="detail-title" style={{ color: settings?.productTitleColor || 'inherit', marginBottom: '8px' }}>{product.name}</h1>
+
+                            {/* Star Rating Summary */}
+                            <div
+                                onClick={scrollToReviews}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    marginBottom: '20px',
+                                    cursor: 'pointer',
+                                    padding: '5px 0'
+                                }}
+                            >
+                                <div style={{ display: 'flex', gap: '2px' }}>
+                                    {renderStars(calculateAverageRating(), '18px')}
+                                </div>
+                                <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>
+                                    {reviews.length} Avis
+                                </span>
+                            </div>
 
                             {/* Trustpilot Widget */}
                             <div
@@ -1144,6 +1216,128 @@ export default function ProductDetailPage() {
                                 <div className="meta-row"><span className="label">Tags:</span> <span className="value">{product.tags}</span></div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Detailed Reviews Section */}
+                    <div
+                        id="reviews-section"
+                        ref={reviewsSectionRef}
+                        style={{
+                            marginTop: '60px',
+                            padding: '40px',
+                            background: '#fff',
+                            borderRadius: '32px',
+                            border: '1px solid #f1f5f9',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.02)'
+                        }}
+                    >
+                        <div style={{ marginBottom: '40px' }}>
+                            <h2 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', marginBottom: '30px' }}>Avis clients</h2>
+
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                                gap: '40px',
+                                alignItems: 'center'
+                            }}>
+                                {/* Left Side: Big Score */}
+                                <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '24px' }}>
+                                    <div style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
+                                        {calculateAverageRating()} <span style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600' }}>/ 5</span>
+                                    </div>
+                                    <div style={{ margin: '15px 0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                                        {renderStars(calculateAverageRating(), '24px')}
+                                    </div>
+                                    <div style={{ fontSize: '15px', color: '#64748b', fontWeight: '600' }}>Basé sur {reviews.length} avis</div>
+                                </div>
+
+                                {/* Right Side: Distribution Bars */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {[5, 4, 3, 2, 1].map(star => {
+                                        const count = reviews.filter(r => Math.round(r.rating) === star).length;
+                                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                                        return (
+                                            <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '60px' }}>
+                                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{star}</span>
+                                                    <span style={{ color: '#fbbf24' }}>★</span>
+                                                </div>
+                                                <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                                                    <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
+                                                </div>
+                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '30px' }}>
+                            <button
+                                className="btn-confirm-order"
+                                onClick={() => setReviewModalOpen(true)}
+                                style={{ width: 'auto', padding: '12px 30px', borderRadius: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Rédiger un avis
+                            </button>
+                        </div>
+
+                        {reviews.length > 0 ? (
+                            <div style={{ display: 'grid', gap: '20px' }}>
+                                {reviews.map((rev) => (
+                                    <div
+                                        key={rev._id}
+                                        style={{
+                                            padding: '25px',
+                                            background: '#f8fafc',
+                                            borderRadius: '20px',
+                                            border: '1px solid #f1f5f9'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{
+                                                    width: '45px',
+                                                    height: '45px',
+                                                    background: '#e2e8f0',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#475569'
+                                                }}>
+                                                    {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
+                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '2px' }}>
+                                                {renderStars(rev.rating)}
+                                            </div>
+                                        </div>
+                                        <p style={{ color: '#334155', lineHeight: '1.6', margin: 0 }}>{rev.comment}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '60px 20px',
+                                background: '#f8fafc',
+                                borderRadius: '24px',
+                                color: '#64748b'
+                            }}>
+                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                                <p style={{ fontWeight: '600' }}>Aucun avis pour le moment.</p>
+                                <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>
