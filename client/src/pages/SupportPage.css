@@ -5,7 +5,6 @@
 }
 
 .support-hero {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     padding: 80px 20px;
     text-align: center;
     color: white;
@@ -32,6 +31,10 @@
     padding: 0 20px 80px;
     position: relative;
     z-index: 10;
+}
+
+.support_bloc {
+    margin: auto;
 }
 
 .support-card {

@@ -86,7 +86,8 @@ const GeneralSettingsSchema = new mongoose.Schema({
         label: { type: String, required: true },
         type: { type: String, enum: ['text', 'number'], default: 'text' },
         placeholder: { type: String }
-    }]
+    }],
+    supportHeroImage: { type: String, default: "/images/support-hero-bg.png" }
 }, { timestamps: true });
 
 // Ensure only one document exists usually

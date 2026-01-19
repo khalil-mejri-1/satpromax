@@ -2,6 +2,10 @@
 import './Admin.css';
 import { ShopContext } from '../context/ShopContext';
 
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://satpromax.com';
+
 // SVG Icons (Simple placeholders)
 const IconProduct = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>;
 const IconOrder = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>;
@@ -3371,13 +3375,13 @@ const GuidesManager = () => {
     const fetchGuides = async () => {
         setLoading(true);
         try {
-            const res = await fetch('https://satpromax.com/api/guides');
+            const res = await fetch(`${API_BASE_URL}/api/guides`);
             const data = await res.json();
             if (data.success) {
                 setGuides(data.data);
             }
             // Fetch page settings
-            const settingsRes = await fetch('https://satpromax.com/api/settings');
+            const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
             const settingsData = await settingsRes.json();
             if (settingsData.success) {
                 setPageSettings({
@@ -3394,7 +3398,7 @@ const GuidesManager = () => {
 
     const handleSavePageSettings = async () => {
         try {
-            const res = await fetch('https://satpromax.com/api/settings', {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pageSettings)
@@ -3419,8 +3423,8 @@ const GuidesManager = () => {
         e.preventDefault();
         const method = editingGuide ? 'PUT' : 'POST';
         const url = editingGuide
-            ? `https://satpromax.com/api/guides/${editingGuide._id}`
-            : 'https://satpromax.com/api/guides';
+            ? `${API_BASE_URL}/api/guides/${editingGuide._id}`
+            : `${API_BASE_URL}/api/guides`;
 
         try {
             const res = await fetch(url, {
@@ -3446,7 +3450,7 @@ const GuidesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Voulez-vous vraiment supprimer cet article ?")) return;
         try {
-            const res = await fetch(`https://satpromax.com/api/guides/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/guides/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification("Article supprimé", "success");
@@ -3755,7 +3759,7 @@ const ReviewsManager = () => {
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            const response = await fetch('https://satpromax.com/api/reviews');
+            const response = await fetch(`${API_BASE_URL}/api/reviews`);
             const data = await response.json();
             if (data.success) {
                 setReviews(data.data);
@@ -3773,7 +3777,7 @@ const ReviewsManager = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -3795,7 +3799,7 @@ const ReviewsManager = () => {
     const confirmDelete = async () => {
         const id = deleteModal.id;
         try {
-            const response = await fetch(`https://satpromax.com/api/reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -3985,7 +3989,7 @@ const GuideInquiriesManager = () => {
     const fetchInquiries = async () => {
         setLoading(true);
         try {
-            const response = await fetch('https://satpromax.com/api/guide-inquiries');
+            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries`);
             const data = await response.json();
             if (data.success) {
                 setInquiries(data.data);
@@ -4004,7 +4008,7 @@ const GuideInquiriesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer cette question ?")) return;
         try {
-            const response = await fetch(`https://satpromax.com/api/guide-inquiries/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -4203,7 +4207,7 @@ const ContactMessagesManager = () => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch('https://satpromax.com/api/contact-messages');
+            const res = await fetch(`${API_BASE_URL}/api/contact-messages`);
             const data = await res.json();
             if (data.success) {
                 setMessages(data.data);
@@ -4222,7 +4226,7 @@ const ContactMessagesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer ce message ?")) return;
         try {
-            const res = await fetch(`https://satpromax.com/api/contact-messages/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/contact-messages/${id}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
@@ -4429,6 +4433,8 @@ const SupportManager = () => {
     const [newFieldName, setNewFieldName] = useState('');
     const [newFieldType, setNewFieldType] = useState('text');
     const [newFieldPlaceholder, setNewFieldPlaceholder] = useState('');
+    const [heroImage, setHeroImage] = useState('');
+    const [currentHeroImage, setCurrentHeroImage] = useState('');
 
     const [loading, setLoading] = useState(false);
     const [notification, setNotification] = useState(null);
@@ -4441,7 +4447,7 @@ const SupportManager = () => {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3000/api/support/tickets');
+            const res = await fetch(`${API_BASE_URL}/api/support/tickets`);
             const data = await res.json();
             if (data.success) setTickets(data.data);
         } catch (error) {
@@ -4454,11 +4460,13 @@ const SupportManager = () => {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/support/config');
+            const res = await fetch(`${API_BASE_URL}/api/support/config`);
             const data = await res.json();
             if (data.success) {
                 setIssueTypes(data.types);
                 setFormFields(data.fields);
+                setHeroImage(data.heroImage || '');
+                setCurrentHeroImage(data.heroImage || '');
             }
         } catch (error) {
             console.error(error);
@@ -4482,7 +4490,7 @@ const SupportManager = () => {
     const deleteTicket = async (id) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`http://localhost:3000/api/support/tickets/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/support/tickets/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Ticket supprimé', 'success');
@@ -4498,7 +4506,7 @@ const SupportManager = () => {
         e.preventDefault();
         if (!newType.trim()) return;
         try {
-            const res = await fetch('http://localhost:3000/api/support/types', {
+            const res = await fetch(`${API_BASE_URL}/api/support/types`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newType })
@@ -4528,7 +4536,7 @@ const SupportManager = () => {
     const deleteType = async (name) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`http://localhost:3000/api/support/types/${name}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/support/types/${name}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Type supprimé', 'success');
@@ -4581,7 +4589,7 @@ const SupportManager = () => {
 
     const saveFields = async (fields) => {
         try {
-            const res = await fetch('http://localhost:3000/api/support/fields', {
+            const res = await fetch(`${API_BASE_URL}/api/support/fields`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fields })
@@ -4595,6 +4603,25 @@ const SupportManager = () => {
         } catch (error) {
             showNotification('Erreur serveur', 'error');
             throw error;
+        }
+    };
+
+    const saveHeroImage = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/support/config`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ heroImage })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification('Image de fond mise à jour', 'success');
+                setCurrentHeroImage(data.heroImage);
+            } else {
+                showNotification('Erreur sauvegarde image', 'error');
+            }
+        } catch (error) {
+            showNotification('Erreur serveur', 'error');
         }
     };
 
@@ -4787,6 +4814,59 @@ const SupportManager = () => {
 
             {activeSubTab === 'config' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+
+                    {/* SECTION 0: HERO IMAGE */}
+                    <div className="config-section" style={{
+                        background: '#fff',
+                        padding: '25px',
+                        borderRadius: '16px',
+                        border: '1px solid #f1f5f9',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                            <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '10px', color: '#3b82f6' }}>
+                                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            </div>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>Photo de couverture (Support)</h3>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '20px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>Image Actuelle</label>
+                                <div style={{
+                                    width: '100%',
+                                    height: '140px',
+                                    borderRadius: '12px',
+                                    overflow: 'hidden',
+                                    border: '1px solid #e2e8f0',
+                                    position: 'relative',
+                                    background: '#f8fafc'
+                                }}>
+                                    <img src={currentHeroImage || '/images/support-hero-bg.png'} alt="Current" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '10px', padding: '4px 8px', borderRadius: '20px', fontWeight: 'bold' }}>EN LIGNE</div>
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>Nouvelle Image (URL)</label>
+                                <textarea
+                                    className="form-input"
+                                    placeholder="Collez le nouveau lien ici..."
+                                    value={heroImage}
+                                    onChange={(e) => setHeroImage(e.target.value)}
+                                    style={{ width: '100%', height: '100px', resize: 'none', marginBottom: '10px' }}
+                                />
+                                <button
+                                    onClick={saveHeroImage}
+                                    className="btn btn-primary"
+                                    style={{ width: '100%', padding: '12px', fontWeight: '800' }}
+                                    disabled={heroImage === currentHeroImage}
+                                >
+                                    Appliquer les changements
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
 
                     {/* SECTION 1: DYNAMIC FIELDS */}
                     <div className="config-section">

@@ -3,6 +3,10 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './SupportPage.css';
 
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://satpromax.com';
+
 const SupportPage = () => {
     // We'll fetch 'types' (options for the dropdown) and 'fields' (inputs)
     const [config, setConfig] = useState({ types: [], fields: [] });
@@ -16,12 +20,13 @@ const SupportPage = () => {
         // Fetch Configuration (Types + Fields) from our new endpoint
         const fetchConfiguration = async () => {
             try {
-                const res = await fetch('http://localhost:3000/api/support/config');
+                const res = await fetch(`${API_BASE_URL}/api/support/config`);
                 const data = await res.json();
                 if (data.success) {
                     setConfig({
                         types: data.types || [],
-                        fields: data.fields || []
+                        fields: data.fields || [],
+                        heroImage: data.heroImage
                     });
 
                     // Initialize dynamic fields in state
@@ -71,7 +76,7 @@ const SupportPage = () => {
         };
 
         try {
-            const res = await fetch('http://localhost:3000/api/support/tickets', {
+            const res = await fetch(`${API_BASE_URL}/api/support/tickets`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -100,8 +105,13 @@ const SupportPage = () => {
         <div className="support-wrapper">
             <Header />
 
-            <div className="support-hero">
-                <div className="hero-content">
+            <div className="support-hero" style={{
+                backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url('${config.heroImage || '/images/support-hero-bg.png'}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+            }}>
+                <div className="hero-content support_bloc">
                     <h1>Centre de Support</h1>
                     <p>Signalez un problème ou envoyez-nous vos requêtes. Notre équipe est là pour vous aider.</p>
                 </div>

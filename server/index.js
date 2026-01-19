@@ -886,8 +886,22 @@ app.get("/api/support/config", async (req, res) => {
         res.status(200).json({
             success: true,
             types: settings.supportIssueTypes || [],
-            fields: settings.supportFormFields || []
+            fields: settings.supportFormFields || [],
+            heroImage: settings.supportHeroImage || "/images/support-hero-bg.png"
         });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Update Config (Hero Image)
+app.put("/api/support/config", async (req, res) => {
+    try {
+        const { heroImage } = req.body;
+        let settings = await getSafeSettings();
+        if (heroImage !== undefined) settings.supportHeroImage = heroImage;
+        await settings.save();
+        res.status(200).json({ success: true, message: "Configuration mise à jour", heroImage: settings.supportHeroImage });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
     }
@@ -1541,6 +1555,16 @@ app.get("/api/guide-inquiries", async (req, res) => {
     try {
         const inquiries = await GuideInquiry.find().sort({ createdAt: -1 });
         res.status(200).json({ success: true, data: inquiries });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Delete inquiry (Admin)
+app.delete("/api/guide-inquiries/:id", async (req, res) => {
+    try {
+        await GuideInquiry.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: "Demande supprimée" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
     }
