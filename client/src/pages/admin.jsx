@@ -50,6 +50,8 @@ export default function Admin() {
                 return <GuideInquiriesManager />;
             case 'messages':
                 return <ContactMessagesManager />;
+            case 'support':
+                return <SupportManager />;
             default:
                 return <ProductsManager />;
         }
@@ -123,6 +125,12 @@ export default function Admin() {
                         <span style={{ marginRight: '8px', fontSize: '18px' }}>💬</span> Messages Contact
                     </button>
                     <button
+                        className={`admin-nav-item ${activeTab === 'support' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('support')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>🛠️</span> Gestion de Support
+                    </button>
+                    <button
                         className={`admin-nav-item ${activeTab === 'details' ? 'active' : ''}`}
                         onClick={() => setActiveTab('details')}
                     >
@@ -145,6 +153,7 @@ export default function Admin() {
                         {activeTab === 'guides' && 'Gestion des Guides'}
                         {activeTab === 'inquiries' && 'Questions sur les Articles'}
                         {activeTab === 'messages' && 'Messages de Contact'}
+                        {activeTab === 'support' && 'Gestion de Support'}
                         {activeTab === 'details' && 'Détails Généraux'}
                     </div>
                     <div className="admin-user-info">Admin User</div>
@@ -4398,6 +4407,489 @@ const ContactMessagesManager = () => {
                             <p style={{ color: '#64748b' }}>Les messages envoyés via la page de contact s'afficheront ici.</p>
                         </div>
                     )}
+                </div>
+            )}
+        </div>
+    );
+};
+/* --------------------------------------------------------------------- */
+/*                           SUPPORT MANAGER                             */
+/* --------------------------------------------------------------------- */
+
+const SupportManager = () => {
+    const [activeSubTab, setActiveSubTab] = useState('tickets');
+    const [tickets, setTickets] = useState([]);
+
+    // Configuration State
+    const [issueTypes, setIssueTypes] = useState([]);
+    const [formFields, setFormFields] = useState([]);
+
+    // Add Field State
+    const [newType, setNewType] = useState('');
+    const [newFieldName, setNewFieldName] = useState('');
+    const [newFieldType, setNewFieldType] = useState('text');
+    const [newFieldPlaceholder, setNewFieldPlaceholder] = useState('');
+
+    const [loading, setLoading] = useState(false);
+    const [notification, setNotification] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({ show: false, message: '', onConfirm: null });
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+    };
+
+    const fetchTickets = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('http://localhost:3000/api/support/tickets');
+            const data = await res.json();
+            if (data.success) setTickets(data.data);
+        } catch (error) {
+            console.error(error);
+            showNotification('Erreur lors du chargement des tickets', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchConfig = async () => {
+        try {
+            const res = await fetch('http://localhost:3000/api/support/config');
+            const data = await res.json();
+            if (data.success) {
+                setIssueTypes(data.types);
+                setFormFields(data.fields);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        if (activeSubTab === 'tickets') fetchTickets();
+        if (activeSubTab === 'config') fetchConfig();
+    }, [activeSubTab]);
+
+    const initiateDeleteTicket = (id) => {
+        setConfirmModal({
+            show: true,
+            title: 'Suppression Ticket',
+            message: 'Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible.',
+            onConfirm: () => deleteTicket(id)
+        });
+    };
+
+    const deleteTicket = async (id) => {
+        setConfirmModal({ ...confirmModal, show: false });
+        try {
+            const res = await fetch(`http://localhost:3000/api/support/tickets/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showNotification('Ticket supprimé', 'success');
+                fetchTickets();
+            }
+        } catch (error) {
+            showNotification('Erreur serveur', 'error');
+        }
+    };
+
+    // --- ISSUE TYPES HANDLERS ---
+    const addType = async (e) => {
+        e.preventDefault();
+        if (!newType.trim()) return;
+        try {
+            const res = await fetch('http://localhost:3000/api/support/types', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newType })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification('Type ajouté', 'success');
+                setNewType('');
+                setIssueTypes(data.data);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        } catch (error) {
+            showNotification('Erreur serveur', 'error');
+        }
+    };
+
+    const initiateDeleteType = (name) => {
+        setConfirmModal({
+            show: true,
+            title: 'Suppression Type',
+            message: `Supprimer le type '${name}' ?`,
+            onConfirm: () => deleteType(name)
+        });
+    };
+
+    const deleteType = async (name) => {
+        setConfirmModal({ ...confirmModal, show: false });
+        try {
+            const res = await fetch(`http://localhost:3000/api/support/types/${name}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showNotification('Type supprimé', 'success');
+                setIssueTypes(data.data);
+            }
+        } catch (error) {
+            showNotification('Erreur serveur', 'error');
+        }
+    };
+
+    // --- FORM FIELDS HANDLERS ---
+    const addField = async (e) => {
+        e.preventDefault();
+        if (!newFieldName.trim()) return;
+
+        const newField = {
+            label: newFieldName,
+            type: newFieldType,
+            placeholder: newFieldPlaceholder,
+            required: true // Default to true
+        };
+
+        const updatedFields = [...formFields, newField];
+
+        try {
+            await saveFields(updatedFields);
+            setNewFieldName('');
+            setNewFieldPlaceholder('');
+            showNotification('Champ ajouté', 'success');
+        } catch (error) {
+            // Error managed in saveFields
+        }
+    };
+
+    const initiateDeleteField = (index) => {
+        setConfirmModal({
+            show: true,
+            title: 'Suppression Champ',
+            message: "Êtes-vous sûr de vouloir supprimer ce champ du formulaire ?",
+            onConfirm: () => deleteField(index)
+        });
+    };
+
+    const deleteField = async (index) => {
+        setConfirmModal({ ...confirmModal, show: false });
+        const updatedFields = formFields.filter((_, i) => i !== index);
+        await saveFields(updatedFields);
+        showNotification('Champ supprimé', 'success');
+    };
+
+    const saveFields = async (fields) => {
+        try {
+            const res = await fetch('http://localhost:3000/api/support/fields', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fields })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setFormFields(data.data);
+            } else {
+                showNotification('Erreur sauvegarde', 'error');
+            }
+        } catch (error) {
+            showNotification('Erreur serveur', 'error');
+            throw error;
+        }
+    };
+
+    // Custom Confirmation Modal
+    const ConfirmationModal = () => {
+        if (!confirmModal.show) return null;
+        return (
+            <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+            }}>
+                <div style={{
+                    background: 'white', padding: '25px', borderRadius: '12px', width: '400px', maxWidth: '90%',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)', animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <h3 style={{ marginTop: 0, color: '#1e293b', fontSize: '18px', fontWeight: '600' }}>{confirmModal.title || 'Confirmer'}</h3>
+                    <p style={{ color: '#475569', marginBottom: '25px', lineHeight: '1.5' }}>{confirmModal.message}</p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <button
+                            onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                            style={{
+                                padding: '8px 16px', borderRadius: '6px', border: '1px solid #e2e8f0',
+                                background: 'white', color: '#64748b', cursor: 'pointer', fontWeight: '500'
+                            }}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={confirmModal.onConfirm}
+                            style={{
+                                padding: '8px 16px', borderRadius: '6px', border: 'none',
+                                background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '500'
+                            }}
+                        >
+                            Confirmer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="admin-card">
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+
+            <ConfirmationModal />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <h2 style={{ color: '#1e293b', fontWeight: '700' }}>Gestion de Support</h2>
+                <div className="tab-buttons" style={{ display: 'flex', gap: '8px', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+                    <button
+                        style={{
+                            padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s',
+                            background: activeSubTab === 'tickets' ? 'white' : 'transparent',
+                            color: activeSubTab === 'tickets' ? '#0f172a' : '#64748b',
+                            boxShadow: activeSubTab === 'tickets' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                        }}
+                        onClick={() => setActiveSubTab('tickets')}
+                    >
+                        Tickets Reçus
+                    </button>
+                    <button
+                        style={{
+                            padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s',
+                            background: activeSubTab === 'config' ? 'white' : 'transparent',
+                            color: activeSubTab === 'config' ? '#0f172a' : '#64748b',
+                            boxShadow: activeSubTab === 'config' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                        }}
+                        onClick={() => setActiveSubTab('config')}
+                    >
+                        Configuration Formulaire
+                    </button>
+                </div>
+            </div>
+
+            {activeSubTab === 'tickets' && (
+                <div>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Chargement des tickets...</div>
+                    ) : tickets.length === 0 ? (
+                        <div style={{
+                            textAlign: 'center', padding: '60px 20px', background: '#f8fafc', borderRadius: '12px', border: '2px dashed #e2e8f0'
+                        }}>
+                            <div style={{ fontSize: '40px', marginBottom: '10px' }}>📪</div>
+                            <h3 style={{ color: '#475569', marginBottom: '5px' }}>Aucun ticket de support</h3>
+                            <p style={{ color: '#94a3b8', fontSize: '14px' }}>Les nouvelles demandes apparaîtront ici.</p>
+                        </div>
+                    ) : (
+                        <div className="tickets-grid" style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                            gap: '25px'
+                        }}>
+                            {tickets.map(ticket => (
+                                <div key={ticket._id} style={{
+                                    background: 'white',
+                                    borderRadius: '16px',
+                                    padding: '24px',
+                                    border: '1px solid #e2e8f0',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    transition: 'all 0.2s ease',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: ticket.issueType === 'Reclamation' ? '#ef4444' : '#3b82f6'
+                                    }}></div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{
+                                                fontSize: '12px', fontWeight: 'bold', color: '#64748b',
+                                                background: '#f1f5f9', padding: '6px 10px', borderRadius: '20px'
+                                            }}>
+                                                # {ticket._id.substr(-6)}
+                                            </span>
+                                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <span style={{
+                                            background: '#eff6ff', color: '#2563eb', fontSize: '12px', fontWeight: '700',
+                                            padding: '6px 12px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.5px'
+                                        }}>
+                                            {ticket.issueType}
+                                        </span>
+                                    </div>
+
+                                    <div style={{ marginBottom: '20px', background: '#f8fafc', padding: '15px', borderRadius: '10px' }}>
+                                        {ticket.formDetails && ticket.formDetails.length > 0 ? (
+                                            ticket.formDetails.map((field, i) => (
+                                                <div key={i} style={{ marginBottom: '8px', fontSize: '14px', color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: '#94a3b8', fontWeight: '500' }}>{field.label}</span>
+                                                    <span style={{ fontWeight: '600' }}>{field.value}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <div style={{ marginBottom: '8px', fontSize: '14px', color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: '#94a3b8', fontWeight: '500' }}>Nom</span>
+                                                    <span style={{ fontWeight: '600' }}>{ticket.name}</span>
+                                                </div>
+                                                <div style={{ marginBottom: '8px', fontSize: '14px', color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span style={{ color: '#94a3b8', fontWeight: '500' }}>Whatsapp</span>
+                                                    <span style={{ fontWeight: '600' }}>{ticket.whatsapp}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div style={{ marginBottom: '20px', flex: 1 }}>
+                                        <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '8px', letterSpacing: '0.5px' }}>Message</h4>
+                                        <p style={{
+                                            margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.6',
+                                            whiteSpace: 'pre-wrap', background: 'white', padding: '0',
+                                        }}>
+                                            {ticket.message}
+                                        </p>
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '15px', borderTop: '1px solid #f1f5f9' }}>
+                                        <button
+                                            onClick={() => initiateDeleteTicket(ticket._id)}
+                                            style={{
+                                                background: 'white', color: '#ef4444', border: '1px solid #fee2e2',
+                                                padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                                                transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                            }}
+                                            onMouseOver={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+                                            onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#fee2e2'; }}
+                                        >
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            Supprimer le Ticket
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeSubTab === 'config' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+
+                    {/* SECTION 1: DYNAMIC FIELDS */}
+                    <div className="config-section">
+                        <h3>Champs du Formulaire</h3>
+                        <p style={{ color: '#64748b', fontSize: '0.9em', marginBottom: '15px' }}>Ajoutez les champs que l'utilisateur doit remplir (ex: Nom, WhatsApp, ID commande).</p>
+
+                        <form onSubmit={addField} style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Libellé (Label)</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Ex: Numéro de Téléphone"
+                                        value={newFieldName}
+                                        onChange={(e) => setNewFieldName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div style={{ width: '120px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Type</label>
+                                    <select
+                                        className="form-input"
+                                        value={newFieldType}
+                                        onChange={(e) => setNewFieldType(e.target.value)}
+                                    >
+                                        <option value="text">Texte</option>
+                                        <option value="number">Nombre</option>
+                                    </select>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Placeholder (Indicatif)</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Ex: +216 55 ..."
+                                        value={newFieldPlaceholder}
+                                        onChange={(e) => setNewFieldPlaceholder(e.target.value)}
+                                    />
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>Ajouter</button>
+                            </div>
+                        </form>
+
+                        <div className="fields-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {formFields.map((field, index) => (
+                                <div key={index} style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    background: 'white', border: '1px solid #e2e8f0', padding: '10px 15px', borderRadius: '6px'
+                                }}>
+                                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: '600' }}>{field.label}</span>
+                                        <span style={{ fontSize: '12px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', color: '#64748b' }}>{field.type}</span>
+                                        <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>{field.placeholder || 'Pas de placeholder'}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => initiateDeleteField(index)}
+                                        style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                                    >
+                                        Supprimer
+                                    </button>
+                                </div>
+                            ))}
+                            {formFields.length === 0 && <p style={{ color: '#94a3b8' }}>Aucun champ configuré.</p>}
+                        </div>
+                    </div>
+
+                    <hr style={{ border: '0', borderTop: '1px solid #e2e8f0' }} />
+
+                    {/* SECTION 2: ISSUE TYPES */}
+                    <div className="config-section">
+                        <h3>Types de Problèmes (Menu déroulant)</h3>
+                        <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                            <form onSubmit={addType} style={{ display: 'flex', gap: '10px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Nouveau type de problème..."
+                                    value={newType}
+                                    onChange={(e) => setNewType(e.target.value)}
+                                    style={{ flex: 1 }}
+                                />
+                                <button type="submit" className="btn btn-primary">Ajouter</button>
+                            </form>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                            {issueTypes.map((type, index) => (
+                                <div key={index} style={{
+                                    display: 'flex', alignItems: 'center', background: 'white',
+                                    border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '6px'
+                                }}>
+                                    <span style={{ fontWeight: '500', marginRight: '10px' }}>{type.name}</span>
+                                    <button
+                                        onClick={() => initiateDeleteType(type.name)}
+                                        style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}
+                                    >
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             )}
         </div>

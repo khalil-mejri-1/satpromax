@@ -78,6 +78,14 @@ const GeneralSettingsSchema = new mongoose.Schema({
     regions: [{
         name: { type: String, trim: true },
         image: { type: String, trim: true }
+    }],
+    supportIssueTypes: [{
+        name: { type: String, trim: true }
+    }],
+    supportFormFields: [{
+        label: { type: String, required: true },
+        type: { type: String, enum: ['text', 'number'], default: 'text' },
+        placeholder: { type: String }
     }]
 }, { timestamps: true });
 

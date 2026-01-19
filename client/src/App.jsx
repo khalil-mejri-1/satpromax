@@ -10,7 +10,9 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import GuideInstallation from "./pages/GuideInstallation.jsx";
 import GuideDetailPage from "./pages/GuideDetailPage.jsx";
+
 import ContactUs from "./pages/ContactUs.jsx";
+import SupportPage from "./pages/SupportPage.jsx";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 
 import { ShopContextProvider } from "./context/ShopContext.jsx";
@@ -24,15 +26,15 @@ const ProtectedAdminRoute = ({ children }) => {
 };
 
 function App() {
-  useEffect(() => {
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-    };
-    document.addEventListener("contextmenu", handleContextMenu);
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const handleContextMenu = (e) => {
+  //     e.preventDefault();
+  //   };
+  //   document.addEventListener("contextmenu", handleContextMenu);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", handleContextMenu);
+  //   };
+  // }, []);
 
 
   return (
@@ -50,6 +52,7 @@ function App() {
             <Route path="/guide-installation" element={<GuideInstallation />} />
             <Route path="/guide-installation/:slug" element={<GuideDetailPage />} />
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/support" element={<SupportPage />} />
 
             <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
 

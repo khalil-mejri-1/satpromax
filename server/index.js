@@ -20,6 +20,7 @@ const Review = require("./models/Review");
 const Guide = require("./models/Guide");
 const GuideInquiry = require("./models/GuideInquiry");
 const ContactMessage = require("./models/ContactMessage");
+const SupportTicket = require("./models/SupportTicket");
 
 app.use(express.json());
 app.use(cors());
@@ -870,7 +871,172 @@ app.delete("/api/settings/payment-modes/:mode", async (req, res) => {
             settings.paymentModes = settings.paymentModes.filter(m => m.name !== mode);
             await settings.save();
         }
-        res.status(200).json({ success: true, data: settings });
+        res.status(200).json({ success: true, message: "Mode de paiement supprimé" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// --- SUPPORT MANAGEMENT ROUTES ---
+
+// Get all issue types & fields
+app.get("/api/support/config", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+        res.status(200).json({
+            success: true,
+            types: settings.supportIssueTypes || [],
+            fields: settings.supportFormFields || []
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Update Fields
+app.put("/api/support/fields", async (req, res) => {
+    try {
+        const { fields } = req.body;
+        let settings = await getSafeSettings();
+        settings.supportFormFields = fields;
+        await settings.save();
+        res.status(200).json({ success: true, message: "Champs mis à jour", data: settings.supportFormFields });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Get all issue types (Keep for backward compatibility mostly)
+app.get("/api/support/types", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+        res.status(200).json({ success: true, data: settings.supportIssueTypes || [] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Add issue type
+app.post("/api/support/types", async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Le nom est requis" });
+
+        let settings = await getSafeSettings();
+        if (!settings.supportIssueTypes) settings.supportIssueTypes = [];
+
+        // Check duplicate
+        if (!settings.supportIssueTypes.some(t => t.name === name)) {
+            settings.supportIssueTypes.push({ name });
+            await settings.save();
+        }
+
+        res.status(200).json({ success: true, data: settings.supportIssueTypes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Delete issue type
+app.delete("/api/support/types/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        let settings = await getSafeSettings();
+
+        if (settings.supportIssueTypes) {
+            settings.supportIssueTypes = settings.supportIssueTypes.filter(t => t.name !== name);
+            await settings.save();
+        }
+
+        res.status(200).json({ success: true, data: settings.supportIssueTypes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Create Support Ticket
+app.post("/api/support/tickets", async (req, res) => {
+    try {
+        const { formDetails, issueType, message } = req.body;
+
+        if (!issueType || !message) {
+            return res.status(400).json({ success: false, message: "Le type et le message sont requis" });
+        }
+
+        const newTicket = new SupportTicket({
+            formDetails: formDetails || [],
+            issueType,
+            message
+        });
+
+        await newTicket.save();
+
+        // Email Notification
+        try {
+            const settings = await GeneralSettings.findOne();
+            const senderEmail = settings?.notificationSenderEmail || 'kmejri57@gmail.com';
+            const senderPass = settings?.notificationSenderPassword || 'msncmujsbjqnszxp';
+            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: senderEmail,
+                    pass: senderPass
+                }
+            });
+
+            // Build Details HTML
+            let detailsHtml = '';
+            if (formDetails && Array.isArray(formDetails)) {
+                detailsHtml = formDetails.map(f => `<p><strong>${f.label}:</strong> ${f.value}</p>`).join('');
+            }
+
+            const mailOptions = {
+                from: senderEmail,
+                to: receiverEmail,
+                subject: `Nouveau Ticket Support - ${issueType}`,
+                html: `
+                    <h2>Nouveau ticket de support reçu</h2>
+                    ${detailsHtml}
+                    <p><strong>Type de Problème:</strong> ${issueType}</p>
+                    <p><strong>Message:</strong></p>
+                    <p>${message}</p>
+                    <br>
+                    <p>ID Ticket: ${newTicket._id}</p>
+                `
+            };
+
+            await transporter.sendMail(mailOptions);
+            console.log("Support notification email sent");
+
+        } catch (emailError) {
+            console.error("Error sending support email:", emailError);
+        }
+
+        res.status(201).json({ success: true, message: "Ticket envoyé avec succès" });
+
+    } catch (error) {
+        console.error("Error creating ticket:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Get All Tickets (Admin)
+app.get("/api/support/tickets", async (req, res) => {
+    try {
+        const tickets = await SupportTicket.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: tickets });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Delete Ticket
+app.delete("/api/support/tickets/:id", async (req, res) => {
+    try {
+        await SupportTicket.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: "Ticket supprimé" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
     }

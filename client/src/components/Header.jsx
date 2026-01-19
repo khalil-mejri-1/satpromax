@@ -99,6 +99,13 @@ const GuideIcon = () => (
     </svg>
 );
 
+const SupportIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 11C19 7.13401 15.866 4 12 4C8.13401 4 5 7.13401 5 11V15C5 15.5523 5.44772 16 6 16H8C8.55228 16 9 15.5523 9 15V11C9 10.4477 8.55228 10 8 10H7C7.35622 7.82869 9.07923 6 12 6C14.9208 6 16.6438 7.82869 17 10H16C15.4477 10 15 10.4477 15 11V15C15 15.5523 15.4477 16 16 16H18C18.5523 16 19 15.5523 19 15V11Z" fill="#3B82F6" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 19C19.9853 19 22 16.9853 22 14.5V11C22 5.47715 17.5228 1 12 1C6.47715 1 2 5.47715 2 11V14.5C2 16.9853 4.01472 19 6.5 19C7.05445 19 7.5 19.4455 7.5 20V21C7.5 22.1046 8.39543 23 9.5 23H14.5C15.6046 23 16.5 22.1046 16.5 21V20C16.5 19.4455 16.9455 19 17.5 19Z" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fillOpacity="0.1" fill="#3B82F6" />
+    </svg>
+);
+
 export default function Header() {
     const {
         cartItems,
@@ -637,7 +644,19 @@ export default function Header() {
                         border: '1px solid #fde68a'
                     }}>
                         <span className="icon"><GuideIcon /></span>
-                        Guide d'installation
+                        Aide
+                    </Link>
+
+                    <Link to="/support" className="nav-link" style={{
+                        background: '#eff6ff',
+                        color: '#1e40af',
+                        borderRadius: '12px',
+                        padding: '8px 16px',
+                        border: '1px solid #bfdbfe',
+                        marginLeft: '10px'
+                    }}>
+                        <span className="icon"><SupportIcon /></span>
+                        Support
                     </Link>
                 </div>
             </div>
@@ -740,6 +759,11 @@ export default function Header() {
                     <Link to="/guide-installation" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)} style={{ marginTop: '10px', background: '#fffbeb' }}>
                         <span className="sidebar-icon"><GuideIcon /></span>
                         <span className="sidebar-text" style={{ color: '#92400e', fontWeight: '700' }}>Guide d'installation</span>
+                        <span className="sidebar-arrow">›</span>
+                    </Link>
+                    <Link to="/support" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)} style={{ marginTop: '10px', background: '#eff6ff' }}>
+                        <span className="sidebar-icon"><SupportIcon /></span>
+                        <span className="sidebar-text" style={{ color: '#1e40af', fontWeight: '700' }}>Support</span>
                         <span className="sidebar-arrow">›</span>
                     </Link>
                 </div>
