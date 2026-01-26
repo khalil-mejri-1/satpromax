@@ -767,7 +767,7 @@ app.get("/api/settings", async (req, res) => {
 // Add Category
 app.post("/api/settings/categories", async (req, res) => {
     try {
-        const { name, icon, title, description, slug, metaTitle, metaDescription, keywords } = req.body;
+        const { name, icon, title, description, slug, metaTitle, metaDescription, keywords, subcategories } = req.body;
         if (!name) return res.status(400).json({ success: false, message: "Nom de catégorie requis" });
 
         let settings = await getSafeSettings();
@@ -781,8 +781,10 @@ app.post("/api/settings/categories", async (req, res) => {
                 slug: slug || slugify(name),
                 metaTitle: metaTitle || '',
                 metaDescription: metaDescription || '',
-                keywords: keywords || ''
+                keywords: keywords || '',
+                subcategories: subcategories || []
             });
+            settings.markModified('categories');
             await settings.save();
         }
         res.status(200).json({ success: true, data: settings });
@@ -812,7 +814,7 @@ app.delete("/api/settings/categories/:category", async (req, res) => {
 app.put("/api/settings/categories/:oldCategory", async (req, res) => {
     try {
         const { oldCategory } = req.params; // old name
-        const { newCategory, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords } = req.body;
+        const { newCategory, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords, subcategories } = req.body;
         if (!newCategory) return res.status(400).json({ success: false, message: "Nouveau nom requis" });
 
         let settings = await getSafeSettings();
@@ -827,6 +829,7 @@ app.put("/api/settings/categories/:oldCategory", async (req, res) => {
                 if (newMetaTitle !== undefined) settings.categories[index].metaTitle = newMetaTitle;
                 if (newMetaDescription !== undefined) settings.categories[index].metaDescription = newMetaDescription;
                 if (newKeywords !== undefined) settings.categories[index].keywords = newKeywords;
+                if (subcategories !== undefined) settings.categories[index].subcategories = subcategories;
                 settings.markModified('categories'); // Necessary for Mixed types
                 await settings.save();
             }

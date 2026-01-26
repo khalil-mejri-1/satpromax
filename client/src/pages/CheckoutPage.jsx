@@ -234,7 +234,7 @@ export default function CheckoutPage() {
                                 cartItems.map(item => (
                                     <div key={item.id} className="checkout-product-item">
                                         <div className="checkout-product-main">
-                                            <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="checkout-product-link-wrapper">
+                                            <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="checkout-product-link-wrapper">
                                                 <img src={item.image} alt={item.name} className="checkout-product-img" />
                                                 <div className="checkout-product-info">
                                                     <div className="checkout-product-name-row">

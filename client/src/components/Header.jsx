@@ -128,6 +128,7 @@ export default function Header() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState({ categories: [], products: [] });
     const [isSearching, setIsSearching] = useState(false);
+    const [expandedSidebarCat, setExpandedSidebarCat] = useState(null);
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
@@ -269,7 +270,7 @@ export default function Header() {
                                             return (
                                                 <Link
                                                     key={index}
-                                                    to={`/category/${getCategorySlug(name)}`}
+                                                    to={`/${getCategorySlug(name)}`}
                                                     className="category-dropdown-link"
                                                     onClick={() => setIsCategoryModalOpen(false)}
                                                 >
@@ -309,7 +310,7 @@ export default function Header() {
                                                         {categories.slice(0, 4).map((cat, idx) => (
                                                             <Link
                                                                 key={idx}
-                                                                to={`/category/${getCategorySlug(typeof cat === 'object' ? cat.name : cat)}`}
+                                                                to={`/${getCategorySlug(typeof cat === 'object' ? cat.name : cat)}`}
                                                                 onClick={() => setIsSearchDropdownOpen(false)}
                                                             >
                                                                 {typeof cat === 'object' ? cat.name : cat}
@@ -331,7 +332,7 @@ export default function Header() {
                                                                 return (
                                                                     <li key={idx}>
                                                                         <Link
-                                                                            to={`/category/${getCategorySlug(name)}`}
+                                                                            to={`/${getCategorySlug(name)}`}
                                                                             onClick={() => setIsSearchDropdownOpen(false)}
                                                                         >
                                                                             {highlightMatch(name, searchTerm)}
@@ -351,7 +352,7 @@ export default function Header() {
                                                             {searchResults.products.map(product => (
                                                                 <Link
                                                                     key={product._id}
-                                                                    to={`/produit/${slugify(product.category || 'all')}/${product.slug || slugify(product.name)}`}
+                                                                    to={`/${slugify(product.category || 'all')}/${product.slug || slugify(product.name)}`}
                                                                     className="search-product-item"
                                                                     onClick={() => setIsSearchDropdownOpen(false)}
                                                                 >
@@ -524,11 +525,11 @@ export default function Header() {
                                             <>
                                                 {wishlistItems.map(item => (
                                                     <div key={item.id} className="mobile-product-item">
-                                                        <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`}>
+                                                        <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`}>
                                                             <img src={item.image} alt={item.name} />
                                                         </Link>
                                                         <div className="mobile-item-info">
-                                                            <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                            <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                                                 <h4>{item.name}</h4>
                                                             </Link>
                                                             <span className="mobile-item-price">{item.price}</span>
@@ -577,7 +578,7 @@ export default function Header() {
                                             <div key={item.id} className="dropdown-item">
                                                 <img src={item.image} alt={item.name} />
                                                 <div className="item-info">
-                                                    <Link to={`/produit/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="item-name">{item.name}</Link>
+                                                    <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="item-name">{item.name}</Link>
                                                     <div className="item-meta">{item.quantity} × <span className="price-bold">{item.price}</span></div>
                                                 </div>
                                                 <button className="remove-btn" onClick={(e) => {
@@ -617,23 +618,39 @@ export default function Header() {
                     ) : categories.length > 0 ? (
                         categories.map((cat, index) => {
                             const name = typeof cat === 'object' ? cat.name : cat;
+                            const subcats = typeof cat === 'object' ? cat.subcategories : [];
                             return (
-                                <Link key={index} to={`/category/${getCategorySlug(name)}`} className="nav-link">
-                                    <span className="icon">{getIcon(cat)}</span>
-                                    {name}
-                                    <span className="arrow"></span>
-                                </Link>
+                                <div key={index} className="nav-item-container">
+                                    <Link to={`/${getCategorySlug(name)}`} className={`nav-link ${subcats && subcats.length > 0 ? 'has-subs' : ''}`}>
+                                        <span className="icon">{getIcon(cat)}</span>
+                                        {name}
+                                        {subcats && subcats.length > 0 && <span className="arrow-down">▼</span>}
+                                    </Link>
+                                    {subcats && subcats.length > 0 && (
+                                        <div className="subcat-dropdown">
+                                            {subcats.map((sub, i) => (
+                                                <Link
+                                                    key={i}
+                                                    to={`/${getCategorySlug(name)}?sub=${slugify(sub)}`}
+                                                    className="subcat-link"
+                                                >
+                                                    {sub}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })
                     ) : (
                         <>
-                            <Link to="/category/streaming" className="nav-link"><span className="icon"><StreamingIcon /></span> Streaming <span className="arrow"></span></Link>
-                            <Link to="/category/iptv-sharing" className="nav-link"><span className="icon"><IPTVIcon /></span> Abonnement IPTV <span className="arrow"></span></Link>
-                            <Link to="/category/music" className="nav-link"><span className="icon"><MusicIcon /></span> Musique</Link>
-                            <Link to="/category/box-android" className="nav-link"><span className="icon"><BoxIcon /></span> Box Android & Recepteur</Link>
-                            <Link to="/category/gaming" className="nav-link"><span className="icon"><GamingIcon /></span> Gaming</Link>
-                            <Link to="/category/gift-card" className="nav-link"><span className="icon"><GiftCardIcon /></span> Cartes Cadeaux</Link>
-                            <Link to="/category/software" className="nav-link"><span className="icon"><SoftwareIcon /></span> Logiciels</Link>
+                            <Link to="/streaming" className="nav-link"><span className="icon"><StreamingIcon /></span> Streaming <span className="arrow"></span></Link>
+                            <Link to="/iptv-sharing" className="nav-link"><span className="icon"><IPTVIcon /></span> Abonnement IPTV <span className="arrow"></span></Link>
+                            <Link to="/music" className="nav-link"><span className="icon"><MusicIcon /></span> Musique</Link>
+                            <Link to="/box-android" className="nav-link"><span className="icon"><BoxIcon /></span> Box Android & Recepteur</Link>
+                            <Link to="/gaming" className="nav-link"><span className="icon"><GamingIcon /></span> Gaming</Link>
+                            <Link to="/gift-card" className="nav-link"><span className="icon"><GiftCardIcon /></span> Cartes Cadeaux</Link>
+                            <Link to="/software" className="nav-link"><span className="icon"><SoftwareIcon /></span> Logiciels</Link>
                         </>
                     )}
                     <Link to="/guide-installation" className="nav-link guide-btn-nav" style={{
@@ -714,43 +731,72 @@ export default function Header() {
                     ) : categories.length > 0 ? (
                         categories.map((cat, index) => {
                             const name = typeof cat === 'object' ? cat.name : cat;
+                            const subcats = typeof cat === 'object' ? cat.subcategories : [];
+                            const isExpanded = expandedSidebarCat === index;
+
                             return (
-                                <Link key={index} to={`/category/${getCategorySlug(name)}`} className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
-                                    <span className="sidebar-icon">{getIcon(cat)}</span>
-                                    <span className="sidebar-text">{name}</span>
-                                    <span className="sidebar-arrow">›</span>
-                                </Link>
+                                <div key={index} className="sidebar-nav-group">
+                                    <div
+                                        className="sidebar-nav-item"
+                                        onClick={() => subcats && subcats.length > 0 ? setExpandedSidebarCat(isExpanded ? null : index) : setIsSidebarOpen(false)}
+                                    >
+                                        <Link to={subcats && subcats.length > 0 ? '#' : `/${getCategorySlug(name)}`} style={{ display: 'flex', alignItems: 'center', flex: 1, textDecoration: 'none', color: 'inherit' }} onClick={(e) => { if (subcats && subcats.length > 0) e.preventDefault(); }}>
+                                            <span className="sidebar-icon">{getIcon(cat)}</span>
+                                            <span className="sidebar-text">{name}</span>
+                                        </Link>
+                                        {subcats && subcats.length > 0 ? (
+                                            <span style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', fontSize: '12px' }}>›</span>
+                                        ) : (
+                                            <span className="sidebar-arrow">›</span>
+                                        )}
+                                    </div>
+                                    {subcats && subcats.length > 0 && isExpanded && (
+                                        <div className="sidebar-sub-list" style={{ background: '#f8fafc', paddingLeft: '15px' }}>
+                                            {subcats.map((sub, i) => (
+                                                <Link
+                                                    key={i}
+                                                    to={`/${getCategorySlug(name)}?sub=${slugify(sub)}`}
+                                                    className="sidebar-nav-item"
+                                                    onClick={() => setIsSidebarOpen(false)}
+                                                    style={{ fontSize: '13px', borderBottom: '1px solid #f1f5f9' }}
+                                                >
+                                                    <span className="sidebar-text">{sub}</span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })
                     ) : (
                         <>
-                            <Link to="/category/streaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/streaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><StreamingIcon /></span>
                                 <span className="sidebar-text">Streaming</span>
                                 <span className="sidebar-arrow">›</span>
                             </Link>
-                            <Link to="/category/iptv-sharing" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/iptv-sharing" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><IPTVIcon /></span>
                                 <span className="sidebar-text">Abonnement IPTV</span>
                                 <span className="sidebar-arrow">›</span>
                             </Link>
-                            <Link to="/category/music" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/music" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><MusicIcon /></span>
                                 <span className="sidebar-text">Musique</span>
                             </Link>
-                            <Link to="/category/box-android" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/box-android" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><BoxIcon /></span>
                                 <span className="sidebar-text">Box Android & Recepteur</span>
                             </Link>
-                            <Link to="/category/gaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/gaming" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><GamingIcon /></span>
                                 <span className="sidebar-text">Gaming</span>
                             </Link>
-                            <Link to="/category/gift-card" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/gift-card" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><GiftCardIcon /></span>
                                 <span className="sidebar-text">Cartes Cadeaux</span>
                             </Link>
-                            <Link to="/category/software" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
+                            <Link to="/software" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)}>
                                 <span className="sidebar-icon"><SoftwareIcon /></span>
                                 <span className="sidebar-text">Logiciels</span>
                             </Link>

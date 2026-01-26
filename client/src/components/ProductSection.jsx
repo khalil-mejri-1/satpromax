@@ -102,7 +102,7 @@ export default function ProductSection({ title, products = [], loading = false, 
                             const productSlug = product.slug || slugify(product.name);
 
                             return (
-                                <Link to={`/produit/${categorySlug}/${productSlug}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <Link to={`/${categorySlug}/${productSlug}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                                     {isPromoActive && <div className="card-badge promo"><img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>}
                                     {/* {isNew && <div className="card-badge new">NOUVEAU</div>} */}
                                     {/* {isPopular && !isNew && <div className="card-badge popular">POPULAIRE</div>} */}

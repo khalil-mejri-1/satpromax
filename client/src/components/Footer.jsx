@@ -48,14 +48,14 @@ export default function Footer() {
                 ].map((col, idx) => (
                     <div className="footer-col" key={idx}>
                         <h3>
-                            <Link to={`/category/${slugify(col.title)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to={`/${slugify(col.title)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 {col.title}
                             </Link>
                         </h3>
                         <ul>
                             {col.links && col.links.map((link, i) => (
                                 <li key={i}>
-                                    <Link to={`/produit/${slugify(col.title)}/${slugify(link)}`}>
+                                    <Link to={`/${slugify(col.title)}/${slugify(link)}`}>
                                         {link}
                                     </Link>
                                 </li>

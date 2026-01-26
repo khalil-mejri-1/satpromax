@@ -14,7 +14,8 @@ const GeneralSettingsSchema = new mongoose.Schema({
         icon: { type: String, trim: true },
         metaTitle: { type: String, trim: true },
         metaDescription: { type: String, trim: true },
-        keywords: { type: String, trim: true }
+        keywords: { type: String, trim: true },
+        subcategories: [String]
     }],
     whatsappNumber: { type: String, trim: true, default: "21697496300" },
     topStripText: { type: String, trim: true, default: "WhatsApp : +216 97 490 300" },

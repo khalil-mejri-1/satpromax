@@ -66,8 +66,8 @@ export default function Hero() {
                         <h2 className="hero-title">Abonnement<br />IPTV</h2>
                         <p className="hero-subtitle">IPTV Premium : Ultra-HD, Stable, Rapide, Illimité.</p>
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                            <Link to="/category/iptv-sharing" className="btn btn-outline-white">DÉCOUVREZ MAINTENANT</Link>
-                            <Link to="/category/promotions" className="btn-promo-creative">
+                            <Link to="/iptv-sharing" className="btn btn-outline-white">DÉCOUVREZ MAINTENANT</Link>
+                            <Link to="/promotions" className="btn-promo-creative">
                                 <span className="promo-icon">🔥</span>
                                 <span className="promo-text">OFFRES SPÉCIALES</span>
                             </Link>
@@ -91,7 +91,7 @@ export default function Hero() {
                 {/* Side Grid */}
                 <div className="hero-side-grid">
                     <Link
-                        to={settings?.heroCardBoxLink || "/category/box-android"}
+                        to={(settings?.heroCardBoxLink || "/box-android").replace("/category/", "/").replace("/produit/", "/")}
                         className="hero-card card-box"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(8, 47, 73, 0.9) 0%, rgba(15, 23, 42, 0.1) 60%), url(${settings?.heroCardBoxImage || defaultBox})`,
@@ -101,7 +101,7 @@ export default function Hero() {
                         <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardBoxTitle || "Box Android\nEt Recepteur"}</h3>
                     </Link>
                     <Link
-                        to={settings?.heroCardNetflixLink || "/category/streaming"}
+                        to={(settings?.heroCardNetflixLink || "/streaming").replace("/category/", "/").replace("/produit/", "/")}
                         className="hero-card card-netflix"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 60%), url(${netflixBg})`,
@@ -111,7 +111,7 @@ export default function Hero() {
                         <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardNetflixTitle || "Netflix\nTunisie"}</h3>
                     </Link>
                     <Link
-                        to={settings?.heroCardGiftLink || "/category/gift-card"}
+                        to={(settings?.heroCardGiftLink || "/gift-card").replace("/category/", "/").replace("/produit/", "/")}
                         className="hero-card card-gift"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(88, 28, 135, 0.9) 0%, rgba(59, 7, 100, 0.1) 60%), url(${giftBg})`,
@@ -121,7 +121,7 @@ export default function Hero() {
                         <h3 style={{ whiteSpace: 'pre-line' }}>{settings?.heroCardGiftTitle || "Cartes Cadeaux\nDigitales"}</h3>
                     </Link>
                     <Link
-                        to={settings?.heroCardSoftLink || "/category/software"}
+                        to={(settings?.heroCardSoftLink || "/software").replace("/category/", "/").replace("/produit/", "/")}
                         className="hero-card card-soft"
                         style={{
                             backgroundImage: `linear-gradient(180deg, rgba(3, 105, 161, 0.9) 0%, rgba(8, 47, 73, 0.1) 60%), url(${softBg})`,

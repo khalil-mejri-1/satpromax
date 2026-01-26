@@ -83,7 +83,7 @@ export default function Home() {
             title={category.name}
             products={categoryProducts}
             loading={loading}
-            categoryLink={`/category/${slugify(category.name)}`}
+            categoryLink={`/${slugify(category.name)}`}
           />
         );
       })}
@@ -105,7 +105,7 @@ export default function Home() {
                 cursor: 'pointer',
                 overflow: 'hidden'
               }}
-              onClick={() => window.location.href = `/category/${slugify(card.title)}`}
+              onClick={() => window.location.href = `/${slugify(card.title)}`}
             >
               <div style={{
                 position: 'absolute',

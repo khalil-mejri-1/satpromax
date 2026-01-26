@@ -111,7 +111,7 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
     const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
 
     return (
-        <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
             {isPromoActive && (
                 <div className="card-badge_2 promo_2">
                     <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
@@ -171,7 +171,7 @@ const ProductListCard = ({ product, addToCart }) => {
     return (
         <div className="product-list-card">
             <div className="list-card-image-wrapper">
-                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`}>
+                <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`}>
                     <img src={product.image} alt={product.name} />
                 </Link>
                 {isPromoActive && (
@@ -179,7 +179,7 @@ const ProductListCard = ({ product, addToCart }) => {
                 )}
             </div>
             <div className="list-card-details">
-                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="list-card-title">
+                <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="list-card-title">
                     {product.name}
                 </Link>
                 <div className="list-card-description">
@@ -215,7 +215,7 @@ const ProductListCard = ({ product, addToCart }) => {
                 <button className="btn-list-add" onClick={() => addToCart(product)}>
                     AJOUTER AU PANIER
                 </button>
-                <Link to={`/produit/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="btn-list-view">
+                <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="btn-list-view">
                     VUE RAPIDE
                 </Link>
             </div>

@@ -118,7 +118,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                     <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
                 </div>
             )}
-            <Link to={`/produit/${slugify(item.category)}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Link to={`/${slugify(item.category)}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                     height: '220px',
                     overflow: 'hidden',
@@ -162,7 +162,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
 
             <div style={{ padding: '0 20px 20px 20px', display: 'flex', gap: '8px' }}>
                 <Link
-                    to={`/produit/${slugify(item.category)}/${item.slug || slugify(item.name)}`}
+                    to={`/${slugify(item.category)}/${item.slug || slugify(item.name)}`}
                     style={{
                         flex: 1,
                         background: '#f1f5f9',
@@ -733,7 +733,7 @@ export default function ProductDetailPage() {
                     <div className="breadcrumb">
                         <Link to="/" className="breadcrumb-item">Accueil</Link>
                         <span className="breadcrumb-separator">/</span>
-                        <Link to={`/category/${currentCategory.slug}`} className="breadcrumb-item">{currentCategory.name}</Link>
+                        <Link to={`/${currentCategory.slug}`} className="breadcrumb-item">{currentCategory.name}</Link>
                         <span className="breadcrumb-separator">/</span>
                         <span className="breadcrumb-item active">{product.name}</span>
                     </div>
@@ -949,7 +949,7 @@ export default function ProductDetailPage() {
                             )}
 
                             <div className="detail-description">
-                                <p>{product.description}</p>
+                                <div style={{ whiteSpace: 'pre-wrap' }}>{product.description}</div>
                             </div>
 
                             {isIPTVCategory && (
@@ -1218,127 +1218,7 @@ export default function ProductDetailPage() {
                         </div>
                     </div>
 
-                    {/* Detailed Reviews Section */}
-                    <div
-                        id="reviews-section"
-                        ref={reviewsSectionRef}
-                        style={{
-                            marginTop: '60px',
-                            padding: '40px',
-                            background: '#fff',
-                            borderRadius: '32px',
-                            border: '1px solid #f1f5f9',
-                            boxShadow: '0 10px 40px rgba(0,0,0,0.02)'
-                        }}
-                    >
-                        <div style={{ marginBottom: '40px' }}>
-                            <h2 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', marginBottom: '30px' }}>Avis clients</h2>
 
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                                gap: '40px',
-                                alignItems: 'center'
-                            }}>
-                                {/* Left Side: Big Score */}
-                                <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '24px' }}>
-                                    <div style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
-                                        {calculateAverageRating()} <span style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600' }}>/ 5</span>
-                                    </div>
-                                    <div style={{ margin: '15px 0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                                        {renderStars(calculateAverageRating(), '24px')}
-                                    </div>
-                                    <div style={{ fontSize: '15px', color: '#64748b', fontWeight: '600' }}>Basé sur {reviews.length} avis</div>
-                                </div>
-
-                                {/* Right Side: Distribution Bars */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {[5, 4, 3, 2, 1].map(star => {
-                                        const count = reviews.filter(r => Math.round(r.rating) === star).length;
-                                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                                        return (
-                                            <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '60px' }}>
-                                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{star}</span>
-                                                    <span style={{ color: '#fbbf24' }}>★</span>
-                                                </div>
-                                                <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
-                                                </div>
-                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '30px' }}>
-                            <button
-                                className="btn-confirm-order"
-                                onClick={() => setReviewModalOpen(true)}
-                                style={{ width: 'auto', padding: '12px 30px', borderRadius: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                Rédiger un avis
-                            </button>
-                        </div>
-
-                        {reviews.length > 0 ? (
-                            <div style={{ display: 'grid', gap: '20px' }}>
-                                {reviews.map((rev) => (
-                                    <div
-                                        key={rev._id}
-                                        style={{
-                                            padding: '25px',
-                                            background: '#f8fafc',
-                                            borderRadius: '20px',
-                                            border: '1px solid #f1f5f9'
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{
-                                                    width: '45px',
-                                                    height: '45px',
-                                                    background: '#e2e8f0',
-                                                    borderRadius: '50%',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '18px',
-                                                    fontWeight: 'bold',
-                                                    color: '#475569'
-                                                }}>
-                                                    {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
-                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '2px' }}>
-                                                {renderStars(rev.rating)}
-                                            </div>
-                                        </div>
-                                        <p style={{ color: '#334155', lineHeight: '1.6', margin: 0 }}>{rev.comment}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{
-                                textAlign: 'center',
-                                padding: '60px 20px',
-                                background: '#f8fafc',
-                                borderRadius: '24px',
-                                color: '#64748b'
-                            }}>
-                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                                <p style={{ fontWeight: '600' }}>Aucun avis pour le moment.</p>
-                                <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
-                            </div>
-                        )}
-                    </div>
                 </div>
             </main>
 
@@ -1475,15 +1355,15 @@ export default function ProductDetailPage() {
                         {/* Global Description */}
                         {product.descriptionGlobal && (
                             <div style={{ marginBottom: '50px' }}>
-                                <div style={{
-                                    fontSize: '19px',
-                                    color: '#475569',
-                                    lineHeight: '1.8',
-                                    fontWeight: '500',
-                                    whiteSpace: 'pre-line'
-                                }}>
-                                    {product.descriptionGlobal}
-                                </div>
+                                <div
+                                    style={{
+                                        fontSize: '19px',
+                                        color: '#475569',
+                                        lineHeight: '1.8',
+                                        fontWeight: '500'
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: product.descriptionGlobal.replace(/\n/g, '<br/>') }}
+                                />
                             </div>
                         )}
 
@@ -1491,6 +1371,9 @@ export default function ProductDetailPage() {
                         {product.extraSections && product.extraSections.map((section, index) => (
                             <div key={index} style={{ marginBottom: '50px' }}>
                                 <h2 style={{
+
+
+
                                     fontSize: '32px',
                                     fontWeight: '900',
                                     color: '#0f172a',
@@ -1501,33 +1384,37 @@ export default function ProductDetailPage() {
                                     {section.title}
                                 </h2>
                                 <div style={{ fontSize: '17px', color: '#334155', lineHeight: '1.7' }}>
-                                    {section.content.split('\n').map((line, i) => {
-                                        const trimmedLine = line.trim();
-                                        if (!trimmedLine) return null;
-
-                                        // Simple heuristic to check if it's a list item
-                                        const isListItem = trimmedLine.length < 200;
-
-                                        return (
-                                            <div key={i} style={{
-                                                display: 'flex',
-                                                gap: '12px',
-                                                marginBottom: '12px',
-                                                alignItems: 'flex-start',
-                                                paddingLeft: isListItem ? '10px' : '0'
-                                            }}>
-                                                {isListItem && (
-                                                    <span style={{
-                                                        color: '#fbbf24',
+                                    {section.items ? (
+                                        // New Format: Array of items
+                                        section.items.map((item, itemIdx) => (
+                                            <div key={itemIdx} style={{ marginBottom: item.type === 'subtitle' ? '15px' : '20px' }}>
+                                                {item.type === 'subtitle' ? (
+                                                    <h3 style={{
                                                         fontSize: '22px',
-                                                        lineHeight: '1',
-                                                        marginTop: '2px'
-                                                    }}>•</span>
+                                                        fontWeight: '800',
+                                                        color: '#1e293b',
+                                                        marginBottom: '10px',
+                                                        marginTop: itemIdx === 0 ? '0' : '20px',
+                                                        paddingLeft: '12px',
+                                                        borderLeft: '4px solid #fbbf24'
+                                                    }}>
+                                                        {item.content}
+                                                    </h3>
+                                                ) : (
+                                                    <div
+                                                        style={{ color: '#475569' }}
+                                                        dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
+                                                    />
                                                 )}
-                                                <span style={{ whiteSpace: 'pre-line' }}>{trimmedLine}</span>
                                             </div>
-                                        );
-                                    })}
+                                        ))
+                                    ) : (
+                                        // Old Format: backward compatibility
+                                        <div
+                                            style={{ color: '#475569' }}
+                                            dangerouslySetInnerHTML={{ __html: section.content ? section.content.replace(/\n/g, '<br/>') : '' }}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -1535,13 +1422,139 @@ export default function ProductDetailPage() {
                 </section>
             )}
 
+            {/* Detailed Reviews Section - Moved under Description */}
+            <section className="product-reviews-section" style={{ padding: '40px 0', background: '#fafafa' }}>
+                <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div
+                        id="reviews-section"
+                        ref={reviewsSectionRef}
+                        style={{
+                            padding: '40px',
+                            background: '#fff',
+                            borderRadius: '32px',
+                            border: '1px solid #f1f5f9',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.02)'
+                        }}
+                    >
+                        <div style={{ marginBottom: '40px' }}>
+                            <h2 style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', marginBottom: '30px' }}>Avis clients</h2>
+
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                                gap: '40px',
+                                alignItems: 'center'
+                            }}>
+                                {/* Left Side: Big Score */}
+                                <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '24px' }}>
+                                    <div style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
+                                        {calculateAverageRating()} <span style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600' }}>/ 5</span>
+                                    </div>
+                                    <div style={{ margin: '15px 0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                                        {renderStars(calculateAverageRating(), '24px')}
+                                    </div>
+                                    <div style={{ fontSize: '15px', color: '#64748b', fontWeight: '600' }}>Basé sur {reviews.length} avis</div>
+                                </div>
+
+                                {/* Right Side: Distribution Bars */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {[5, 4, 3, 2, 1].map(star => {
+                                        const count = reviews.filter(r => Math.round(r.rating) === star).length;
+                                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                                        return (
+                                            <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '60px' }}>
+                                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{star}</span>
+                                                    <span style={{ color: '#fbbf24' }}>★</span>
+                                                </div>
+                                                <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                                                    <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
+                                                </div>
+                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '30px' }}>
+                            <button
+                                className="btn-confirm-order"
+                                onClick={() => setReviewModalOpen(true)}
+                                style={{ width: 'auto', padding: '12px 30px', borderRadius: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Rédiger un avis
+                            </button>
+                        </div>
+
+                        {reviews.length > 0 ? (
+                            <div style={{ display: 'grid', gap: '20px' }}>
+                                {reviews.map((rev) => (
+                                    <div
+                                        key={rev._id}
+                                        style={{
+                                            padding: '25px',
+                                            background: '#f8fafc',
+                                            borderRadius: '20px',
+                                            border: '1px solid #f1f5f9'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{
+                                                    width: '45px',
+                                                    height: '45px',
+                                                    background: '#e2e8f0',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#475569'
+                                                }}>
+                                                    {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
+                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '2px' }}>
+                                                {renderStars(rev.rating)}
+                                            </div>
+                                        </div>
+                                        <p style={{ color: '#334155', lineHeight: '1.6', margin: 0 }}>{rev.comment}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '60px 20px',
+                                background: '#f8fafc',
+                                borderRadius: '24px',
+                                color: '#64748b'
+                            }}>
+                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                                <p style={{ fontWeight: '600' }}>Aucun avis pour le moment.</p>
+                                <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+
             {/* Similar Products Section */}
             {similarProducts.length > 0 && (
                 <section className="similar-products" style={{ marginTop: '80px', padding: '60px 0', background: '#fafafa' }}>
                     <div className="container" style={{ position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', padding: '0 10px' }}>
                             <h2 className='Produits-s' style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.5px' }}>Produits Similaires</h2>
-                            <Link to={`/category/${product.category.toLowerCase().replace(/ & /g, '-').replace(/[ /]/g, '-')}`} style={{
+                            <Link to={`/${product.category.toLowerCase().replace(/ & /g, '-').replace(/[ /]/g, '-')}`} style={{
                                 color: '#64748b',
                                 fontWeight: '700',
                                 textDecoration: 'none',

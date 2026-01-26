@@ -43,8 +43,6 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/category/:categoryName" element={<ProductsPage />} />
-            <Route path="/produit/:category/:slug" element={<ProductDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -55,6 +53,10 @@ function App() {
             <Route path="/support" element={<SupportPage />} />
 
             <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
+
+            {/* Dynamic Product and Category Routes */}
+            <Route path="/:category/:slug" element={<ProductDetailPage />} />
+            <Route path="/:categoryName" element={<ProductsPage />} />
 
             <Route path="*" element={<Home />} />
 

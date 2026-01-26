@@ -321,7 +321,7 @@ const PromoManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/products')
+        fetch(`${API_BASE_URL}/api/products`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -383,7 +383,7 @@ const PromoManager = () => {
         };
 
         try {
-            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/products/${currentProduct._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -573,6 +573,7 @@ const ProductsManager = () => {
         descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: ''
     });
     const [notification, setNotification] = useState(null);
+    const [linkGenerator, setLinkGenerator] = useState({ customTitle: '', customUrl: '' });
 
 
 
@@ -582,7 +583,7 @@ const ProductsManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/products')
+        fetch(`${API_BASE_URL}/api/products`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -603,7 +604,7 @@ const ProductsManager = () => {
 
     useEffect(() => {
         fetchProducts();
-        fetch('https://satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -688,7 +689,7 @@ const ProductsManager = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        let url = 'https://satpromax.com/api/products';
+        let url = `${API_BASE_URL}/api/products`;
         let method = 'POST';
 
         if (modalType === 'edit') {
@@ -727,7 +728,7 @@ const ProductsManager = () => {
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`https://satpromax.com/api/products/${currentProduct._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/products/${currentProduct._id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -746,7 +747,7 @@ const ProductsManager = () => {
 
     const handleToggleStock = async (product) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/products/${product._id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/products/${product._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inStock: !product.inStock })
@@ -1132,6 +1133,48 @@ const ProductsManager = () => {
                             Description Longue (Design Premium)
                         </h4>
 
+                        <div style={{ marginBottom: '25px', padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
+                                CRÉER UN LIEN DANS LE TEXTE (Lien Bleu)
+                            </h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr auto', gap: '8px' }}>
+                                <input
+                                    className="form-input"
+                                    placeholder="Le mot ou la phrase à cliquer..."
+                                    value={linkGenerator.customTitle}
+                                    onChange={e => setLinkGenerator({ ...linkGenerator, customTitle: e.target.value })}
+                                    style={{ height: '38px', fontSize: '13px' }}
+                                />
+
+                                <input
+                                    className="form-input"
+                                    placeholder="Lien ou URL (ex: /contact أو https://...)"
+                                    value={linkGenerator.customUrl}
+                                    onChange={e => setLinkGenerator({ ...linkGenerator, customUrl: e.target.value })}
+                                    style={{ height: '38px', fontSize: '13px' }}
+                                />
+
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() => {
+                                        const text = linkGenerator.customTitle || "Cliquez ici";
+                                        const url = linkGenerator.customUrl;
+                                        if (!url) return showNotification("Veuillez saisir une destination", "error");
+
+                                        const html = `<a href="${url}" style="color: #0ea5e9; font-weight: bold; text-decoration: underline;">${text}</a>`;
+                                        navigator.clipboard.writeText(html);
+                                        showNotification("Lien copié !", "success");
+                                    }}
+                                    style={{ height: '38px', padding: '0 15px', fontSize: '12px', background: '#0ea5e9' }}
+                                >
+                                    Copier HTML
+                                </button>
+                            </div>
+                            <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>* Écrivez le texte, collez l'URL, copiez puis collez le code HTML dans votre paragraphe.</p>
+                        </div>
+
                         <div className="form-group">
                             <label className="form-label">Description Globale (Paragraphe d'introduction)</label>
                             <textarea
@@ -1151,7 +1194,7 @@ const ProductsManager = () => {
                                     type="button"
                                     onClick={() => setFormData(prev => ({
                                         ...prev,
-                                        extraSections: [...prev.extraSections, { title: '', content: '' }]
+                                        extraSections: [...prev.extraSections, { title: '', items: [{ type: 'paragraph', content: '' }] }]
                                     }))}
                                     style={{
                                         background: '#fbbf24',
@@ -1194,19 +1237,77 @@ const ProductsManager = () => {
                                             placeholder="Pourquoi choisir ALPHA IPTV ?"
                                         />
                                     </div>
-                                    <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label className="form-label" style={{ fontSize: '12px' }}>Contenu (Utilisez Entrée pour séparer les points)</label>
-                                        <textarea
-                                            className="form-input"
-                                            style={{ minHeight: '80px', resize: 'vertical' }}
-                                            value={section.content}
-                                            onChange={(e) => {
-                                                const newSections = [...formData.extraSections];
-                                                newSections[idx].content = e.target.value;
-                                                setFormData(prev => ({ ...prev, extraSections: newSections }));
-                                            }}
-                                            placeholder="Accédez à +15 000 chaînes..."
-                                        />
+                                    <div style={{ marginTop: '15px' }}>
+                                        <label className="form-label" style={{ fontSize: '11px', color: '#64748b' }}>Contenu de la section (Titres et Paragraphes)</label>
+
+                                        {section.items && section.items.map((item, itemIdx) => (
+                                            <div key={itemIdx} style={{ marginBottom: '10px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    {item.type === 'subtitle' ? (
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            style={{ fontWeight: '800', borderLeft: '4px solid #fbbf24' }}
+                                                            value={item.content}
+                                                            onChange={(e) => {
+                                                                const newSections = [...formData.extraSections];
+                                                                newSections[idx].items[itemIdx].content = e.target.value;
+                                                                setFormData(prev => ({ ...prev, extraSections: newSections }));
+                                                            }}
+                                                            placeholder="Sous-titre (ex: Caractéristiques)"
+                                                        />
+                                                    ) : (
+                                                        <textarea
+                                                            className="form-input"
+                                                            style={{ minHeight: '60px', resize: 'vertical' }}
+                                                            value={item.content}
+                                                            onChange={(e) => {
+                                                                const newSections = [...formData.extraSections];
+                                                                newSections[idx].items[itemIdx].content = e.target.value;
+                                                                setFormData(prev => ({ ...prev, extraSections: newSections }));
+                                                            }}
+                                                            placeholder="Paragraphe (Utilisez Entrée pour les listes)"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newSections = [...formData.extraSections];
+                                                        newSections[idx].items = newSections[idx].items.filter((_, i) => i !== itemIdx);
+                                                        setFormData(prev => ({ ...prev, extraSections: newSections }));
+                                                    }}
+                                                    style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newSections = [...formData.extraSections];
+                                                    newSections[idx].items = [...(newSections[idx].items || []), { type: 'subtitle', content: '' }];
+                                                    setFormData(prev => ({ ...prev, extraSections: newSections }));
+                                                }}
+                                                style={{ fontSize: '11px', padding: '5px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '700' }}
+                                            >
+                                                + Sous-titre
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newSections = [...formData.extraSections];
+                                                    newSections[idx].items = [...(newSections[idx].items || []), { type: 'paragraph', content: '' }];
+                                                    setFormData(prev => ({ ...prev, extraSections: newSections }));
+                                                }}
+                                                style={{ fontSize: '11px', padding: '5px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', fontWeight: '700' }}
+                                            >
+                                                + Paragraphe
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -1245,7 +1346,7 @@ const OrdersManager = () => {
 
     const fetchOrders = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/orders')
+        fetch(`${API_BASE_URL}/api/orders`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1266,8 +1367,8 @@ const OrdersManager = () => {
     const handleConfirmDelete = async () => {
         try {
             const url = deleteModal.type === 'all'
-                ? 'https://satpromax.com/api/orders'
-                : `https://satpromax.com/api/orders/${deleteModal.targetId}`;
+                ? `${API_BASE_URL}/api/orders`
+                : `${API_BASE_URL}/api/orders/${deleteModal.targetId}`;
 
             const response = await fetch(url, {
                 method: 'DELETE'
@@ -1288,7 +1389,7 @@ const OrdersManager = () => {
 
     const handleStatusUpdate = async (newStatus) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/orders/${statusModal.orderId}/status`, {
+            const response = await fetch(`${API_BASE_URL}/api/orders/${statusModal.orderId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
@@ -1624,7 +1725,7 @@ const ClientsManager = () => {
 
     const fetchUsers = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/users')
+        fetch(`${API_BASE_URL}/api/users`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -1659,7 +1760,7 @@ const ClientsManager = () => {
         const newRole = user.role === 'admin' ? 'client' : 'admin';
 
         try {
-            const response = await fetch(`https://satpromax.com/api/users/${user._id}/role`, {
+            const response = await fetch(`${API_BASE_URL}/api/users/${user._id}/role`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role: newRole })
@@ -1834,7 +1935,7 @@ const HomeManager = () => {
     };
 
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -1885,7 +1986,7 @@ const HomeManager = () => {
                 ...footerData
             };
 
-            const response = await fetch('https://satpromax.com/api/settings', {
+            const response = await fetch(`${API_BASE_URL}/api/settings`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -2283,7 +2384,8 @@ const CategoryManager = () => {
         newSlug: '',
         newMetaTitle: '',
         newMetaDescription: '',
-        newKeywords: ''
+        newKeywords: '',
+        newSubcategories: []
     });
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -2296,7 +2398,7 @@ const CategoryManager = () => {
 
     const fetchSettings = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -2319,7 +2421,7 @@ const CategoryManager = () => {
         if (!newCategory.name.trim()) return;
 
         try {
-            const response = await fetch('https://satpromax.com/api/settings/categories', {
+            const response = await fetch(`${API_BASE_URL}/api/settings/categories`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCategory)
@@ -2327,7 +2429,7 @@ const CategoryManager = () => {
             const data = await response.json();
             if (data.success) {
                 setSettings(data.data);
-                setNewCategory({ name: '', icon: '', title: '', description: '', slug: '', metaTitle: '', metaDescription: '', keywords: '' });
+                setNewCategory({ name: '', icon: '', title: '', description: '', slug: '', metaTitle: '', metaDescription: '', keywords: '', subcategories: [] });
                 fetchCategories();
                 showNotification("Catégorie ajoutée", "success");
             } else {
@@ -2340,7 +2442,7 @@ const CategoryManager = () => {
 
     const handleDeleteCategory = async (categoryName) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(categoryName)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/categories/${encodeURIComponent(categoryName)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2356,11 +2458,11 @@ const CategoryManager = () => {
     };
 
     const handleUpdateCategory = async () => {
-        const { oldName, newName, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords } = editCategoryModal;
+        const { oldName, newName, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords, newSubcategories } = editCategoryModal;
         if (!newName.trim()) return;
 
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/categories/${encodeURIComponent(oldName)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/categories/${encodeURIComponent(oldName)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2371,7 +2473,8 @@ const CategoryManager = () => {
                     newSlug: newSlug.trim(),
                     newMetaTitle: newMetaTitle.trim(),
                     newMetaDescription: newMetaDescription.trim(),
-                    newKeywords: newKeywords.trim()
+                    newKeywords: newKeywords.trim(),
+                    subcategories: newSubcategories
                 })
             });
             const data = await response.json();
@@ -2464,6 +2567,15 @@ const CategoryManager = () => {
                                 <input className="form-input" value={editCategoryModal.newKeywords} onChange={e => setEditCategoryModal({ ...editCategoryModal, newKeywords: e.target.value })} placeholder="Ex: iptv, streaming, abonnement..." />
                             </div>
                         </div>
+                        <div className="form-group" style={{ marginBottom: '20px' }}>
+                            <label className="form-label" style={{ fontWeight: '800' }}>SOUS-CATÉGORIES</label>
+                            <MultiInput
+                                items={editCategoryModal.newSubcategories || []}
+                                onAdd={(sub) => setEditCategoryModal(prev => ({ ...prev, newSubcategories: [...(prev.newSubcategories || []), sub] }))}
+                                onRemove={(idx) => setEditCategoryModal(prev => ({ ...prev, newSubcategories: (prev.newSubcategories || []).filter((_, i) => i !== idx) }))}
+                                placeholder="Nom de la sous-catégorie + Entrée"
+                            />
+                        </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button className="btn" onClick={() => setEditCategoryModal({ ...editCategoryModal, isOpen: false })}>Annuler</button>
                             <button className="btn btn-primary" onClick={handleUpdateCategory}>Enregistrer</button>
@@ -2514,7 +2626,18 @@ const CategoryManager = () => {
                     <input className="form-input" placeholder="Meta Nom SEO" value={newCategory.metaTitle} onChange={e => setNewCategory({ ...newCategory, metaTitle: e.target.value })} />
                     <input className="form-input" placeholder="Meta Description SEO" value={newCategory.metaDescription} onChange={e => setNewCategory({ ...newCategory, metaDescription: e.target.value })} />
                     <input className="form-input" placeholder="Mot Clé SEO" value={newCategory.keywords} onChange={e => setNewCategory({ ...newCategory, keywords: e.target.value })} />
-                    <button type="submit" className="btn btn-primary">Ajouter</button>
+                </div>
+                <div style={{ marginTop: '15px', padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <label className="form-label" style={{ fontWeight: '800' }}>SOUS-CATÉGORIES</label>
+                    <MultiInput
+                        items={newCategory.subcategories || []}
+                        onAdd={(sub) => setNewCategory(prev => ({ ...prev, subcategories: [...(prev.subcategories || []), sub] }))}
+                        onRemove={(idx) => setNewCategory(prev => ({ ...prev, subcategories: (prev.subcategories || []).filter((_, i) => i !== idx) }))}
+                        placeholder="Ajouter une sous-catégorie (ex: Netflix, Premium...) + Entrée"
+                    />
+                </div>
+                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="submit" className="btn btn-primary" style={{ padding: '10px 30px' }}>Ajouter la catégorie</button>
                 </div>
             </form>
 
@@ -2532,6 +2655,13 @@ const CategoryManager = () => {
                             <div>
                                 <div style={{ fontWeight: 'bold' }}>{cat.name}</div>
                                 <div style={{ fontSize: '11px', color: '#64748b' }}>Slug: {cat.slug} | {cat.title}</div>
+                                {cat.subcategories && cat.subcategories.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px', flexWrap: 'wrap' }}>
+                                        {cat.subcategories.map((sub, i) => (
+                                            <span key={i} style={{ fontSize: '9px', background: '#eff6ff', color: '#3b82f6', padding: '2px 6px', borderRadius: '4px', border: '1px solid #dbeafe' }}>{sub}</span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -2545,14 +2675,15 @@ const CategoryManager = () => {
                                 newSlug: cat.slug || '',
                                 newMetaTitle: cat.metaTitle || '',
                                 newMetaDescription: cat.metaDescription || '',
-                                newKeywords: cat.keywords || ''
+                                newKeywords: cat.keywords || '',
+                                newSubcategories: cat.subcategories || []
                             })}>Modifier</button>
                             <button className="btn" style={{ padding: '6px 12px', fontSize: '12px', color: '#ef4444' }} onClick={() => setConfirmModal({ isOpen: true, item: cat.name })}>Supprimer</button>
                         </div>
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };
 
@@ -2582,7 +2713,7 @@ const SettingsManager = () => {
 
     const fetchSettings = () => {
         setLoading(true);
-        fetch('https://satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -2605,7 +2736,7 @@ const SettingsManager = () => {
         if (!newMode.name.trim()) return;
 
         try {
-            const response = await fetch('https://satpromax.com/api/settings/payment-modes', {
+            const response = await fetch(`${API_BASE_URL}/api/settings/payment-modes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newMode.name.trim(), logo: newMode.logo.trim() })
@@ -2625,7 +2756,7 @@ const SettingsManager = () => {
 
     const handleDeleteMode = async (mode) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/payment-modes/${encodeURIComponent(mode)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2646,7 +2777,7 @@ const SettingsManager = () => {
         if (!newChoice.trim()) return;
 
         try {
-            const response = await fetch('https://satpromax.com/api/settings/device-choices', {
+            const response = await fetch(`${API_BASE_URL}/api/settings/device-choices`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ choice: newChoice.trim() })
@@ -2666,7 +2797,7 @@ const SettingsManager = () => {
 
     const handleDeleteChoice = async (choice) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/device-choices/${encodeURIComponent(choice)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/device-choices/${encodeURIComponent(choice)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2686,7 +2817,7 @@ const SettingsManager = () => {
         e.preventDefault();
         if (!newResolution.name.trim()) return;
         try {
-            const response = await fetch('https://satpromax.com/api/settings/resolutions', {
+            const response = await fetch(`${API_BASE_URL}/api/settings/resolutions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newResolution.name.trim(), image: newResolution.image.trim() })
@@ -2706,7 +2837,7 @@ const SettingsManager = () => {
 
     const handleDeleteResolution = async (name) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/resolutions/${encodeURIComponent(name)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/resolutions/${encodeURIComponent(name)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2726,7 +2857,7 @@ const SettingsManager = () => {
         e.preventDefault();
         if (!newRegion.name.trim()) return;
         try {
-            const response = await fetch('https://satpromax.com/api/settings/regions', {
+            const response = await fetch(`${API_BASE_URL}/api/settings/regions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newRegion.name.trim(), image: newRegion.image.trim() })
@@ -2746,7 +2877,7 @@ const SettingsManager = () => {
 
     const handleDeleteRegion = async (name) => {
         try {
-            const response = await fetch(`https://satpromax.com/api/settings/regions/${encodeURIComponent(name)}`, {
+            const response = await fetch(`${API_BASE_URL}/api/settings/regions/${encodeURIComponent(name)}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -2889,7 +3020,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -2953,7 +3084,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -2976,7 +3107,7 @@ const SettingsManager = () => {
                         Mettre à jour
                     </button>
                 </div>
-            </div>
+            </div >
 
 
             <div style={{ marginTop: '20px', padding: '20px', background: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', marginBottom: '30px' }}>
@@ -2996,7 +3127,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ whatsappNumber: settings.whatsappNumber })
@@ -3017,7 +3148,7 @@ const SettingsManager = () => {
                         Mettre à jour
                     </button>
                 </div>
-            </div>
+            </div >
             <div style={{ marginTop: '30px', padding: '20px', background: '#fdf2f2', borderRadius: '12px', border: '1px solid #fecaca', marginBottom: '30px' }}>
                 <h3 style={{ fontSize: '18px', color: '#991b1b', marginBottom: '10px' }}>Couleur du Titre Produit</h3>
                 <p style={{ fontSize: '13px', color: '#b91c1c', marginBottom: '15px' }}>Modifiez la couleur du titre dans la page de détails du produit.</p>
@@ -3038,7 +3169,7 @@ const SettingsManager = () => {
                     <button
                         onClick={async () => {
                             try {
-                                const res = await fetch('https://satpromax.com/api/settings', {
+                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ productTitleColor: settings.productTitleColor })
@@ -3056,10 +3187,10 @@ const SettingsManager = () => {
                         Mettre à jour
                     </button>
                 </div>
-            </div>
+            </div >
 
             {/* Resolutions Management */}
-            <div style={{ marginTop: '30px' }}>
+            < div style={{ marginTop: '30px' }}>
                 <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Résolutions</h3>
 
                 <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
@@ -3108,10 +3239,10 @@ const SettingsManager = () => {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div >
 
             {/* Regions Management */}
-            <div style={{ marginTop: '30px' }}>
+            < div style={{ marginTop: '30px' }}>
                 <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Régions</h3>
 
                 <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
@@ -3160,7 +3291,7 @@ const SettingsManager = () => {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div >
 
             <div style={{ marginTop: '30px' }}>
                 <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Modes de Paiement</h3>
@@ -3322,7 +3453,7 @@ const SettingsManager = () => {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
@@ -3361,8 +3492,8 @@ const GuidesManager = () => {
     const fetchOtherData = async () => {
         try {
             const [pRes, cRes] = await Promise.all([
-                fetch('https://satpromax.com/api/products'),
-                fetch('https://satpromax.com/api/categories')
+                fetch(`${API_BASE_URL}/api/products`),
+                fetch(`${API_BASE_URL}/api/categories`)
             ]);
             const [pData, cData] = await Promise.all([pRes.json(), cRes.json()]);
             if (pData.success) setAvailableProducts(pData.data);
@@ -3375,13 +3506,13 @@ const GuidesManager = () => {
     const fetchGuides = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/api/guides`);
+            const res = await fetch(`${API_BASE_URL}guides`);
             const data = await res.json();
             if (data.success) {
                 setGuides(data.data);
             }
             // Fetch page settings
-            const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
+            const settingsRes = await fetch(`${API_BASE_URL}settings`);
             const settingsData = await settingsRes.json();
             if (settingsData.success) {
                 setPageSettings({
@@ -3398,7 +3529,7 @@ const GuidesManager = () => {
 
     const handleSavePageSettings = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/settings`, {
+            const res = await fetch(`${API_BASE_URL}settings`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pageSettings)
@@ -3423,8 +3554,8 @@ const GuidesManager = () => {
         e.preventDefault();
         const method = editingGuide ? 'PUT' : 'POST';
         const url = editingGuide
-            ? `${API_BASE_URL}/api/guides/${editingGuide._id}`
-            : `${API_BASE_URL}/api/guides`;
+            ? `${API_BASE_URL}guides/${editingGuide._id}`
+            : `${API_BASE_URL}guides`;
 
         try {
             const res = await fetch(url, {
@@ -3450,7 +3581,7 @@ const GuidesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Voulez-vous vraiment supprimer cet article ?")) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/api/guides/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}guides/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification("Article supprimé", "success");
@@ -3769,7 +3900,7 @@ const ReviewsManager = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/products`);
+            const response = await fetch(`${API_BASE_URL}products`);
             const data = await response.json();
             if (data.success) {
                 setProducts(data.data);
@@ -3782,7 +3913,7 @@ const ReviewsManager = () => {
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reviews`);
+            const response = await fetch(`${API_BASE_URL}reviews`);
             const data = await response.json();
             if (data.success) {
                 setReviews(data.data);
@@ -3800,7 +3931,7 @@ const ReviewsManager = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}reviews/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -3822,7 +3953,7 @@ const ReviewsManager = () => {
     const confirmDelete = async () => {
         const id = deleteModal.id;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}reviews/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -3843,7 +3974,7 @@ const ReviewsManager = () => {
             if (reviewType === 'general') {
                 delete body.productId;
             }
-            const response = await fetch(`${API_BASE_URL}/api/reviews`, {
+            const response = await fetch(`${API_BASE_URL}reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -4171,7 +4302,7 @@ const GuideInquiriesManager = () => {
     const fetchInquiries = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries`);
+            const response = await fetch(`${API_BASE_URL}guide-inquiries`);
             const data = await response.json();
             if (data.success) {
                 setInquiries(data.data);
@@ -4190,7 +4321,7 @@ const GuideInquiriesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer cette question ?")) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries/${id}`, {
+            const response = await fetch(`${API_BASE_URL}guide-inquiries/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -4389,7 +4520,7 @@ const ContactMessagesManager = () => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/api/contact-messages`);
+            const res = await fetch(`${API_BASE_URL}contact-messages`);
             const data = await res.json();
             if (data.success) {
                 setMessages(data.data);
@@ -4408,7 +4539,7 @@ const ContactMessagesManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer ce message ?")) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/api/contact-messages/${id}`, {
+            const res = await fetch(`${API_BASE_URL}contact-messages/${id}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
@@ -4629,7 +4760,7 @@ const SupportManager = () => {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/tickets`);
+            const res = await fetch(`${API_BASE_URL}support/tickets`);
             const data = await res.json();
             if (data.success) setTickets(data.data);
         } catch (error) {
@@ -4642,7 +4773,7 @@ const SupportManager = () => {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/config`);
+            const res = await fetch(`${API_BASE_URL}support/config`);
             const data = await res.json();
             if (data.success) {
                 setIssueTypes(data.types);
@@ -4672,7 +4803,7 @@ const SupportManager = () => {
     const deleteTicket = async (id) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/tickets/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}support/tickets/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Ticket supprimé', 'success');
@@ -4688,7 +4819,7 @@ const SupportManager = () => {
         e.preventDefault();
         if (!newType.trim()) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/types`, {
+            const res = await fetch(`${API_BASE_URL}support/types`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newType })
@@ -4718,7 +4849,7 @@ const SupportManager = () => {
     const deleteType = async (name) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/types/${name}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}support/types/${name}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Type supprimé', 'success');
@@ -4771,7 +4902,7 @@ const SupportManager = () => {
 
     const saveFields = async (fields) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/fields`, {
+            const res = await fetch(`${API_BASE_URL}support/fields`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fields })
@@ -4790,7 +4921,7 @@ const SupportManager = () => {
 
     const saveHeroImage = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/api/support/config`, {
+            const res = await fetch(`${API_BASE_URL}support/config`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ heroImage })
