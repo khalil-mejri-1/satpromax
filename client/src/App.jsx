@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Home from "./pages/home.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import Admin from "./pages/admin.jsx";
+import Schema from "./components/SEO/Schema";
 
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -25,6 +26,22 @@ const ProtectedAdminRoute = ({ children }) => {
   return <Navigate to="/login" />;
 };
 
+
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Technoplus",
+  "url": "https://satpromax.com",
+  "logo": "https://satpromax.com/logo.png",
+  "sameAs": [
+    "https://www.facebook.com/satpromax",
+    "https://www.instagram.com/satpromax"
+  ]
+};
+
+
+
 function App() {
   // useEffect(() => {
   //   const handleContextMenu = (e) => {
@@ -41,6 +58,7 @@ function App() {
     <>
       <ShopContextProvider>
         <BrowserRouter>
+          <Schema schema={organizationSchema} />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/checkout" element={<CheckoutPage />} />

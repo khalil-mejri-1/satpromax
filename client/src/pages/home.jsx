@@ -8,6 +8,8 @@ import ReviewCarousel from '../components/ReviewCarousel';
 
 import { slugify } from '../utils/slugify';
 
+import SEO from '../components/SEO/SEO';
+
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -56,6 +58,11 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <SEO
+        title="Accueil"
+        description="Technoplus - Votre destination pour les meilleurs abonnements Streaming, IPTV, Gaming et Logiciels en Tunisie."
+        canonical="https://satpromax.com"
+      />
       <Header />
       <Hero />
 

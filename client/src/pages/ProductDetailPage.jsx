@@ -6,6 +6,8 @@ import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './ProductDetailPage.css';
 import { countryCodes } from '../data/countryCodes';
+import SEO from '../components/SEO/SEO';
+import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000'
@@ -378,35 +380,16 @@ export default function ProductDetailPage() {
             .catch(err => console.error(err));
     }, []);
 
-    // UseEffect to update SEO Meta Tags dynamically
+    // SEO Meta Tags managed by <SEO /> component below
+
+    // Reload Trustpilot widgets when product changes
     useEffect(() => {
-        if (product) {
-            // Update Title
-            document.title = `${product.name} - satpromax`;
-
-            // Update Meta Tags (for browsers and some crawlers)
-            const updateMeta = (property, content) => {
-                let element = document.querySelector(`meta[property="${property}"]`);
-                if (!element) {
-                    element = document.createElement('meta');
-                    element.setAttribute('property', property);
-                    document.head.appendChild(element);
-                }
-                element.setAttribute('content', content);
-            };
-
-            updateMeta('og:title', product.name);
-            updateMeta('og:description', product.description || "Découvrez ce produit sur satpromax.");
-            updateMeta('og:image', product.image);
-            updateMeta('og:url', window.location.href);
-
-            // Reload Trustpilot widgets
-            if (window.Trustpilot) {
-                const widget = document.querySelector('.product-info-section .trustpilot-widget');
-                if (widget) window.Trustpilot.loadFromElement(widget);
-            }
+        if (product && window.Trustpilot) {
+            const widget = document.querySelector('.product-info-section .trustpilot-widget');
+            if (widget) window.Trustpilot.loadFromElement(widget);
         }
     }, [product]);
+
 
     // Fetch Product Data
     useEffect(() => {
@@ -703,8 +686,25 @@ export default function ProductDetailPage() {
     const isIPTVCategory = currentCategory.name === 'Abonnement IPTV' || product.category === 'IPTV Premium';
     const isSharingCategory = product.category.toLowerCase().includes('sharing') || currentCategory.name.toLowerCase().includes('sharing');
 
+    const breadcrumbs = [
+        { name: 'Accueil', url: 'https://satpromax.com/' },
+        { name: currentCategory.name, url: `https://satpromax.com/${currentCategory.slug}` },
+        { name: product.name, url: window.location.href }
+    ];
+
     return (
         <div className="page-wrapper">
+            <SEO
+                title={product.name}
+                description={product.description}
+                image={product.image}
+                canonical={window.location.href}
+                type="product"
+                schemas={[
+                    generateProductSchema(product),
+                    generateBreadcrumbSchema(breadcrumbs)
+                ]}
+            />
             <Header />
 
             {/* Custom Modal (Same as Checkout) */}

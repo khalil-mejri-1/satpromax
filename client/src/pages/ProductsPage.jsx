@@ -5,6 +5,8 @@ import Footer from '../components/Footer';
 import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './ProductsPage.css';
+import SEO from '../components/SEO/SEO';
+import { generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
 const CATEGORIES_META = {
     streaming: {
@@ -347,8 +349,21 @@ export default function ProductsPage() {
 
     const isIPTV = normalizedCategory === 'iptv-sharing';
 
+
+    // Prepare SEO Data
+    const breadcrumbs = [
+        { name: 'Accueil', url: 'https://satpromax.com' },
+        { name: meta.title, url: window.location.href }
+    ];
+
     return (
         <div className="page-wrapper">
+            <SEO
+                title={meta.title}
+                description={meta.description}
+                canonical={window.location.href}
+                schemas={[generateBreadcrumbSchema(breadcrumbs)]}
+            />
             <Header />
 
             <main className="main-content">
