@@ -477,9 +477,9 @@ app.patch("/api/users/:id/role", async (req, res) => {
     }
 });
 
-app.get("/", (req, res) => {
-    res.send("Hello World + Database Connected 🌍");
-});
+// app.get("/", (req, res) => {
+//     res.send("Hello World + Database Connected 🌍");
+// });
 
 // Update General Settings (e.g. whatsappNumber)
 app.put("/api/settings", async (req, res) => {
@@ -1674,6 +1674,94 @@ app.delete("/api/contact-messages/:id", async (req, res) => {
 });
 
 
+
+
+
+// --- SERVE FRONTEND (SEO OPTIMIZED) ---
+const path = require('path');
+const fs = require('fs');
+
+const BUILD_PATH = path.join(__dirname, '../client/dist');
+const INDEX_HTML_PATH = path.join(BUILD_PATH, 'index.html');
+
+// Serve static files (js, css, images) - but NOT index.html automatically for root
+// This prevents express from hijacking the root route before we can inject meta tags
+app.use(express.static(BUILD_PATH, { index: false }));
+
+// SEO Injection Helper
+const injectSEO = (html, data) => {
+    if (!data) return html;
+    let injected = html;
+
+    // Replace Title
+    if (data.title) {
+        // Replace <title>
+        injected = injected.replace(/<title>.*?<\/title>/, `<title>${data.title}</title>`);
+        // Replace og:title
+        injected = injected.replace(/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}"`);
+        // Replace twitter:title
+        injected = injected.replace(/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}"`);
+    }
+
+    // Replace Description
+    if (data.description) {
+        injected = injected.replace(/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}"`);
+        injected = injected.replace(/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}"`);
+        injected = injected.replace(/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}"`);
+    }
+
+    // Replace Image
+    if (data.image) {
+        injected = injected.replace(/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}"`);
+        injected = injected.replace(/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}"`);
+    }
+
+    return injected;
+};
+
+// Catch-All Route for Frontend
+app.get('*', async (req, res) => {
+    // If it's an API request that wasn't caught, return 404 JSON
+    if (req.url.startsWith('/api/')) {
+        return res.status(404).json({ success: false, message: "Endpoint API introuvable" });
+    }
+
+    // Read index.html
+    let htmlContent;
+    try {
+        htmlContent = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
+    } catch (err) {
+        return res.send("Erreur: Build React introuvable. Veuillez exécuter 'npm run build' dans le dossier client.");
+    }
+
+    try {
+        // --- DYNAMIC SEO LOGIC ---
+
+        // 1. Product Details: /:category/:slug (e.g., /streaming/netflix-premium)
+        const parts = req.path.split('/').filter(Boolean);
+
+        if (parts.length === 2) {
+            const [categorySlug, productSlug] = parts;
+            // Check if it's a product
+            const product = await Product.findOne({ slug: productSlug });
+            if (product) {
+                htmlContent = injectSEO(htmlContent, {
+                    title: `${product.name} | Technoplus`,
+                    description: product.description ? product.description.substring(0, 160) : "Achetez ce produit sur Technoplus.",
+                    image: product.image
+                });
+            }
+        }
+
+        // 2. Category Pages can also be handled here if needed
+
+    } catch (err) {
+        console.error("SEO Injection Error:", err);
+        // Fallback to default HTML on error
+    }
+
+    res.send(htmlContent);
+});
 
 
 app.listen(PORT, () => {
