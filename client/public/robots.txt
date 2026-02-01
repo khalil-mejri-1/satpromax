@@ -1,10 +1,20 @@
 User-agent: *
 Allow: /
 
+# Private areas
+Disallow: /admin
 Disallow: /login
 Disallow: /register
-Disallow: /checkout
 Disallow: /profile
-Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
 
-Sitemap: https://Satpromax.com/sitemap.xml
+# API and Technical
+Disallow: /api/
+Disallow: /cgi-bin/
+
+# Search results (prevent duplicate content)
+Disallow: /search
+Disallow: /?q=
+
+Sitemap: https://satpromax.com/sitemap.xml
