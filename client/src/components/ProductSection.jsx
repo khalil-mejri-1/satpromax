@@ -64,9 +64,11 @@ export default function ProductSection({ title, products = [], loading = false, 
             <div className="section-header">
                 <h2 className="section-title">{title}</h2>
                 {categoryLink ? (
-                    <Link to={categoryLink} className="see-all">Voir Tout</Link>
+                    <Link to={categoryLink} className="see-all">
+                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Voir Tout</h6>
+                    </Link>
                 ) : (
-                    <span className="see-all disabled">Voir Tout</span>
+                    <h6 className="see-all disabled" style={{ margin: 0 }}>Voir Tout</h6>
                 )}
             </div>
 
@@ -119,31 +121,31 @@ export default function ProductSection({ title, products = [], loading = false, 
                                     <div className="product-info">
                                         <h5 className="product-cat-tag" style={{ fontSize: '11px', margin: 0, fontWeight: 700, opacity: 0.8 }}>{product.category}</h5>
                                         <h3 className="product-name">{product.name}</h3>
-                                        <div className="product-price">
+                                        <h4 className="product-price" style={{ margin: '8px 0 0', fontSize: '1.1rem', fontWeight: '700' }}>
                                             {isPromoActive ? (
                                                 <>
-                                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px' }}>
+                                                    <h6 style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px', display: 'inline', margin: 0 }}>
                                                         {product.price}
-                                                    </span>
-                                                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                                                    </h6>
+                                                    <h4 style={{ color: '#ef4444', fontWeight: 'bold', display: 'inline', margin: 0 }}>
                                                         {product.promoPrice}
-                                                    </span>
+                                                    </h4>
                                                 </>
                                             ) : (
                                                 product.price
                                             )}
-                                        </div>
+                                        </h4>
                                     </div>
 
                                     <div className="card-actions-overlay">
                                         <button className="action-btn-premium details">
-                                            Détails
+                                            <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Détails</h6>
                                         </button>
                                         <button
                                             className={`action-btn-premium add ${isAdded ? 'added' : ''}`}
                                             onClick={(e) => handleAddToCart(e, product)}
                                         >
-                                            {isAdded ? "AJOUTÉ" : "AJOUTER"}
+                                            <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{isAdded ? "AJOUTÉ" : "AJOUTER"}</h6>
                                         </button>
                                     </div>
                                 </Link>

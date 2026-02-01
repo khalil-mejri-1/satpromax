@@ -184,7 +184,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                     onMouseOver={(e) => e.target.style.background = '#e2e8f0'}
                     onMouseOut={(e) => e.target.style.background = '#f1f5f9'}
                 >
-                    détails
+                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>détails</h6>
                 </Link>
                 <button
                     onClick={handleAddToCart}
@@ -206,7 +206,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                         boxShadow: isAdded ? '0 8px 20px rgba(34, 197, 94, 0.3)' : '0 4px 10px rgba(251, 191, 36, 0.2)'
                     }}
                 >
-                    {isAdded ? "AJOUTÉ" : "AJOUTER"}
+                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{isAdded ? "AJOUTÉ" : "AJOUTER"}</h6>
                 </button>
             </div>
         </div>
@@ -781,7 +781,7 @@ export default function ProductDetailPage() {
                         {isZoomOpen && (
                             <div className="image-zoom-overlay" onClick={() => setIsZoomOpen(false)}>
                                 <div className="zoom-content" onClick={(e) => e.stopPropagation()}>
-                                    <button className="zoom-close" onClick={() => setIsZoomOpen(false)}>×</button>
+                                    <button className="zoom-close" onClick={() => setIsZoomOpen(false)}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>×</h6></button>
                                     <img src={activeImage || product.image} alt={product.name} className="zoomed-image" />
                                 </div>
                             </div>
@@ -823,17 +823,17 @@ export default function ProductDetailPage() {
                                 data-token="2a0b3e50-b416-4a8e-be20-5d3da4454f2d"
                                 style={{ transform: 'scale(0.8)', transformOrigin: 'left center', marginBottom: '15px' }}
                             >
-                                <a href="https://www.trustpilot.com/review/Satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+                                <a href="https://www.trustpilot.com/review/Satpromax.com" target="_blank" rel="noopener noreferrer"><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Trustpilot</h6></a>
                             </div>
 
                             {product.promoPrice && new Date(product.promoEndDate) > new Date() ? (
                                 <div className="detail-price">
-                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600' }}>
+                                    <h6 style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600', display: 'inline', margin: 0 }}>
                                         {product.price}
-                                    </span>
-                                    <span style={{ color: '#ef4444' }}>
+                                    </h6>
+                                    <h3 style={{ color: '#ef4444', display: 'inline', margin: 0 }}>
                                         {product.promoPrice}
-                                    </span>
+                                    </h3>
                                 </div>
                             ) : (
                                 <h3 className="detail-price">
@@ -843,7 +843,7 @@ export default function ProductDetailPage() {
 
                             <div className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`}>
                                 <div className="stock-dot"></div>
-                                {product.inStock !== false ? 'Disponible' : 'Épuisé'}
+                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.inStock !== false ? 'Disponible' : 'Épuisé'}</h6>
                             </div>
 
                             {/* {product.hasDelivery && product.deliveryPrice && (
@@ -897,7 +897,7 @@ export default function ProductDetailPage() {
                                                     d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                                 />
                                             </svg>
-                                            Télécharger App
+                                            <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Télécharger App</h6>
                                         </button>
                                     )}
                                     <Link
@@ -922,7 +922,7 @@ export default function ProductDetailPage() {
                                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                         </svg>
-                                        Guide d'installation
+                                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Guide d'installation</h6>
                                     </Link>
                                 </div>
                             )}
@@ -936,26 +936,26 @@ export default function ProductDetailPage() {
                                     {product.resolution && (
                                         <div className="meta-info-item">
                                             <span className="meta-label">Résolution:</span>
-                                            <span className="meta-value">{product.resolution}</span>
+                                            <h5 className="meta-value" style={{ margin: 0 }}>{product.resolution}</h5>
                                         </div>
                                     )}
                                     {product.region && (
                                         <div className="meta-info-item">
                                             <span className="meta-label">Région:</span>
-                                            <span className="meta-value">{product.region}</span>
+                                            <h5 className="meta-value" style={{ margin: 0 }}>{product.region}</h5>
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             <div className="detail-description">
-                                <div style={{ whiteSpace: 'pre-wrap' }}>{product.description}</div>
+                                <h6 style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: '1.6', color: '#475569', fontWeight: '500' }}>{product.description}</h6>
                             </div>
 
                             {isIPTVCategory && (
                                 <div className="product-options">
                                     <div className="option-row">
-                                        <label>{"Choix d'appareil"}</label>
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choix d'appareil"}</h6>
                                         <select
                                             className="option-select"
                                             value={selectedDevice}
@@ -983,7 +983,7 @@ export default function ProductDetailPage() {
                             {isSharingCategory && (
                                 <div className="product-options">
                                     <div className="option-row">
-                                        <label>{"Numéro de série du récepteur *"}</label>
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Numéro de série du récepteur *"}</h6>
                                         <input
                                             type="text"
                                             className="option-select" // using same class for consistency
@@ -1029,7 +1029,7 @@ export default function ProductDetailPage() {
                                         }, quantity);
                                     }}
                                 >
-                                    AJOUTER AU PANIER
+                                    <h5 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>AJOUTER AU PANIER</h5>
                                 </button>
                             </div>
 
@@ -1078,7 +1078,7 @@ export default function ProductDetailPage() {
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label" style={{ marginBottom: '10px', display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#64748b' }}>Mode de paiement *</label>
+                                    <h6 className="form-label" style={{ marginBottom: '10px', display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#64748b', margin: 0 }}>Mode de paiement *</h6>
                                     <div className="payment-modes-grid" style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
@@ -1135,7 +1135,7 @@ export default function ProductDetailPage() {
                                                         <div style={{ fontSize: '24px' }}>💳</div>
                                                     )}
                                                 </div>
-                                                <span style={{ fontSize: '12px', fontWeight: '700', color: billingInfo.paymentMode === mode.name ? '#0369a1' : '#1e293b', textAlign: 'center' }}>{mode.name}</span>
+                                                <h6 style={{ fontSize: '12px', fontWeight: '700', color: billingInfo.paymentMode === mode.name ? '#0369a1' : '#1e293b', textAlign: 'center', margin: 0 }}>{mode.name}</h6>
                                             </button>
                                         ))}
                                     </div>
@@ -1144,18 +1144,18 @@ export default function ProductDetailPage() {
 
                                 <div className="order-summary">
                                     <div className="summary-row">
-                                        <span>Prix des produits</span>
-                                        <span>{product.price}</span>
+                                        <h6>Prix des produits</h6>
+                                        <h6>{product.price}</h6>
                                     </div>
                                     {product.hasDelivery && product.deliveryPrice && (
                                         <div className="summary-row">
-                                            <span>Livraison</span>
-                                            <span>{product.deliveryPrice}</span>
+                                            <h6>Livraison</h6>
+                                            <h6>{product.deliveryPrice}</h6>
                                         </div>
                                     )}
                                     <div className="summary-row total">
-                                        <span>Total</span>
-                                        <span>
+                                        <h6>Total</h6>
+                                        <h5 style={{ margin: 0 }}>
                                             {
                                                 (() => {
                                                     const total = (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
@@ -1170,7 +1170,7 @@ export default function ProductDetailPage() {
                                                     return totalStr;
                                                 })()
                                             } DT
-                                        </span>
+                                        </h5>
                                     </div>
                                 </div>
 
@@ -1179,41 +1179,43 @@ export default function ProductDetailPage() {
                                     onClick={handleConfirmOrder}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    Commande Express
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M20 6L9 17L4 12" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        Commande Express
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M20 6L9 17L4 12" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </h6>
                                 </button>
                             </div>
 
                             <div className="review-action">
                                 <button className="btn-review" onClick={() => setReviewModalOpen(true)}>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                    Laisser un avis
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Laisser un avis</h6>
                                 </button>
                             </div>
 
                             <div className="meta-actions">
                                 <button className="meta-action-btn" onClick={() => addToWishlist(productWithId)}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                    Ajouter à la liste
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Ajouter à la liste</h6>
                                 </button>
                                 <button className="meta-action-btn" onClick={handleCompare}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                                    Comparer
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Comparer</h6>
                                 </button>
                                 <button className="meta-action-btn" onClick={() => setShareModalOpen(true)}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                    Partager
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Partager</h6>
                                 </button>
                             </div>
 
                             <hr className="divider" />
 
                             <div className="product-meta">
-                                <div className="meta-row"><span className="label">SKU:</span> <span className="value">{product.sku}</span></div>
-                                <div className="meta-row"><span className="label">Catégories:</span> <span className="value link">{product.name}, {currentCategory.name}</span></div>
-                                <div className="meta-row"><span className="label">Tags:</span> <span className="value">{product.tags}</span></div>
+                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>SKU:</h6> <h6 className="value" style={{ display: 'inline', margin: 0 }}>{product.sku}</h6></div>
+                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>Catégories:</h6> <h6 className="value link" style={{ display: 'inline', margin: 0 }}>{product.name}, {currentCategory.name}</h6></div>
+                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>Tags:</h6> <h6 className="value" style={{ display: 'inline', margin: 0 }}>{product.tags}</h6></div>
                             </div>
                         </div>
                     </div>
@@ -1249,7 +1251,7 @@ export default function ProductDetailPage() {
                                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                             >
                                 <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-                                Facebook
+                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Facebook</h6>
                             </button>
                             <button
                                 onClick={shareOnTelegram}
@@ -1273,10 +1275,10 @@ export default function ProductDetailPage() {
                                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                             >
                                 <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.84 8.783c-.156 1.353-.846 5.424-1.22 7.42-.158.844-.468 1.127-.77 1.155-.654.06-1.15-.436-1.784-.852-1.012-.662-1.583-1.074-2.564-1.72-1.135-.747-.4-.1.1.258.118.083.22.155.32 0s2.176-1.996 2.508-2.584c.062-.11.122-.224.062-.284-.06-.06-.217-.037-.3-.024-.136.02-.797.23-2.18.57-.306.075-.584.11-.833.106-.25-.004-.73-.14-1.088-.256-.438-.142-.786-.218-.756-.46.016-.126.19-.255.525-.386 2.05-.892 3.42-1.48 4.108-1.765 1.964-.816 2.372-.958 2.638-.963.058-.002.19.013.275.083.072.06.092.143.1.206.013.064.02.195.01.306z" /></svg>
-                                Telegram
+                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Telegram</h6>
                             </button>
                         </div>
-                        <button onClick={() => setShareModalOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', width: 'auto', fontWeight: '600', fontSize: '16px', padding: '10px 20px', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#1e293b'} onMouseOut={(e) => e.target.style.color = '#64748b'}>Fermer</button>
+                        <button onClick={() => setShareModalOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', width: 'auto', fontWeight: '600', fontSize: '16px', padding: '10px 20px', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#1e293b'} onMouseOut={(e) => e.target.style.color = '#64748b'}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Fermer</h6></button>
                     </div>
                 </div>
             )}
@@ -1297,21 +1299,21 @@ export default function ProductDetailPage() {
                                 <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
                             </div>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Prix</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{compareProduct.price}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{product.price}</div>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Prix</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.price}</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.price}</h6></div>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Catégorie</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{compareProduct.category}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{product.category}</div>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Catégorie</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.category}</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.category}</h6></div>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Description</div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{compareProduct.description}</div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{product.description}</div>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h6></div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.description}</h6></div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.description}</h6></div>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>SKU</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{compareProduct.sku}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{product.sku}</div>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>SKU</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.sku}</h6></div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.sku}</h6></div>
                         </div>
                         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                             <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
@@ -1348,19 +1350,20 @@ export default function ProductDetailPage() {
                                 borderBottom: '3px solid #fbbf24',
                                 marginBottom: '-1px'
                             }}>
-                                Description
+                                <h4 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h4>
                             </div>
                         </div>
 
                         {/* Global Description */}
                         {product.descriptionGlobal && (
                             <div style={{ marginBottom: '50px' }}>
-                                <div
+                                <h6
                                     style={{
                                         fontSize: '19px',
                                         color: '#475569',
                                         lineHeight: '1.8',
-                                        fontWeight: '500'
+                                        fontWeight: '500',
+                                        margin: 0
                                     }}
                                     dangerouslySetInnerHTML={{ __html: product.descriptionGlobal.replace(/\n/g, '<br/>') }}
                                 />
@@ -1401,8 +1404,8 @@ export default function ProductDetailPage() {
                                                         {item.content}
                                                     </h3>
                                                 ) : (
-                                                    <div
-                                                        style={{ color: '#475569' }}
+                                                    <h6
+                                                        style={{ color: '#475569', margin: 0, fontSize: 'inherit', lineHeight: '1.7' }}
                                                         dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
                                                     />
                                                 )}
@@ -1447,13 +1450,13 @@ export default function ProductDetailPage() {
                             }}>
                                 {/* Left Side: Big Score */}
                                 <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '24px' }}>
-                                    <div style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
-                                        {calculateAverageRating()} <span style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600' }}>/ 5</span>
-                                    </div>
+                                    <h3 style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1', margin: 0 }}>
+                                        {calculateAverageRating()} <h6 style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600', display: 'inline', margin: 0 }}>/ 5</h6>
+                                    </h3>
                                     <div style={{ margin: '15px 0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
                                         {renderStars(calculateAverageRating(), '24px')}
                                     </div>
-                                    <div style={{ fontSize: '15px', color: '#64748b', fontWeight: '600' }}>Basé sur {reviews.length} avis</div>
+                                    <h6 style={{ fontSize: '15px', color: '#64748b', fontWeight: '600', margin: 0 }}>Basé sur {reviews.length} avis</h6>
                                 </div>
 
                                 {/* Right Side: Distribution Bars */}
@@ -1464,13 +1467,13 @@ export default function ProductDetailPage() {
                                         return (
                                             <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '60px' }}>
-                                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{star}</span>
-                                                    <span style={{ color: '#fbbf24' }}>★</span>
+                                                    <h6 style={{ fontWeight: '700', fontSize: '14px', margin: 0 }}>{star}</h6>
+                                                    <h6 style={{ color: '#fbbf24', margin: 0 }}>★</h6>
                                                 </div>
                                                 <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
                                                     <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
                                                 </div>
-                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
+                                                <h6 style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600', margin: 0 }}>{count}</h6>
                                             </div>
                                         );
                                     })}
@@ -1485,7 +1488,7 @@ export default function ProductDetailPage() {
                                 style={{ width: 'auto', padding: '12px 30px', borderRadius: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                Rédiger un avis
+                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Rédiger un avis</h6>
                             </button>
                         </div>
 
@@ -1519,14 +1522,14 @@ export default function ProductDetailPage() {
                                                 </div>
                                                 <div>
                                                     <h5 style={{ fontWeight: '800', color: '#0f172a', margin: 0 }}>{rev.username}</h5>
-                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                                                    <h6 style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</h6>
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '2px' }}>
                                                 {renderStars(rev.rating)}
                                             </div>
                                         </div>
-                                        <p style={{ color: '#334155', lineHeight: '1.6', margin: 0 }}>{rev.comment}</p>
+                                        <h6 style={{ color: '#334155', lineHeight: '1.6', margin: 0, fontWeight: 'normal' }}>{rev.comment}</h6>
                                     </div>
                                 ))}
                             </div>
@@ -1540,7 +1543,7 @@ export default function ProductDetailPage() {
                             }}>
                                 <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                                 <h5 style={{ fontWeight: '600', margin: '0 0 10px' }}>Aucun avis pour le moment.</h5>
-                                <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
+                                <h6 style={{ fontSize: '14px', margin: 0, color: 'inherit', fontWeight: 'inherit' }}>Soyez le premier à partager votre expérience !</h6>
                             </div>
                         )}
                     </div>
@@ -1568,7 +1571,7 @@ export default function ProductDetailPage() {
                                 onMouseOver={(e) => e.target.style.borderColor = '#0ea5e9'}
                                 onMouseOut={(e) => e.target.style.borderColor = '#e2e8f0'}
                             >
-                                Voir tout
+                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Voir tout</h6>
                             </Link>
                         </div>
 
@@ -1666,7 +1669,7 @@ export default function ProductDetailPage() {
                             <form onSubmit={handleReviewSubmit}>
                                 {!user && (
                                     <div className="form-group" style={{ marginBottom: '15px' }}>
-                                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Votre Nom</label>
+                                        <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Nom</h6>
                                         <input
                                             type="text"
                                             className="form-input"
@@ -1678,7 +1681,7 @@ export default function ProductDetailPage() {
                                 )}
 
                                 <div className="form-group" style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Note</label>
+                                    <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Note</h6>
                                     <div style={{ display: 'flex', gap: '5px', fontSize: '24px', color: '#fbbf24' }}>
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <span
@@ -1693,7 +1696,7 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <div className="form-group" style={{ marginBottom: '20px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>Votre Commentaire</label>
+                                    <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Commentaire</h6>
                                     <textarea
                                         className="form-input"
                                         style={{ height: '120px', resize: 'none' }}
@@ -1705,10 +1708,10 @@ export default function ProductDetailPage() {
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="submit" className="btn-confirm-order" disabled={isSubmittingReview} style={{ flex: 1 }}>
-                                        {isSubmittingReview ? "Envoi..." : "Envoyer"}
+                                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{isSubmittingReview ? "Envoi..." : "Envoyer"}</h6>
                                     </button>
                                     <button type="button" className="btn-confirm-order" onClick={() => setReviewModalOpen(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b' }}>
-                                        Annuler
+                                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Annuler</h6>
                                     </button>
                                 </div>
                             </form>

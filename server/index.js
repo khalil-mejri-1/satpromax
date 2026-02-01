@@ -873,6 +873,77 @@ const generateServerBreadcrumbSchema = (crumbs) => ({
     }))
 });
 
+const generateServerProductHTML = (product) => {
+    if (!product) return "";
+    const isPromo = product.promoPrice && product.promoEndDate && new Date(product.promoEndDate) > new Date();
+
+    let extraContent = "";
+    if (product.extraSections && product.extraSections.length > 0) {
+        extraContent = product.extraSections.map(s => `
+            <div style="margin-top: 20px;">
+                <h3>${s.title}</h3>
+                <div>${s.content || ''}</div>
+            </div>
+        `).join('');
+    }
+
+    return `
+        <div class="ssr-content">
+            <header>
+                <h1>${product.name}</h1>
+                <p>Catégorie: ${product.category}</p>
+            </header>
+            <main>
+                <img src="${product.image}" alt="${product.name}" style="max-width:300px;" />
+                <div class="price" style="font-size: 24px; color: #ef4444; margin: 15px 0;">
+                    ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price}</del> <strong>${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
+                </div>
+                <div class="description">
+                    <p>${product.description || ''}</p>
+                    <div style="line-height: 1.6;">${product.descriptionGlobal || ''}</div>
+                </div>
+                <div class="extra-sections">
+                    ${extraContent}
+                </div>
+                <div class="meta" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; color: #64748b;">
+                    <p>SKU: ${product.sku || 'N/A'}</p>
+                    <p>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</p>
+                </div>
+            </main>
+        </div>
+    `;
+};
+
+const generateServerHomeHTML = (products, categories) => {
+    return `
+        <div class="ssr-content">
+            <h1>Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie</h1>
+            <p>Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax.</p>
+            
+            <section class="categories" style="margin-top: 40px;">
+                <h2>Nos Catégories</h2>
+                <ul style="display: flex; gap: 20px; list-style: none; padding: 0; flex-wrap: wrap;">
+                    ${categories.map(c => `<li style="background: #f1f5f9; padding: 10px 20px; border-radius: 8px;"><a href="/${c.slug || slugify(c.name)}" style="text-decoration: none; color: #1e293b; font-weight: bold;">${c.name}</a></li>`).join('')}
+                </ul>
+            </section>
+
+            <section class="products" style="margin-top: 50px;">
+                <h2>Derniers Produits</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                    ${products.map(p => `
+                        <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
+                            <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
+                            <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
+                            <p style="color: #ef4444; font-weight: bold;">${p.price} DT</p>
+                            <a href="/${slugify(p.category)}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir Détails</a>
+                        </div>
+                    `).join('')}
+                </div>
+            </section>
+        </div>
+    `;
+};
+
 // --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
 // --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
 app.get(/.*/, async (req, res, next) => {
@@ -901,6 +972,13 @@ app.get(/.*/, async (req, res, next) => {
                 "url": "https://Satpromax.com",
                 "logo": "https://Satpromax.com/logo.png"
             };
+
+            const homeProducts = await Product.find().sort({ createdAt: -1 }).limit(20);
+            const settings = await GeneralSettings.findOne();
+            const categories = settings?.categories || [];
+
+            const bodyContent = generateServerHomeHTML(homeProducts, categories);
+            htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
 
             htmlContent = injectSEO(htmlContent, {
                 title: "Satpromax- Meilleur Abonnement IPTV & Streaming Tunisie",
@@ -931,6 +1009,9 @@ app.get(/.*/, async (req, res, next) => {
                     .trim()
                     .substring(0, 160);
 
+                const bodyContent = generateServerProductHTML(product);
+                htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
+
                 htmlContent = injectSEO(htmlContent, {
                     title: `${product.name} | Satpromax`,
                     description: cleanDescription,
@@ -941,17 +1022,43 @@ app.get(/.*/, async (req, res, next) => {
             } else {
                 if (parts.length === 1) {
                     const categorySlug = parts[0];
-                    const categoryName = categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ');
+                    const settings = await GeneralSettings.findOne();
+                    const category = settings?.categories?.find(c => c.slug === categorySlug);
+                    const categoryName = category ? category.name : (categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' '));
+
+                    // Fetch category products for SSR injection
+                    const categoryProducts = await Product.find({
+                        category: { $regex: new RegExp(`^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+                    }).limit(24);
+
+                    const bodyContent = `
+                        <div class="ssr-content">
+                            <h1>Boutique ${categoryName} - Satpromax</h1>
+                            <p>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+                                ${categoryProducts.map(p => `
+                                    <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
+                                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
+                                        <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
+                                        <p style="color: #ef4444; font-weight: bold;">${p.price} DT</p>
+                                        <a href="/${categorySlug}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir</a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
+
                     htmlContent = injectSEO(htmlContent, {
                         title: `${categoryName} - Produits et Abonnements | Satpromax`,
-                        description: `Découvrez notre collection ${categoryName} : meilleurs prix et service garanti.`,
+                        description: `Découvrez notre collection ${categoryName} : meilleurs prix et service garanti en Tunisie.`,
                         image: "https://Satpromax.com/logo.png",
                         url: fullUrl
                     });
                 } else {
                     htmlContent = injectSEO(htmlContent, {
                         title: "Satpromax- Tunisie",
-                        description: "Votre boutique en ligne préférée.",
+                        description: "Votre boutique en ligne préférée pour les abonnements digitaux.",
                         url: fullUrl
                     });
                 }
