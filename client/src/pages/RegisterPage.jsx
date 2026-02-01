@@ -18,7 +18,7 @@ export default function RegisterPage() {
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const response = await fetch('https://satpromax.com/api/google-login', {
+            const response = await fetch('https://Satpromax.com/api/google-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ credential: credentialResponse.credential })
@@ -56,7 +56,7 @@ export default function RegisterPage() {
         }
 
         try {
-            const response = await fetch('https://satpromax.com/api/register', {
+            const response = await fetch('https://Satpromax.com/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -84,7 +84,7 @@ export default function RegisterPage() {
             <div className="login-container">
                 <div className="login-card">
                     <h2>Créer un compte</h2>
-                    <p className="login-subtitle">Rejoignez satpromax dès aujourd'hui.</p>
+                    <p className="login-subtitle">Rejoignez Satpromax dès aujourd'hui.</p>
 
                     {message && (
                         <div style={{

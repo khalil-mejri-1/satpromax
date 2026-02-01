@@ -17,10 +17,10 @@ const SEO = ({
     noindex = false,
     ...props
 }) => {
-    const siteName = "Technoplus - SatProMax";
-    const defaultDescription = "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez satpromax. Abonnements Netflix, Shahid VIP, IPTV Premium et plus.";
-    const defaultImage = "https://satpromax.com/og-image.jpg"; // Replace with your actual default OG image
-    const baseUrl = "https://satpromax.com";
+    const siteName = "Satpromax- Satpromax";
+    const defaultDescription = "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax. Abonnements Netflix, Shahid VIP, IPTV Premium et plus.";
+    const defaultImage = "https://Satpromax.com/og-image.jpg"; // Replace with your actual default OG image
+    const baseUrl = "https://Satpromax.com";
 
     // Ensure full URLs
     const fullImage = image && image.startsWith('http') ? image : `${baseUrl}${image || '/og-image.jpg'}`;
@@ -51,7 +51,7 @@ const SEO = ({
 
             {/* Twitter */}
             <meta name="twitter:card" content={twitterCard} />
-            <meta name="twitter:creator" content="@satpromax" /> {/* Replace with actual handle if available */}
+            <meta name="twitter:creator" content="@Satpromax" /> {/* Replace with actual handle if available */}
             <meta name="twitter:title" content={title || siteName} />
             <meta name="twitter:description" content={description || defaultDescription} />
             <meta name="twitter:image" content={fullImage} />

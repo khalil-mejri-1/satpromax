@@ -7,7 +7,7 @@ export default function Footer() {
     const [settings, setSettings] = useState(null);
 
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -24,7 +24,7 @@ export default function Footer() {
         }
     }, []);
 
-    const footerDesc = (settings && settings.footerDescription) ? settings.footerDescription : "satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique. Forts de nombreuses années d'expérience, nous offrons des solutions innovantes et fiables pour vous garantir une expérience fluide et sans interruption.";
+    const footerDesc = (settings && settings.footerDescription) ? settings.footerDescription : "Satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique. Forts de nombreuses années d'expérience, nous offrons des solutions innovantes et fiables pour vous garantir une expérience fluide et sans interruption.";
     const footerPhone = (settings && settings.footerContactPhone) ? settings.footerContactPhone : "TN +216 97 490 300";
     const whatsappNumber = (settings && settings.whatsappNumber) ? settings.whatsappNumber.replace(/\D/g, '') : "21697496300";
 
@@ -106,7 +106,7 @@ export default function Footer() {
                                 data-style-width="100%"
                                 data-token="2a0b3e50-b416-4a8e-be20-5d3da4454f2d"
                             >
-                                <a href="https://www.trustpilot.com/review/satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+                                <a href="https://www.trustpilot.com/review/Satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@ export default function Footer() {
             </div>
 
             <div className="footer-bottom">
-                <p>Copyright © <strong>satpromax</strong>. Tous droits réservés.</p>
+                <p>Copyright © <strong>Satpromax</strong>. Tous droits réservés.</p>
             </div>
 
             <div className="floating-buttons">

@@ -3,7 +3,7 @@ const Product = require('./models/Product');
 
 async function run() {
     try {
-        await mongoose.connect('mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0');
+        await mongoose.connect('mongodb+srv://Satpromax989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/Satpromax?appName=Cluster0');
         console.log('Connected to MongoDB');
 
         const products = await Product.find();

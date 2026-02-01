@@ -8,7 +8,7 @@ export default function Hero() {
 
     // Fetch settings
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {

@@ -139,7 +139,7 @@ export default function Header() {
             }
             try {
                 setIsSearching(true);
-                const res = await fetch(`https://satpromax.com/api/search?q=${searchTerm}`);
+                const res = await fetch(`https://Satpromax.com/api/search?q=${searchTerm}`);
                 const data = await res.json();
                 if (data.success) {
                     setSearchResults({ categories: data.categories || [], products: data.products || [] });
@@ -165,7 +165,7 @@ export default function Header() {
     };
 
     const [topStripText, setTopStripText] = useState('WhatsApp : 97 490 300'); // Default
-    const [topStripMessage, setTopStripMessage] = useState('Bienvenue sur satpromax !'); // Default
+    const [topStripMessage, setTopStripMessage] = useState('Bienvenue sur Satpromax !'); // Default
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -174,7 +174,7 @@ export default function Header() {
         }
 
         // Fetch dynamic settings (Categories handled by Context now)
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -708,7 +708,7 @@ export default function Header() {
                         <>
                             <div className="profile-info">
                                 <div className="guest-name">Invité</div>
-                                <div className="guest-email">Bienvenue chez satpromax</div>
+                                <div className="guest-email">Bienvenue chez Satpromax</div>
                             </div>
                             <Link to="/login" className="sidebar-login-link" onClick={() => setIsSidebarOpen(false)}>
                                 ➜ Connexion

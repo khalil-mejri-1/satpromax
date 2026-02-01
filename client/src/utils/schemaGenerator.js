@@ -7,12 +7,12 @@
 export const generateOrganizationSchema = () => ({
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Technoplus",
-    "url": "https://satpromax.com",
-    "logo": "https://satpromax.com/logo.png",
+    "name": "Satpromax",
+    "url": "https://Satpromax.com",
+    "logo": "https://Satpromax.com/logo.png",
     "sameAs": [
-        "https://www.facebook.com/satpromax",
-        "https://www.instagram.com/satpromax",
+        "https://www.facebook.com/Satpromax",
+        "https://www.instagram.com/Satpromax",
         // Add other social links here
     ],
     "contactPoint": {
@@ -49,16 +49,16 @@ export const generateProductSchema = (product) => {
         "@type": "Product",
         "name": product.name,
         "image": Array.isArray(product.gallery) && product.gallery.length > 0 ? [product.image, ...product.gallery] : [product.image],
-        "description": product.description || `Acheter ${product.name} chez Technoplus.`,
+        "description": product.description || `Acheter ${product.name} chez Satpromax.`,
         "sku": product.sku || product._id || product.id,
         "mpn": product.sku || product._id || product.id,
         "brand": {
             "@type": "Brand",
-            "name": product.brand || "Technoplus"
+            "name": product.brand || "Satpromax"
         },
         "offers": {
             "@type": "Offer",
-            "url": typeof window !== "undefined" ? window.location.href : `https://satpromax.com/product/${product.slug}`,
+            "url": typeof window !== "undefined" ? window.location.href : `https://Satpromax.com/product/${product.slug}`,
             "priceCurrency": "TND", // Adjust currency as needed
             "price": numericPrice,
             "priceValidUntil": product.promoEndDate || "2025-12-31",
@@ -66,7 +66,7 @@ export const generateProductSchema = (product) => {
             "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             "seller": {
                 "@type": "Organization",
-                "name": "Technoplus"
+                "name": "Satpromax"
             }
         },
         "aggregateRating": product.reviews && product.reviews.length > 0 ? {
@@ -98,14 +98,14 @@ export const generateArticleSchema = (article) => {
         "dateModified": article.updatedAt || new Date().toISOString(),
         "author": {
             "@type": "Person",
-            "name": article.author || "Technoplus Team"
+            "name": article.author || "SatpromaxTeam"
         },
         "publisher": {
             "@type": "Organization",
-            "name": "Technoplus",
+            "name": "Satpromax",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://satpromax.com/logo.png"
+                "url": "https://Satpromax.com/logo.png"
             }
         },
         "description": article.excerpt || article.description

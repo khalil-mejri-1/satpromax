@@ -11,7 +11,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schema
 
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000'
-    : 'https://satpromax.com';
+    : 'https://Satpromax.com';
 
 // Extended Mock Data (In a real app, this would come from an API)
 const allProducts = [
@@ -145,7 +145,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                     />
                 </div>
                 <div style={{ padding: '10px 20px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>{item.category}</div>
+                    <h4 style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px', margin: 0 }}>{item.category}</h4>
                     <h3 style={{
                         fontSize: '15px',
                         fontWeight: '800',
@@ -158,7 +158,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical'
                     }}>{item.name}</h3>
-                    <div style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F' }}>{item.price}</div>
+                    <h3 style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F', margin: 0 }}>{item.price}</h3>
                 </div>
             </Link>
 
@@ -275,7 +275,7 @@ export default function ProductDetailPage() {
     // Share handlers
     // Share handlers
     // Use public API domain for sharing so Facebook hits the Node server (not React frontend)
-    const shareUrl = product ? `https://api.satpromax.com/share/produit/${encodeURIComponent(product.category)}/${product.slug}` : "";
+    const shareUrl = product ? `https://api.Satpromax.com/share/produit/${encodeURIComponent(product.category)}/${product.slug}` : "";
 
     const shareOnFacebook = () => {
         window.open(
@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
     };
 
     const shareOnTelegram = () => {
-        const text = `Découvrez ${product.name} sur SatProMax !`;
+        const text = `Découvrez ${product.name} sur Satpromax !`;
         window.open(
             `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`,
             '_blank'
@@ -331,7 +331,7 @@ export default function ProductDetailPage() {
     // Fetch Similar Products
     useEffect(() => {
         if (product && product.category) {
-            fetch(`https://satpromax.com/api/products?category=${encodeURIComponent(product.category)}`)
+            fetch(`https://Satpromax.com/api/products?category=${encodeURIComponent(product.category)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -364,7 +364,7 @@ export default function ProductDetailPage() {
 
     // Fetch Settings
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -401,7 +401,7 @@ export default function ProductDetailPage() {
 
                 try {
                     // Try fetch by slug first
-                    response = await fetch(`https://satpromax.com/api/products/slug/${category}/${slug}`);
+                    response = await fetch(`https://Satpromax.com/api/products/slug/${category}/${slug}`);
                     data = await response.json();
                 } catch (e) {
                     console.log("DB Fetch failed");
@@ -416,7 +416,7 @@ export default function ProductDetailPage() {
 
                 // Temporary backward compatibility check for old IDs or direct names
                 if (slug.match(/^[0-9a-fA-F]{24}$/)) {
-                    response = await fetch(`https://satpromax.com/api/products/${slug}`);
+                    response = await fetch(`https://Satpromax.com/api/products/${slug}`);
                     data = await response.json();
                     if (data.success) {
                         setProduct(data.data);
@@ -474,25 +474,25 @@ export default function ProductDetailPage() {
 
         for (let i = 1; i <= 5; i++) {
             if (i <= fullStars) {
-                stars.push(<span key={i} style={{ color: '#fbbf24', fontSize: size }}>★</span>);
+                stars.push(<h4 key={i} style={{ color: '#fbbf24', fontSize: size, margin: 0, display: 'inline' }}>★</h4>);
             } else if (i === fullStars + 1 && hasHalfStar) {
                 stars.push(<span key={i} style={{ color: '#fbbf24', fontSize: size, position: 'relative' }}>
-                    <span style={{ position: 'absolute', width: '50%', overflow: 'hidden' }}>★</span>
-                    <span style={{ color: '#e2e8f0' }}>★</span>
+                    <h4 style={{ position: 'absolute', width: '50%', overflow: 'hidden', margin: 0, display: 'inline', fontSize: 'inherit', color: 'inherit' }}>★</h4>
+                    <h4 style={{ color: '#e2e8f0', margin: 0, display: 'inline', fontSize: 'inherit' }}>★</h4>
                 </span>);
             } else {
-                stars.push(<span key={i} style={{ color: '#e2e8f0', fontSize: size }}>★</span>);
+                stars.push(<h4 key={i} style={{ color: '#e2e8f0', fontSize: size, margin: 0, display: 'inline' }}>★</h4>);
             }
         }
         return stars;
     };
 
     if (loading) {
-        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement...</main><Footer /></div>;
+        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><h2>Chargement...</h2></main><Footer /></div>;
     }
 
     if (!product) {
-        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Produit introuvable</main><Footer /></div>;
+        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><h2>Produit introuvable</h2></main><Footer /></div>;
     }
 
     const handleConfirmOrder = async () => {
@@ -575,7 +575,7 @@ export default function ProductDetailPage() {
         };
 
         try {
-            const response = await fetch('https://satpromax.com/api/orders', {
+            const response = await fetch('https://Satpromax.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
@@ -634,7 +634,7 @@ export default function ProductDetailPage() {
 
         setIsSubmittingReview(true);
         try {
-            const response = await fetch('https://satpromax.com/api/reviews', {
+            const response = await fetch('https://Satpromax.com/api/reviews', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -687,8 +687,8 @@ export default function ProductDetailPage() {
     const isSharingCategory = product.category.toLowerCase().includes('sharing') || currentCategory.name.toLowerCase().includes('sharing');
 
     const breadcrumbs = [
-        { name: 'Accueil', url: 'https://satpromax.com/' },
-        { name: currentCategory.name, url: `https://satpromax.com/${currentCategory.slug}` },
+        { name: 'Accueil', url: 'https://Satpromax.com/' },
+        { name: currentCategory.name, url: `https://Satpromax.com/${currentCategory.slug}` },
         { name: product.name, url: window.location.href }
     ];
 
@@ -719,7 +719,7 @@ export default function ProductDetailPage() {
                             )}
                         </div>
                         <h3 className="checkout-modal-title">{modal.title || (modal.type === 'success' ? 'Commande Reçue !' : 'Attention')}</h3>
-                        <p className="checkout-modal-message">{modal.message}</p>
+                        <h3 className="checkout-modal-message" style={{ margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{modal.message}</h3>
                         <button className="checkout-modal-btn" onClick={closeModal}>
                             {modal.btnText || (modal.type === 'success' ? (user ? 'Voir mon profil' : 'Contenu achat') : 'Fermer')}
                         </button>
@@ -735,7 +735,7 @@ export default function ProductDetailPage() {
                         <span className="breadcrumb-separator">/</span>
                         <Link to={`/${currentCategory.slug}`} className="breadcrumb-item">{currentCategory.name}</Link>
                         <span className="breadcrumb-separator">/</span>
-                        <span className="breadcrumb-item active">{product.name}</span>
+                        <h2 className="breadcrumb-item active" style={{ display: 'inline', margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>{product.name}</h2>
                     </div>
 
                     <div className="product-detail-grid">
@@ -743,7 +743,7 @@ export default function ProductDetailPage() {
                         <div className="product-image-section">
                             <div className="detail-image-wrapper">
                                 {/* Zoom Icon */}
-                                <div className="zoom-icon" onClick={() => setIsZoomOpen(true)}>⛶</div>
+                                <h4 className="zoom-icon" onClick={() => setIsZoomOpen(true)} style={{ margin: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>⛶</h4>
                                 {product.promoPrice && new Date(product.promoEndDate) > new Date() && (
                                     <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '100px', height: '100px', zIndex: 5, pointerEvents: 'none' }}>
                                         <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -807,9 +807,9 @@ export default function ProductDetailPage() {
                                 <div style={{ display: 'flex', gap: '2px' }}>
                                     {renderStars(calculateAverageRating(), '18px')}
                                 </div>
-                                <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>
+                                <h3 style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold', margin: 0, display: 'inline-block' }}>
                                     {reviews.length} Avis
-                                </span>
+                                </h3>
                             </div>
 
                             {/* Trustpilot Widget */}
@@ -823,28 +823,30 @@ export default function ProductDetailPage() {
                                 data-token="2a0b3e50-b416-4a8e-be20-5d3da4454f2d"
                                 style={{ transform: 'scale(0.8)', transformOrigin: 'left center', marginBottom: '15px' }}
                             >
-                                <a href="https://www.trustpilot.com/review/satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+                                <a href="https://www.trustpilot.com/review/Satpromax.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
                             </div>
 
                             {product.promoPrice && new Date(product.promoEndDate) > new Date() ? (
                                 <div className="detail-price">
-                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600' }}>
+                                    <h3 style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600', margin: 0, display: 'inline-block' }}>
                                         {product.price}
-                                    </span>
-                                    <span style={{ color: '#ef4444' }}>
+                                    </h3>
+                                    <h3 style={{ color: '#ef4444', margin: 0, display: 'inline-block', fontSize: 'inherit' }}>
                                         {product.promoPrice}
-                                    </span>
+                                    </h3>
                                 </div>
                             ) : (
                                 <div className="detail-price">
-                                    {product.price}
+                                    <h3 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
+                                        {product.price}
+                                    </h3>
                                 </div>
                             )}
 
-                            <div className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`}>
-                                <div className="stock-dot"></div>
+                            <h4 className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`} style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
+                                <span className="stock-dot" style={{ display: 'inline-block' }}></span>
                                 {product.inStock !== false ? 'Disponible' : 'Épuisé'}
-                            </div>
+                            </h4>
 
                             {/* {product.hasDelivery && product.deliveryPrice && (
                                 <div style={{
@@ -930,26 +932,26 @@ export default function ProductDetailPage() {
                             {isIPTVCategory && (
                                 <div className="detail-meta-info">
                                     <div className="meta-info-item">
-                                        <span className="meta-label">Durée:</span>
-                                        <span className="meta-value">12 mois</span>
+                                        <h4 className="meta-label" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>Durée:</h4>
+                                        <h4 className="meta-value" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>12 mois</h4>
                                     </div>
                                     {product.resolution && (
                                         <div className="meta-info-item">
-                                            <span className="meta-label">Résolution:</span>
-                                            <span className="meta-value">{product.resolution}</span>
+                                            <h4 className="meta-label" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>Résolution:</h4>
+                                            <h4 className="meta-value" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>{product.resolution}</h4>
                                         </div>
                                     )}
                                     {product.region && (
                                         <div className="meta-info-item">
-                                            <span className="meta-label">Région:</span>
-                                            <span className="meta-value">{product.region}</span>
+                                            <h4 className="meta-label" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>Région:</h4>
+                                            <h4 className="meta-value" style={{ margin: 0, display: 'inline-block', fontSize: 'inherit', fontWeight: 'inherit' }}>{product.region}</h4>
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             <div className="detail-description">
-                                <div style={{ whiteSpace: 'pre-wrap' }}>{product.description}</div>
+                                <h3 style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{product.description}</h3>
                             </div>
 
                             {isIPTVCategory && (
@@ -1132,10 +1134,10 @@ export default function ProductDetailPage() {
                                                     {mode.logo ? (
                                                         <img src={mode.logo} alt={mode.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                     ) : (
-                                                        <div style={{ fontSize: '24px' }}>💳</div>
+                                                        <h3 style={{ fontSize: '24px', margin: 0 }}>💳</h3>
                                                     )}
                                                 </div>
-                                                <span style={{ fontSize: '12px', fontWeight: '700', color: billingInfo.paymentMode === mode.name ? '#0369a1' : '#1e293b', textAlign: 'center' }}>{mode.name}</span>
+                                                <h4 style={{ fontSize: '12px', fontWeight: '700', color: billingInfo.paymentMode === mode.name ? '#0369a1' : '#1e293b', textAlign: 'center', margin: 0, display: 'block' }}>{mode.name}</h4>
                                             </button>
                                         ))}
                                     </div>
@@ -1144,18 +1146,18 @@ export default function ProductDetailPage() {
 
                                 <div className="order-summary">
                                     <div className="summary-row">
-                                        <span>Prix des produits</span>
-                                        <span>{product.price}</span>
+                                        <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>Prix des produits</h4>
+                                        <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>{product.price}</h4>
                                     </div>
                                     {product.hasDelivery && product.deliveryPrice && (
                                         <div className="summary-row">
-                                            <span>Livraison</span>
-                                            <span>{product.deliveryPrice}</span>
+                                            <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>Livraison</h4>
+                                            <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>{product.deliveryPrice}</h4>
                                         </div>
                                     )}
                                     <div className="summary-row total">
-                                        <span>Total</span>
-                                        <span>
+                                        <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>Total</h4>
+                                        <h4 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
                                             {
                                                 (() => {
                                                     const total = (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
@@ -1170,7 +1172,7 @@ export default function ProductDetailPage() {
                                                     return totalStr;
                                                 })()
                                             } DT
-                                        </span>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1211,9 +1213,9 @@ export default function ProductDetailPage() {
                             <hr className="divider" />
 
                             <div className="product-meta">
-                                <div className="meta-row"><span className="label">SKU:</span> <span className="value">{product.sku}</span></div>
-                                <div className="meta-row"><span className="label">Catégories:</span> <span className="value link">{product.name}, {currentCategory.name}</span></div>
-                                <div className="meta-row"><span className="label">Tags:</span> <span className="value">{product.tags}</span></div>
+                                <div className="meta-row"><h4 className="label" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>SKU:</h4> <h4 className="value" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>{product.sku}</h4></div>
+                                <div className="meta-row"><h4 className="label" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>Catégories:</h4> <h4 className="value link" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>{product.name}, {currentCategory.name}</h4></div>
+                                <div className="meta-row"><h4 className="label" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>Tags:</h4> <h4 className="value" style={{ margin: 0, display: 'inline', fontSize: 'inherit', fontWeight: 'inherit' }}>{product.tags}</h4></div>
                             </div>
                         </div>
                     </div>
@@ -1297,21 +1299,21 @@ export default function ProductDetailPage() {
                                 <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
                             </div>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Prix</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{compareProduct.price}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{product.price}</div>
+                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Prix</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444', margin: 0, fontSize: 'inherit' }}>{compareProduct.price}</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444', margin: 0, fontSize: 'inherit' }}>{product.price}</h4>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Catégorie</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{compareProduct.category}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{product.category}</div>
+                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Catégorie</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', margin: 0, fontSize: 'inherit' }}>{compareProduct.category}</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', margin: 0, fontSize: 'inherit' }}>{product.category}</h4>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Description</div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{compareProduct.description}</div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{product.description}</div>
+                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Description</h4>
+                            <h4 style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6', margin: 0, fontWeight: 'normal' }}>{compareProduct.description}</h4>
+                            <h4 style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6', margin: 0, fontWeight: 'normal' }}>{product.description}</h4>
 
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>SKU</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{compareProduct.sku}</div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{product.sku}</div>
+                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>SKU</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{compareProduct.sku}</h4>
+                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{product.sku}</h4>
                         </div>
                         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                             <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
@@ -1340,16 +1342,17 @@ export default function ProductDetailPage() {
                             borderBottom: '1px solid #e2e8f0',
                             marginBottom: '40px'
                         }}>
-                            <div style={{
+                            <h3 style={{
                                 padding: '10px 0',
                                 fontSize: '18px',
                                 fontWeight: '800',
                                 color: '#0f172a',
                                 borderBottom: '3px solid #fbbf24',
-                                marginBottom: '-1px'
+                                marginBottom: '-1px',
+                                margin: 0
                             }}>
                                 Description
-                            </div>
+                            </h3>
                         </div>
 
                         {/* Global Description */}
@@ -1401,8 +1404,8 @@ export default function ProductDetailPage() {
                                                         {item.content}
                                                     </h3>
                                                 ) : (
-                                                    <div
-                                                        style={{ color: '#475569' }}
+                                                    <h4
+                                                        style={{ color: '#475569', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}
                                                         dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
                                                     />
                                                 )}
@@ -1410,8 +1413,8 @@ export default function ProductDetailPage() {
                                         ))
                                     ) : (
                                         // Old Format: backward compatibility
-                                        <div
-                                            style={{ color: '#475569' }}
+                                        <h4
+                                            style={{ color: '#475569', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}
                                             dangerouslySetInnerHTML={{ __html: section.content ? section.content.replace(/\n/g, '<br/>') : '' }}
                                         />
                                     )}
@@ -1448,7 +1451,7 @@ export default function ProductDetailPage() {
                                 {/* Left Side: Big Score */}
                                 <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '24px' }}>
                                     <div style={{ fontSize: '64px', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
-                                        {calculateAverageRating()} <span style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600' }}>/ 5</span>
+                                        {calculateAverageRating()} <h4 style={{ fontSize: '24px', color: '#94a3b8', fontWeight: '600', margin: 0, display: 'inline' }}>/ 5</h4>
                                     </div>
                                     <div style={{ margin: '15px 0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
                                         {renderStars(calculateAverageRating(), '24px')}
@@ -1464,13 +1467,13 @@ export default function ProductDetailPage() {
                                         return (
                                             <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '60px' }}>
-                                                    <span style={{ fontWeight: '700', fontSize: '14px' }}>{star}</span>
+                                                    <h4 style={{ fontWeight: '700', fontSize: '14px', margin: 0 }}>{star}</h4>
                                                     <span style={{ color: '#fbbf24' }}>★</span>
                                                 </div>
                                                 <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
                                                     <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
                                                 </div>
-                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
+                                                <h4 style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600', margin: 0 }}>{count}</h4>
                                             </div>
                                         );
                                     })}
@@ -1518,15 +1521,15 @@ export default function ProductDetailPage() {
                                                     {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
-                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                                                    <h4 style={{ fontWeight: '800', color: '#0f172a', margin: 0 }}>{rev.username}</h4>
+                                                    <h5 style={{ fontSize: '12px', color: '#64748b', margin: 0, fontWeight: 'normal' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</h5>
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '2px' }}>
                                                 {renderStars(rev.rating)}
                                             </div>
                                         </div>
-                                        <p style={{ color: '#334155', lineHeight: '1.6', margin: 0 }}>{rev.comment}</p>
+                                        <h3 style={{ color: '#334155', lineHeight: '1.6', margin: 0, fontSize: '1rem', fontWeight: '400' }}>{rev.comment}</h3>
                                     </div>
                                 ))}
                             </div>
@@ -1539,8 +1542,8 @@ export default function ProductDetailPage() {
                                 color: '#64748b'
                             }}>
                                 <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                                <p style={{ fontWeight: '600' }}>Aucun avis pour le moment.</p>
-                                <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
+                                <h3 style={{ fontWeight: '600', margin: 0, fontSize: '1rem' }}>Aucun avis pour le moment.</h3>
+                                <h3 style={{ fontSize: '14px', margin: 0, fontWeight: '400' }}>Soyez le premier à partager votre expérience !</h3>
                             </div>
                         )}
                     </div>

@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000'
-    : 'https://satpromax.com';
+    : 'https://Satpromax.com';
 
 // SVG Icons (Simple placeholders)
 const IconProduct = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>;
@@ -65,7 +65,7 @@ export default function Admin() {
         <div className="admin-container">
             {/* Sidebar / Navbar */}
             <aside className="admin-sidebar">
-                <div className="admin-logo">SATPROMAX</div>
+                <div className="admin-logo">Satpromax</div>
                 <nav className="admin-nav">
                     <button
                         className={`admin-nav-item ${activeTab === 'products' ? 'active' : ''}`}
@@ -3702,7 +3702,7 @@ const GuidesManager = () => {
                         {filteredGuides.map(guide => (
                             <tr key={guide._id}>
                                 <td>
-                                    <img src={guide.image || "https://premium.satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }} />
+                                    <img src={guide.image || "https://premium.Satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }} />
                                 </td>
                                 <td style={{ fontWeight: 'bold' }}>{guide.title}</td>
                                 <td>{new Date(guide.createdAt).toLocaleDateString()}</td>

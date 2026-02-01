@@ -9,7 +9,7 @@ const ReviewCarousel = () => {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const response = await fetch('https://satpromax.com/api/reviews/approved');
+                const response = await fetch('https://Satpromax.com/api/reviews/approved');
                 const data = await response.json();
                 if (data.success) {
                     setReviews(data.data);

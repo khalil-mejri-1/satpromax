@@ -19,7 +19,7 @@ const GeneralSettingsSchema = new mongoose.Schema({
     }],
     whatsappNumber: { type: String, trim: true, default: "21697496300" },
     topStripText: { type: String, trim: true, default: "WhatsApp : +216 97 490 300" },
-    topStripMessage: { type: String, trim: true, default: "Bienvenue sur satpromax !" },
+    topStripMessage: { type: String, trim: true, default: "Bienvenue sur Satpromax !" },
     heroMainImages: [String],
     heroCardBoxImages: [String],
     heroCardBoxImage: String,
@@ -41,7 +41,7 @@ const GeneralSettingsSchema = new mongoose.Schema({
         image: { type: String, trim: true },
         link: { type: String, trim: true } // Should map to category slug usually
     }],
-    footerDescription: { type: String, trim: true, default: "satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique..." },
+    footerDescription: { type: String, trim: true, default: "Satpromax est en train de devenir un leader mondial dans le domaine du divertissement numérique..." },
     footerContactPhone: { type: String, trim: true, default: "TN +216 97 490 300" },
     socialLinks: [{
         name: String,

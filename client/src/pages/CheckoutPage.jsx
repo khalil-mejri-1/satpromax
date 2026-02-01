@@ -39,7 +39,7 @@ export default function CheckoutPage() {
 
     // Fetch Payment Modes
     useEffect(() => {
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
         };
 
         try {
-            const response = await fetch('https://satpromax.com/api/orders', {
+            const response = await fetch('https://Satpromax.com/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

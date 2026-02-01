@@ -43,7 +43,7 @@ export default function LoginPage() {
         setIsForgotLoading(true);
         setForgotMessage(null);
         try {
-            const res = await fetch('https://satpromax.com/api/auth/forgot-password', {
+            const res = await fetch('https://Satpromax.com/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: forgotEmail })
@@ -66,7 +66,7 @@ export default function LoginPage() {
         setIsForgotLoading(true);
         setForgotMessage(null);
         try {
-            const res = await fetch('https://satpromax.com/api/auth/verify-code', {
+            const res = await fetch('https://Satpromax.com/api/auth/verify-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: forgotEmail, code: forgotCode })
@@ -98,7 +98,7 @@ export default function LoginPage() {
         setIsForgotLoading(true);
         setForgotMessage(null);
         try {
-            const res = await fetch('https://satpromax.com/api/auth/reset-password', {
+            const res = await fetch('https://Satpromax.com/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: forgotEmail, code: forgotCode, newPassword })
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const response = await fetch('https://satpromax.com/api/google-login', {
+            const response = await fetch('https://Satpromax.com/api/google-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ credential: credentialResponse.credential })
@@ -146,7 +146,7 @@ export default function LoginPage() {
         setMessage(null);
 
         try {
-            const response = await fetch('https://satpromax.com/api/login', {
+            const response = await fetch('https://Satpromax.com/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

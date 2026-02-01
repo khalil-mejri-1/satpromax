@@ -31,12 +31,12 @@ const ProtectedAdminRoute = ({ children }) => {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Technoplus",
-  "url": "https://satpromax.com",
-  "logo": "https://satpromax.com/logo.png",
+  "name": "Satpromax",
+  "url": "https://Satpromax.com",
+  "logo": "https://Satpromax.com/logo.png",
   "sameAs": [
-    "https://www.facebook.com/satpromax",
-    "https://www.instagram.com/satpromax"
+    "https://www.facebook.com/Satpromax",
+    "https://www.instagram.com/Satpromax"
   ]
 };
 

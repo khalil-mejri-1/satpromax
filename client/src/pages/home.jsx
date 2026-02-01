@@ -28,9 +28,9 @@ export default function Home() {
     };
 
     // Fetch Products
-    const fetchProducts = fetch('https://satpromax.com/api/products').then(res => res.json());
+    const fetchProducts = fetch('https://Satpromax.com/api/products').then(res => res.json());
     // Fetch Settings (Categories & Promos)
-    const fetchSettings = fetch('https://satpromax.com/api/settings').then(res => res.json());
+    const fetchSettings = fetch('https://Satpromax.com/api/settings').then(res => res.json());
 
     Promise.all([fetchProducts, fetchSettings])
       .then(([productsData, settingsData]) => {
@@ -60,8 +60,8 @@ export default function Home() {
     <div className="home-page">
       <SEO
         title="Accueil"
-        description="Technoplus - Votre destination pour les meilleurs abonnements Streaming, IPTV, Gaming et Logiciels en Tunisie."
-        canonical="https://satpromax.com"
+        description="Satpromax- Votre destination pour les meilleurs abonnements Streaming, IPTV, Gaming et Logiciels en Tunisie."
+        canonical="https://Satpromax.com"
       />
       <Header />
       <Hero />

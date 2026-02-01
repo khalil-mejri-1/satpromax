@@ -11,7 +11,7 @@ import { generateBreadcrumbSchema } from '../utils/schemaGenerator';
 const CATEGORIES_META = {
     streaming: {
         title: 'Streaming',
-        description: "Découvrez les meilleures offres de streaming en Tunisie sur satpromax : Netflix, Shahid VIP, OSN+, YouTube Premium et plus, à prix imbattables !",
+        description: "Découvrez les meilleures offres de streaming en Tunisie sur Satpromax : Netflix, Shahid VIP, OSN+, YouTube Premium et plus, à prix imbattables !",
     },
     'iptv-sharing': {
         title: 'Abonnement IPTV',
@@ -266,7 +266,7 @@ export default function ProductsPage() {
                 // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = 'https://satpromax.com/api/products';
+                let url = 'https://Satpromax.com/api/products';
                 if (dbCategory && normalizedCategory !== 'promotions') {
                     url += `?category=${encodeURIComponent(dbCategory)}`;
                 } else if (categoryName && normalizedCategory !== 'promotions') {
@@ -352,7 +352,7 @@ export default function ProductsPage() {
 
     // Prepare SEO Data
     const breadcrumbs = [
-        { name: 'Accueil', url: 'https://satpromax.com' },
+        { name: 'Accueil', url: 'https://Satpromax.com' },
         { name: meta.title, url: window.location.href }
     ];
 

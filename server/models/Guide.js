@@ -12,7 +12,7 @@ const GuideSchema = new mongoose.Schema({
     excerpt: { type: String, trim: true },
     image: { type: String, trim: true },
     category: { type: String, default: "Guides d'installation" },
-    author: { type: String, default: "satpromax" },
+    author: { type: String, default: "Satpromax" },
     metaTitle: { type: String, trim: true },
     metaDescription: { type: String, trim: true },
     keywords: { type: String, trim: true }

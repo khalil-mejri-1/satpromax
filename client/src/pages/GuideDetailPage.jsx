@@ -14,14 +14,14 @@ const GuideDetailPage = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('https://satpromax.com/api/settings');
+                const settingsRes = await fetch('https://Satpromax.com/api/settings');
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guide
-                const guideRes = await fetch(`https://satpromax.com/api/guides/slug/${slug}`);
+                const guideRes = await fetch(`https://Satpromax.com/api/guides/slug/${slug}`);
                 const guideData = await guideRes.json();
                 if (guideData.success) {
                     setGuide(guideData.data);
@@ -74,7 +74,7 @@ const GuideDetailPage = () => {
 
             <div className="container guide-content-container">
                 <div className="guide-main-image">
-                    <img src={guide.image || "https://premium.satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt={guide.title} />
+                    <img src={guide.image || "https://premium.Satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt={guide.title} />
                 </div>
 
                 <div className="guide-header-info">
@@ -83,7 +83,7 @@ const GuideDetailPage = () => {
                     <div className="guide-post-meta">
                         <span>Publié le {new Date(guide.createdAt).toLocaleDateString('fr-FR')}</span>
                         <span className="sep">|</span>
-                        <span>Par {guide.author || 'satpromax'}</span>
+                        <span>Par {guide.author || 'Satpromax'}</span>
                     </div>
                 </div>
 
@@ -133,7 +133,7 @@ const ArticleContactForm = ({ articleTitle, articleSlug }) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const res = await fetch('https://satpromax.com/api/guide-inquiries', {
+            const res = await fetch('https://Satpromax.com/api/guide-inquiries', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, articleTitle, articleSlug })

@@ -547,7 +547,7 @@ app.delete("/api/orders", async (req, res) => {
 app.get("/api/support/config", async (req, res) => {
     try {
         const settings = await GeneralSettings.findOne();
-        res.json({ success: true, telegramUser: settings.support?.telegramUser || 'TechnoplusSupport', whatsappNumber: settings.support?.whatsappNumber || '21699999999' });
+        res.json({ success: true, telegramUser: settings.support?.telegramUser || 'SatpromaxSupport', whatsappNumber: settings.support?.whatsappNumber || '21699999999' });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error" });
     }
@@ -671,17 +671,17 @@ app.get("/api/search", async (req, res) => {
 
 app.get('/share/produit/:category/:slug', async (req, res) => {
     const { category, slug } = req.params;
-    const shareUrl = `https://satpromax.com/${category}/${slug}`;
+    const shareUrl = `https://Satpromax.com/${category}/${slug}`;
     const product = await Product.findOne({ slug });
-    const imageUrl = product ? product.image : 'https://satpromax.com/logo.png';
-    const title = product ? product.name : 'Produit Technoplus';
+    const imageUrl = product ? product.image : 'https://Satpromax.com/logo.png';
+    const title = product ? product.name : 'Produit Satpromax';
 
     res.send(`
     <!DOCTYPE html>
     <html>
       <head>
         <meta property="og:title" content="${title}" />
-        <meta property="og:description" content="Découvrez ce produit sur Technoplus" />
+        <meta property="og:description" content="Découvrez ce produit sur Satpromax" />
         <meta property="og:image" content="${imageUrl}" />
         <meta property="og:url" content="${shareUrl}" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -740,7 +740,7 @@ app.post("/api/contact", async (req, res) => {
 
         try {
             const settings = await GeneralSettings.findOne();
-            const senderEmail = settings?.notificationSenderEmail || 'satpromax2026@gmail.com';
+            const senderEmail = settings?.notificationSenderEmail || 'Satpromax2026@gmail.com';
             const senderPass = settings?.notificationSenderPassword || 'ywjatvegygdylvth';
             const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
 
@@ -803,15 +803,15 @@ const injectSEO = (html, data) => {
 
     const replacements = {
         title: [/<title>.*?<\/title>/, `<title>${data.title}</title>`],
-        description: [/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}"`],
-        ogTitle: [/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}"`],
-        ogDescription: [/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}"`],
-        ogImage: [/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}"`],
-        ogUrl: [/<meta property="og:url" content=".*?"/, `<meta property="og:url" content="${data.url}"`],
-        twitterTitle: [/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}"`],
-        twitterDescription: [/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}"`],
-        twitterImage: [/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}"`],
-        canonical: [/<link rel="canonical" href=".*?"/, `<link rel="canonical" href="${data.url}"`]
+        description: [/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}" />`],
+        ogTitle: [/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}" />`],
+        ogDescription: [/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}" />`],
+        ogImage: [/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}" />`],
+        ogUrl: [/<meta property="og:url" content=".*?"/, `<meta property="og:url" content="${data.url}" />`],
+        twitterTitle: [/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}" />`],
+        twitterDescription: [/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}" />`],
+        twitterImage: [/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}" />`],
+        canonical: [/<link rel="canonical" href=".*?"/, `<link rel="canonical" href="${data.url}" />`]
     };
 
     for (const [key, [regex, replacement]] of Object.entries(replacements)) {
@@ -841,17 +841,17 @@ const generateServerProductSchema = (product, url) => {
         "@type": "Product",
         "name": product.name,
         "image": Array.isArray(product.gallery) && product.gallery.length > 0 ? [product.image, ...product.gallery] : [product.image],
-        "description": product.description || `Acheter ${product.name} chez Technoplus.`,
+        "description": product.description || `Acheter ${product.name} chez Satpromax.`,
         "sku": product.sku || product._id,
         "mpn": product.sku || product._id,
-        "brand": { "@type": "Brand", "name": "Technoplus" },
+        "brand": { "@type": "Brand", "name": "Satpromax" },
         "offers": {
             "@type": "Offer",
             "url": url,
             "priceCurrency": "TND",
             "price": numericPrice,
             "availability": "https://schema.org/InStock",
-            "seller": { "@type": "Organization", "name": "Technoplus" }
+            "seller": { "@type": "Organization", "name": "Satpromax" }
         },
         "aggregateRating": {
             "@type": "AggregateRating",
@@ -888,7 +888,7 @@ app.get(/.*/, async (req, res, next) => {
     }
 
     try {
-        const fullUrl = `https://satpromax.com${req.path}`;
+        const fullUrl = `https://Satpromax.com${req.path}`;
         const parts = req.path.split('/').filter(Boolean);
 
         // A. HOME PAGE
@@ -896,15 +896,15 @@ app.get(/.*/, async (req, res, next) => {
             const homeSchema = {
                 "@context": "https://schema.org",
                 "@type": "Organization",
-                "name": "Technoplus",
-                "url": "https://satpromax.com",
-                "logo": "https://satpromax.com/logo.png"
+                "name": "Satpromax",
+                "url": "https://Satpromax.com",
+                "logo": "https://Satpromax.com/logo.png"
             };
 
             htmlContent = injectSEO(htmlContent, {
-                title: "Technoplus - Meilleur Abonnement IPTV & Streaming Tunisie",
-                description: "Technoplus : Votre destination n°1 pour les abonnements IPTV, Netflix, Shahid VIP et produits High-Tech en Tunisie.",
-                image: "https://satpromax.com/og-image.jpg",
+                title: "Satpromax- Meilleur Abonnement IPTV & Streaming Tunisie",
+                description: "Satpromax: Votre destination n°1 pour les abonnements IPTV, Netflix, Shahid VIP et produits High-Tech en Tunisie.",
+                image: "https://Satpromax.com/og-image.jpg",
                 url: fullUrl,
                 schema: homeSchema
             });
@@ -916,33 +916,81 @@ app.get(/.*/, async (req, res, next) => {
             const product = await Product.findOne({ slug: potentialSlug });
 
             if (product) {
+                // Fetch Reviews
+                const reviews = await Review.find({ productId: product._id, status: 'approved' });
+                const reviewsCount = reviews.length;
+                const averageRating = reviewsCount > 0
+                    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviewsCount).toFixed(1)
+                    : 0;
+
                 const productSchema = generateServerProductSchema(product, fullUrl);
                 const breadcrumbSchema = generateServerBreadcrumbSchema([
-                    { name: 'Home', url: 'https://satpromax.com/' },
-                    { name: product.category, url: `https://satpromax.com/${slugify(product.category)}` },
+                    { name: 'Home', url: 'https://Satpromax.com/' },
+                    { name: product.category, url: `https://Satpromax.com/${slugify(product.category)}` },
                     { name: product.name, url: fullUrl }
                 ]);
 
+                // Generate Server-Side HTML for View Source
+                const serverHtml = `
+                    <div id="root">
+                        <div class="product-page-server">
+                            <h1>${product.name}</h1>
+                            <h3>${product.price}</h3>
+                            ${product.promoPrice ? `<h3>Promo: ${product.promoPrice}</h3>` : ''}
+                            <h4>Catégorie: ${product.category}</h4>
+                            <h4>SKU: ${product.sku || 'N/A'}</h4>
+                            <h4>Status: ${product.inStock !== false ? 'Disponible' : 'Épuisé'}</h4>
+                            
+                            <div class="description-section">
+                                <h3>Description</h3>
+                                <h3 style="white-space: pre-wrap;">${product.description}</h3>
+                                ${product.descriptionGlobal ? `<div class="global-description">${product.descriptionGlobal}</div>` : ''}
+                                ${product.extraSections ? product.extraSections.map(s => `
+                                    <h2>${s.title}</h2>
+                                    ${s.items ? s.items.map(i => `<h3>${i.content}</h3>`).join('') : `<h4>${s.content}</h4>`}
+                                `).join('') : ''}
+                            </div>
+
+                            <div class="reviews-section">
+                                <h2>Avis Clients (${reviewsCount})</h2>
+                                <h3>Note Moyenne: ${averageRating} / 5</h3>
+                                ${reviews.map(r => `
+                                    <div class="review">
+                                        <h4>${r.username} - ${r.rating}/5</h4>
+                                        <h5>${new Date(r.createdAt).toLocaleDateString()}</h5>
+                                        <h3>${r.comment}</h3>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Inject SEO tags
                 htmlContent = injectSEO(htmlContent, {
-                    title: `${product.name} | Technoplus`,
-                    description: product.description ? product.description.substring(0, 160).replace(/"/g, '&quot;') : "Découvrez ce produit sur Technoplus.",
+                    title: `${product.name} | Satpromax`,
+                    description: product.description ? product.description.substring(0, 160).replace(/"/g, '&quot;') : "Découvrez ce produit sur Satpromax.",
                     image: product.image,
                     url: fullUrl,
                     schema: [productSchema, breadcrumbSchema]
                 });
+
+                // Inject Content into Body (Replace empty root)
+                htmlContent = htmlContent.replace('<div id="root"></div>', serverHtml);
+
             } else {
                 if (parts.length === 1) {
                     const categorySlug = parts[0];
                     const categoryName = categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ');
                     htmlContent = injectSEO(htmlContent, {
-                        title: `${categoryName} - Produits et Abonnements | Technoplus`,
+                        title: `${categoryName} - Produits et Abonnements | Satpromax`,
                         description: `Découvrez notre collection ${categoryName} : meilleurs prix et service garanti.`,
-                        image: "https://satpromax.com/logo.png",
+                        image: "https://Satpromax.com/logo.png",
                         url: fullUrl
                     });
                 } else {
                     htmlContent = injectSEO(htmlContent, {
-                        title: "Technoplus - Tunisie",
+                        title: "Satpromax- Tunisie",
                         description: "Votre boutique en ligne préférée.",
                         url: fullUrl
                     });

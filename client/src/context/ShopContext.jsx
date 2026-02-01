@@ -30,7 +30,7 @@ export const ShopContextProvider = ({ children }) => {
 
     const fetchCategories = () => {
         setLoadingCategories(true);
-        fetch('https://satpromax.com/api/settings')
+        fetch('https://Satpromax.com/api/settings')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data && data.data.categories) {

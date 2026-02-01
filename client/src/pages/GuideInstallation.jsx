@@ -14,14 +14,14 @@ const GuideInstallation = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('https://satpromax.com/api/settings');
+                const settingsRes = await fetch('https://Satpromax.com/api/settings');
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guides
-                const guidesRes = await fetch('https://satpromax.com/api/guides');
+                const guidesRes = await fetch('https://Satpromax.com/api/guides');
                 const guidesData = await guidesRes.json();
                 if (guidesData.success) {
                     setGuides(guidesData.data);
@@ -81,7 +81,7 @@ const GuideInstallation = () => {
                             filteredGuides.map((guide) => (
                                 <div key={guide._id} className="guide-card">
                                     <div className="guide-card-image">
-                                        <img src={guide.image || "https://premium.satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt={guide.title} />
+                                        <img src={guide.image || "https://premium.Satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt={guide.title} />
                                     </div>
                                     <div className="guide-card-body">
                                         <h2 className="guide-title">{guide.title}</h2>

@@ -7,4 +7,4 @@ Disallow: /checkout
 Disallow: /profile
 Disallow: /admin
 
-Sitemap: https://satpromax.com/sitemap.xml
+Sitemap: https://Satpromax.com/sitemap.xml
