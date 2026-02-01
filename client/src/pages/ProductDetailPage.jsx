@@ -948,9 +948,7 @@ export default function ProductDetailPage() {
                                 </div>
                             )}
 
-                            <div className="detail-description">
-                                <h6 style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: '1.6', color: '#475569', fontWeight: '500' }}>{product.description}</h6>
-                            </div>
+                            <h6 className="detail-description" style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: '1.6', color: '#475569', fontWeight: '500' }}>{product.description}</h6>
 
                             {isIPTVCategory && (
                                 <div className="product-options">

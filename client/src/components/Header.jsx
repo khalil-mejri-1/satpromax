@@ -232,8 +232,8 @@ export default function Header() {
 
             <div className="top-strip">
                 <div className="container" style={{ justifyContent: 'space-between', display: 'flex' }}>
-                    <h6>{topStripText}</h6>
-                    <h6 className="scrolling-promo-text">{topStripMessage}</h6>
+                    <h5>{topStripText}</h5>
+                    <h5 className="scrolling-promo-text">{topStripMessage}</h5>
                 </div>
             </div>
 
