@@ -1,9 +1,9 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 
 /**
- * Enhanced SEO Component for React
+ * Enhanced SEO Component for React 19
  * Handles dynamic meta tags, social media tags, and JSON-LD schemas
+ * Uses native React 19 metadata support
  */
 const SEO = ({
     title,
@@ -19,7 +19,6 @@ const SEO = ({
 }) => {
     const siteName = "Satpromax- Satpromax";
     const defaultDescription = "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax. Abonnements Netflix, Shahid VIP, IPTV Premium et plus.";
-    const defaultImage = "https://Satpromax.com/og-image.jpg"; // Replace with your actual default OG image
     const baseUrl = "https://Satpromax.com";
 
     // Ensure full URLs
@@ -30,8 +29,8 @@ const SEO = ({
     const pageTitle = title ? `${title} | ${siteName}` : siteName;
 
     return (
-        <Helmet>
-            {/* Standard Meta Tags */}
+        <>
+            {/* Standard Meta Tags - Automatically hoisted to head in React 19 */}
             <title>{pageTitle}</title>
             <meta name="description" content={description || defaultDescription} />
             {keywords && <meta name="keywords" content={keywords} />}
@@ -51,7 +50,7 @@ const SEO = ({
 
             {/* Twitter */}
             <meta name="twitter:card" content={twitterCard} />
-            <meta name="twitter:creator" content="@Satpromax" /> {/* Replace with actual handle if available */}
+            <meta name="twitter:creator" content="@Satpromax" />
             <meta name="twitter:title" content={title || siteName} />
             <meta name="twitter:description" content={description || defaultDescription} />
             <meta name="twitter:image" content={fullImage} />
@@ -59,12 +58,14 @@ const SEO = ({
             {/* JSON-LD Schemas */}
             {schemas.map((schema, index) => (
                 schema && (
-                    <script key={index} type="application/ld+json">
-                        {JSON.stringify(schema)}
-                    </script>
+                    <script
+                        key={index}
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+                    />
                 )
             ))}
-        </Helmet>
+        </>
     );
 };
 

@@ -1,14 +1,13 @@
-import { Helmet } from "react-helmet-async";
+import React from 'react';
 
 const Schema = ({ schema }) => {
     if (!schema) return null;
 
     return (
-        <Helmet>
-            <script type="application/ld+json">
-                {JSON.stringify(schema)}
-            </script>
-        </Helmet>
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
     );
 };
 
