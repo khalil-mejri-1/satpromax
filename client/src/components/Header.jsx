@@ -232,8 +232,8 @@ export default function Header() {
 
             <div className="top-strip">
                 <div className="container" style={{ justifyContent: 'space-between', display: 'flex' }}>
-                    <span>{topStripText}</span>
-                    <span className="scrolling-promo-text">{topStripMessage}</span>
+                    <h6>{topStripText}</h6>
+                    <h6 className="scrolling-promo-text">{topStripMessage}</h6>
                 </div>
             </div>
 
@@ -394,8 +394,8 @@ export default function Header() {
                             <div className="action-item dropdown-parent">
                                 <UserIcon />
                                 <div className="action-text">
-                                    <span className="small">Bonjour</span>
-                                    <span className="bold" style={{ textTransform: 'capitalize' }}>{user.username}</span>
+                                    <h5 className="small" style={{ fontSize: '11px', margin: 0, fontWeight: 500 }}>Bonjour</h5>
+                                    <h5 className="bold" style={{ textTransform: 'capitalize', fontSize: '13px', margin: 0, fontWeight: 700 }}>{user.username}</h5>
                                 </div>
 
                                 {/* Profile Dropdown */}
@@ -448,8 +448,8 @@ export default function Header() {
                             <Link to="/login" className="action-item">
                                 <UserIcon />
                                 <div className="action-text">
-                                    <span className="small">Connexion</span>
-                                    <span className="bold">Mon Compte</span>
+                                    <h6 className="small" style={{ fontSize: '11px', margin: 0 }}>Connexion</h6>
+                                    <h5 className="bold" style={{ fontSize: '13px', margin: 0 }}>Mon Compte</h5>
                                 </div>
                             </Link>
                         )}
@@ -464,8 +464,8 @@ export default function Header() {
                                 <span className="badge">{wishlistCount}</span>
                             </div>
                             <div className="action-text">
-                                <span className="small_s">Favoris</span>
-                                <span className="bold">Ma Liste</span>
+                                <h6 className="small_s" style={{ fontSize: '11px', margin: 0, fontWeight: 500 }}>Favoris</h6>
+                                <h5 className="bold" style={{ fontSize: '13px', margin: 0, fontWeight: 700 }}>Ma Liste</h5>
                             </div>
 
                             {/* Wishlist Dropdown (Desktop) */}
@@ -562,8 +562,8 @@ export default function Header() {
                                     <span className="badge">{cartCount}</span>
                                 </div>
                                 <div className="action-text">
-                                    <span className="small_ss">Votre Panier</span>
-                                    <span className="bold">{cartTotal} DT</span>
+                                    <h6 className="small_ss" style={{ fontSize: '11px', margin: 0, fontWeight: 500 }}>Votre Panier</h6>
+                                    <h5 className="bold" style={{ fontSize: '13px', margin: 0, fontWeight: 700 }}>{cartTotal} DT</h5>
                                 </div>
                             </Link>
 
@@ -717,7 +717,7 @@ export default function Header() {
                     )}
                 </div>
                 <div className="sidebar-main-title">
-                    <span>MENU PRINCIPAL</span>
+                    <h3>MENU PRINCIPAL</h3>
                     <button className="sidebar-close-btn" onClick={() => setIsSidebarOpen(false)}>✕</button>
                 </div>
                 <div className="sidebar-nav-list">

@@ -64,7 +64,7 @@ export default function Hero() {
 
                     <div className="hero-content">
                         <h2 className="hero-title">Abonnement<br />IPTV</h2>
-                        <p className="hero-subtitle">IPTV Premium : Ultra-HD, Stable, Rapide, Illimité.</p>
+                        <h3 className="hero-subtitle" style={{ fontSize: '1.2rem', fontWeight: 500 }}>IPTV Premium : Ultra-HD, Stable, Rapide, Illimité.</h3>
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                             <Link to="/iptv-sharing" className="btn btn-outline-white">DÉCOUVREZ MAINTENANT</Link>
                             <Link to="/promotions" className="btn-promo-creative">

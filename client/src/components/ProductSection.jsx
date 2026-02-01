@@ -117,7 +117,7 @@ export default function ProductSection({ title, products = [], loading = false, 
                                     </div>
 
                                     <div className="product-info">
-                                        <div className="product-cat-tag">{product.category}</div>
+                                        <h5 className="product-cat-tag" style={{ fontSize: '11px', margin: 0, fontWeight: 700, opacity: 0.8 }}>{product.category}</h5>
                                         <h3 className="product-name">{product.name}</h3>
                                         <div className="product-price">
                                             {isPromoActive ? (

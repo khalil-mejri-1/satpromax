@@ -65,7 +65,7 @@ export default function Footer() {
                 ))}
 
                 <div className="footer-col contact-col">
-                    <span>Vous avez une question ?</span>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '10px' }}>Vous avez une question ?</h4>
                     <div className="phone-number">{footerPhone}</div>
 
                     <div className="social-icons">

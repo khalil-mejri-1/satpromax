@@ -802,29 +802,30 @@ const injectSEO = (html, data) => {
     let injected = html;
 
     const replacements = {
-        title: [/<title>.*?<\/title>/, `<title>${data.title}</title>`],
-        description: [/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}" />`],
-        ogTitle: [/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}" />`],
-        ogDescription: [/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}" />`],
-        ogImage: [/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}" />`],
-        ogUrl: [/<meta property="og:url" content=".*?"/, `<meta property="og:url" content="${data.url}" />`],
-        twitterTitle: [/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}" />`],
-        twitterDescription: [/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}" />`],
-        twitterImage: [/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}" />`],
-        canonical: [/<link rel="canonical" href=".*?"/, `<link rel="canonical" href="${data.url}" />`]
+        title: [/<title>.*?<\/title>/i, `<title>${data.title}</title>`],
+        description: [/<meta\s+[^>]*name=["']description["'][^>]*>/i, `<meta name="description" content="${data.description}" />`],
+        ogTitle: [/<meta\s+[^>]*property=["']og:title["'][^>]*>/i, `<meta property="og:title" content="${data.title}" />`],
+        ogDescription: [/<meta\s+[^>]*property=["']og:description["'][^>]*>/i, `<meta property="og:description" content="${data.description}" />`],
+        ogImage: [/<meta\s+[^>]*property=["']og:image["'][^>]*>/i, `<meta property="og:image" content="${data.image}" />`],
+        ogUrl: [/<meta\s+[^>]*property=["']og:url["'][^>]*>/i, `<meta property="og:url" content="${data.url}" />`],
+        twitterTitle: [/<meta\s+[^>]*property=["']twitter:title["'][^>]*>/i, `<meta property="twitter:title" content="${data.title}" />`],
+        twitterDescription: [/<meta\s+[^>]*property=["']twitter:description["'][^>]*>/i, `<meta property="twitter:description" content="${data.description}" />`],
+        twitterImage: [/<meta\s+[^>]*property=["']twitter:image["'][^>]*>/i, `<meta property="twitter:image" content="${data.image}" />`],
+        canonical: [/<link\s+[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${data.url}" />`]
     };
 
     for (const [key, [regex, replacement]] of Object.entries(replacements)) {
         if (injected.match(regex)) {
-            injected = injected.replace(regex, replacement);
+            // Using function for replace to avoid special character issues ($)
+            injected = injected.replace(regex, () => replacement);
         } else if (key !== 'canonical' || data.url) {
-            injected = injected.replace('</head>', `${replacement}</head>`);
+            injected = injected.replace('</head>', () => `${replacement}</head>`);
         }
     }
 
     if (data.schema) {
         const schemaScript = `<script type="application/ld+json">${JSON.stringify(data.schema)}</script>`;
-        injected = injected.replace('</head>', `${schemaScript}</head>`);
+        injected = injected.replace('</head>', () => `${schemaScript}</head>`);
     }
 
     return injected;
@@ -923,9 +924,16 @@ app.get(/.*/, async (req, res, next) => {
                     { name: product.name, url: fullUrl }
                 ]);
 
+                const cleanDescription = (product.description || "Découvrez ce produit sur Satpromax.")
+                    .replace(/\n/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .replace(/"/g, '&quot;')
+                    .trim()
+                    .substring(0, 160);
+
                 htmlContent = injectSEO(htmlContent, {
                     title: `${product.name} | Satpromax`,
-                    description: product.description ? product.description.substring(0, 160).replace(/"/g, '&quot;') : "Découvrez ce produit sur Satpromax.",
+                    description: cleanDescription,
                     image: product.image,
                     url: fullUrl,
                     schema: [productSchema, breadcrumbSchema]

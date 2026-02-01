@@ -86,8 +86,8 @@ const ReviewCarousel = () => {
                                     <div className="review-author">
                                         <div className="author-avatar">{review.username.charAt(0).toUpperCase()}</div>
                                         <div className="author-info">
-                                            <span className="author-name">{review.username}</span>
-                                            <span className="review-date">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                            <h5 className="author-name" style={{ margin: 0, fontSize: '14px', fontWeight: '800' }}>{review.username}</h5>
+                                            <h6 className="review-date" style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>{new Date(review.createdAt).toLocaleDateString()}</h6>
                                         </div>
                                     </div>
                                 </div>

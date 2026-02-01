@@ -145,7 +145,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                     />
                 </div>
                 <div style={{ padding: '10px 20px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>{item.category}</div>
+                    <h6 style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px', margin: 0 }}>{item.category}</h6>
                     <h3 style={{
                         fontSize: '15px',
                         fontWeight: '800',
@@ -158,7 +158,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical'
                     }}>{item.name}</h3>
-                    <div style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F' }}>{item.price}</div>
+                    <h4 style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F', margin: 0 }}>{item.price}</h4>
                 </div>
             </Link>
 
@@ -807,9 +807,9 @@ export default function ProductDetailPage() {
                                 <div style={{ display: 'flex', gap: '2px' }}>
                                     {renderStars(calculateAverageRating(), '18px')}
                                 </div>
-                                <span style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold' }}>
+                                <h6 style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold', margin: 0 }}>
                                     {reviews.length} Avis
-                                </span>
+                                </h6>
                             </div>
 
                             {/* Trustpilot Widget */}
@@ -836,9 +836,9 @@ export default function ProductDetailPage() {
                                     </span>
                                 </div>
                             ) : (
-                                <div className="detail-price">
+                                <h3 className="detail-price">
                                     {product.price}
-                                </div>
+                                </h3>
                             )}
 
                             <div className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`}>
@@ -930,8 +930,8 @@ export default function ProductDetailPage() {
                             {isIPTVCategory && (
                                 <div className="detail-meta-info">
                                     <div className="meta-info-item">
-                                        <span className="meta-label">Durée:</span>
-                                        <span className="meta-value">12 mois</span>
+                                        <h5 className="meta-label">Durée:</h5>
+                                        <h5 className="meta-value">12 mois</h5>
                                     </div>
                                     {product.resolution && (
                                         <div className="meta-info-item">
@@ -1518,7 +1518,7 @@ export default function ProductDetailPage() {
                                                     {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
                                                 </div>
                                                 <div>
-                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
+                                                    <h5 style={{ fontWeight: '800', color: '#0f172a', margin: 0 }}>{rev.username}</h5>
                                                     <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                                                 </div>
                                             </div>
@@ -1539,7 +1539,7 @@ export default function ProductDetailPage() {
                                 color: '#64748b'
                             }}>
                                 <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginBottom: '15px', color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                                <p style={{ fontWeight: '600' }}>Aucun avis pour le moment.</p>
+                                <h5 style={{ fontWeight: '600', margin: '0 0 10px' }}>Aucun avis pour le moment.</h5>
                                 <p style={{ fontSize: '14px' }}>Soyez le premier à partager votre expérience !</p>
                             </div>
                         )}
