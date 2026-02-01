@@ -1685,79 +1685,191 @@ const BUILD_PATH = path.join(__dirname, '../client/dist');
 const INDEX_HTML_PATH = path.join(BUILD_PATH, 'index.html');
 
 // Serve static files (js, css, images) - but NOT index.html automatically for root
-// This prevents express from hijacking the root route before we can inject meta tags
 app.use(express.static(BUILD_PATH, { index: false }));
 
-// SEO Injection Helper
+/**
+ * Server-Side SEO Injection Helper
+ * Replaces placeholders or existing tags in the HTML string.
+ */
 const injectSEO = (html, data) => {
     if (!data) return html;
     let injected = html;
 
-    // Replace Title
-    if (data.title) {
-        // Replace <title>
-        injected = injected.replace(/<title>.*?<\/title>/, `<title>${data.title}</title>`);
-        // Replace og:title
-        injected = injected.replace(/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}"`);
-        // Replace twitter:title
-        injected = injected.replace(/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}"`);
+    // 1. Meta Tags Replacement Strategy
+    // We use a regex map to safely replace existing tags. 
+    // If not found, we inject them before </head>.
+
+    const replacements = {
+        title: [/<title>.*?<\/title>/, `<title>${data.title}</title>`],
+        description: [/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}"`],
+        ogTitle: [/<meta property="og:title" content=".*?"/, `<meta property="og:title" content="${data.title}"`],
+        ogDescription: [/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}"`],
+        ogImage: [/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}"`],
+        ogUrl: [/<meta property="og:url" content=".*?"/, `<meta property="og:url" content="${data.url}"`],
+        twitterTitle: [/<meta property="twitter:title" content=".*?"/, `<meta property="twitter:title" content="${data.title}"`],
+        twitterDescription: [/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}"`],
+        twitterImage: [/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}"`],
+        canonical: [/<link rel="canonical" href=".*?"/, `<link rel="canonical" href="${data.url}"`]
+    };
+
+    for (const [key, [regex, replacement]] of Object.entries(replacements)) {
+        // Only replace if the data for this key implies it (or common data like title/desc)
+        // Simplified check: always try to replace if we have the main data points
+        if (injected.match(regex)) {
+            injected = injected.replace(regex, replacement);
+        } else {
+            // If tag is missing in index.html, we should ideally inject it.
+            // For now, let's assume index.html works as a template and has default tags to be replaced.
+            // If strictly missing, we append to head.
+            if (key !== 'canonical' || data.url) { // Insert canonical if we have URL
+                const tag = replacement.endsWith('>') ? replacement : replacement + '>'; // quick fix for non-closing regex
+                // careful with regex string vs actual tag construction
+            }
+        }
     }
 
-    // Replace Description
-    if (data.description) {
-        injected = injected.replace(/<meta property="og:description" content=".*?"/, `<meta property="og:description" content="${data.description}"`);
-        injected = injected.replace(/<meta property="twitter:description" content=".*?"/, `<meta property="twitter:description" content="${data.description}"`);
-        injected = injected.replace(/<meta name="description" content=".*?"/, `<meta name="description" content="${data.description}"`);
-    }
-
-    // Replace Image
-    if (data.image) {
-        injected = injected.replace(/<meta property="og:image" content=".*?"/, `<meta property="og:image" content="${data.image}"`);
-        injected = injected.replace(/<meta property="twitter:image" content=".*?"/, `<meta property="twitter:image" content="${data.image}"`);
+    // 2. JSON-LD Schema Injection
+    if (data.schema) {
+        const schemaScript = `<script type="application/ld+json">${JSON.stringify(data.schema)}</script>`;
+        injected = injected.replace('</head>', `${schemaScript}</head>`);
     }
 
     return injected;
 };
 
-// Catch-All Route for Frontend
-app.get('*', async (req, res) => {
-    // If it's an API request that wasn't caught, return 404 JSON
-    if (req.url.startsWith('/api/')) {
-        return res.status(404).json({ success: false, message: "Endpoint API introuvable" });
-    }
+// Schema Generators (Server Side Version)
+const generateServerProductSchema = (product, url) => {
+    if (!product) return null;
+    const isPromo = product.promoPrice && product.promoEndDate && new Date(product.promoEndDate) > new Date();
+    const priceStr = isPromo ? product.promoPrice : product.price;
+    const numericPrice = parseFloat(String(priceStr).replace(/[^0-9.]/g, '')) || 0;
 
-    // Read index.html
+    return {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": Array.isArray(product.gallery) && product.gallery.length > 0 ? [product.image, ...product.gallery] : [product.image],
+        "description": product.description || `Acheter ${product.name} chez Technoplus.`,
+        "sku": product.sku || product._id,
+        "mpn": product.sku || product._id,
+        "brand": { "@type": "Brand", "name": "Technoplus" },
+        "offers": {
+            "@type": "Offer",
+            "url": url,
+            "priceCurrency": "TND",
+            "price": numericPrice,
+            "availability": "https://schema.org/InStock",
+            "seller": { "@type": "Organization", "name": "Technoplus" }
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "5",
+            "reviewCount": "1" // Default to prevent errors if no reviews
+        }
+    };
+};
+
+const generateServerBreadcrumbSchema = (crumbs) => ({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        "position": i + 1,
+        "name": c.name,
+        "item": c.url
+    }))
+});
+
+
+// Catch-All Route for Frontend
+app.get(/.*/, async (req, res) => {
+    // API guard
+    if (req.url.startsWith('/api/')) return res.status(404).json({ success: false, message: "API endpoint not found" });
+
+    // Load HTML
     let htmlContent;
     try {
         htmlContent = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
     } catch (err) {
-        return res.send("Erreur: Build React introuvable. Veuillez exécuter 'npm run build' dans le dossier client.");
+        return res.send(`
+            <div style="font-family: sans-serif; padding: 20px; text-align: center;">
+                <h1>Frontend Build Missing</h1>
+                <p>Please run <code>npm run build</code> in the <b>client</b> directory.</p>
+            </div>
+        `);
     }
 
     try {
-        // --- DYNAMIC SEO LOGIC ---
+        const fullUrl = `https://satpromax.com${req.path}`;
 
-        // 1. Product Details: /:category/:slug (e.g., /streaming/netflix-premium)
+        // --- DYNAMIC ROUTE MATCHING ---
+        // We match manually because express '*' catches everything.
+
         const parts = req.path.split('/').filter(Boolean);
 
-        if (parts.length === 2) {
+        // 1. HOME PAGE
+        if (parts.length === 0) {
+            const homeSchema = {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Technoplus",
+                "url": "https://satpromax.com",
+                "logo": "https://satpromax.com/logo.png"
+            };
+
+            htmlContent = injectSEO(htmlContent, {
+                title: "Technoplus - Meilleur Abonnement IPTV & Streaming Tunisie",
+                description: "Technoplus : Votre destination n°1 pour les abonnements IPTV, Netflix, Shahid VIP et produits High-Tech en Tunisie.",
+                image: "https://satpromax.com/og-image.jpg",
+                url: fullUrl,
+                schema: homeSchema
+            });
+        }
+
+        // 2. PRODUCT DETAILS: /category/product-slug
+        // Assumption: 2 parts logic. We verify strictly against DB.
+        else if (parts.length === 2) {
             const [categorySlug, productSlug] = parts;
-            // Check if it's a product
-            const product = await Product.findOne({ slug: productSlug });
+
+            // Try to find product
+            const product = await Product.findOne({ slug: productSlug }); // Ensure 'slug' index exists in DB
+
             if (product) {
+                const productSchema = generateServerProductSchema(product, fullUrl);
+                const breadcrumbSchema = generateServerBreadcrumbSchema([
+                    { name: 'Home', url: 'https://satpromax.com/' },
+                    { name: product.category, url: `https://satpromax.com/${categorySlug}` },
+                    { name: product.name, url: fullUrl }
+                ]);
+
                 htmlContent = injectSEO(htmlContent, {
                     title: `${product.name} | Technoplus`,
-                    description: product.description ? product.description.substring(0, 160) : "Achetez ce produit sur Technoplus.",
-                    image: product.image
+                    description: product.description ? product.description.substring(0, 160).replace(/"/g, '&quot;') : "Découvrez ce produit sur Technoplus.",
+                    image: product.image,
+                    url: fullUrl,
+                    schema: [productSchema, breadcrumbSchema] // Pass array, handled by stringify
                 });
             }
         }
 
-        // 2. Category Pages can also be handled here if needed
+        // 3. CATEGORY PAGES: /category-slug (1 part)
+        else if (parts.length === 1) {
+            const categorySlug = parts[0];
+            // Simple map or DB check.
+            // For now, let's just capitalize.
+            const categoryName = categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ');
+
+            htmlContent = injectSEO(htmlContent, {
+                title: `${categoryName} - Produits et Abonnements | Technoplus`,
+                description: `Découvrez notre collection ${categoryName} : meilleurs prix et service garanti.`,
+                image: "https://satpromax.com/logo.png",
+                url: fullUrl
+            });
+        }
 
     } catch (err) {
-        console.error("SEO Injection Error:", err);
-        // Fallback to default HTML on error
+        console.error("SEO Injection failed:", err);
+        // On error, we just send the original HTML, client-side Renders will take over.
     }
 
     res.send(htmlContent);

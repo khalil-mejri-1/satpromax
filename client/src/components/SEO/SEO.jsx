@@ -1,6 +1,5 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import PropTypes from 'prop-types';
 
 /**
  * Enhanced SEO Component for React
@@ -67,18 +66,6 @@ const SEO = ({
             ))}
         </Helmet>
     );
-};
-
-SEO.propTypes = {
-    title: PropTypes.string,
-    description: PropTypes.string,
-    canonical: PropTypes.string,
-    image: PropTypes.string,
-    type: PropTypes.string,
-    keywords: PropTypes.string,
-    schemas: PropTypes.array,
-    twitterCard: PropTypes.string,
-    noindex: PropTypes.bool
 };
 
 export default SEO;
