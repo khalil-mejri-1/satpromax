@@ -1782,9 +1782,13 @@ const generateServerBreadcrumbSchema = (crumbs) => ({
 
 
 // Catch-All Route for Frontend
-app.get(/.*/, async (req, res) => {
-    // API guard
-    if (req.url.startsWith('/api/')) return res.status(404).json({ success: false, message: "API endpoint not found" });
+// FINAL CATCH-ALL ROUTE (Middleware Style)
+app.use(async (req, res, next) => {
+    // Only handle GET requests
+    if (req.method !== 'GET') return next();
+
+    // Explicitly ignore /api/ requests
+    if (req.path.startsWith('/api/')) return next();
 
     // Load HTML
     let htmlContent;
