@@ -9,9 +9,7 @@ import { countryCodes } from '../data/countryCodes';
 import SEO from '../components/SEO/SEO';
 import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:3000'
-    : 'https://Satpromax.com';
+import { API_BASE_URL, SITE_URL } from '../config';
 
 // Extended Mock Data (In a real app, this would come from an API)
 const allProducts = [
@@ -275,7 +273,7 @@ export default function ProductDetailPage() {
     // Share handlers
     // Share handlers
     // Use public API domain for sharing so Facebook hits the Node server (not React frontend)
-    const shareUrl = product ? `https://api.Satpromax.com/share/produit/${encodeURIComponent(product.category)}/${product.slug}` : "";
+    const shareUrl = product ? `${SITE_URL}/share/produit/${encodeURIComponent(product.category)}/${product.slug}` : "";
 
     const shareOnFacebook = () => {
         window.open(
@@ -331,7 +329,7 @@ export default function ProductDetailPage() {
     // Fetch Similar Products
     useEffect(() => {
         if (product && product.category) {
-            fetch(`https://Satpromax.com/api/products?category=${encodeURIComponent(product.category)}`)
+            fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(product.category)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -364,7 +362,7 @@ export default function ProductDetailPage() {
 
     // Fetch Settings
     useEffect(() => {
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -401,7 +399,7 @@ export default function ProductDetailPage() {
 
                 try {
                     // Try fetch by slug first
-                    response = await fetch(`https://Satpromax.com/api/products/slug/${category}/${slug}`);
+                    response = await fetch(`${API_BASE_URL}/api/products/slug/${category}/${slug}`);
                     data = await response.json();
                 } catch (e) {
                     console.log("DB Fetch failed");
@@ -416,7 +414,7 @@ export default function ProductDetailPage() {
 
                 // Temporary backward compatibility check for old IDs or direct names
                 if (slug.match(/^[0-9a-fA-F]{24}$/)) {
-                    response = await fetch(`https://Satpromax.com/api/products/${slug}`);
+                    response = await fetch(`${API_BASE_URL}/api/products/${slug}`);
                     data = await response.json();
                     if (data.success) {
                         setProduct(data.data);
@@ -575,7 +573,7 @@ export default function ProductDetailPage() {
         };
 
         try {
-            const response = await fetch('https://Satpromax.com/api/orders', {
+            const response = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
@@ -634,7 +632,7 @@ export default function ProductDetailPage() {
 
         setIsSubmittingReview(true);
         try {
-            const response = await fetch('https://Satpromax.com/api/reviews', {
+            const response = await fetch(`${API_BASE_URL}/api/reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

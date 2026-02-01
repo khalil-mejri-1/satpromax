@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link, useNavigate } from 'react-router-dom';
 import './LoginPage.css';
+import { API_BASE_URL } from '../config';
 
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -18,7 +19,7 @@ export default function RegisterPage() {
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const response = await fetch('https://Satpromax.com/api/google-login', {
+            const response = await fetch(`${API_BASE_URL}/api/google-login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ credential: credentialResponse.credential })
@@ -56,7 +57,7 @@ export default function RegisterPage() {
         }
 
         try {
-            const response = await fetch('https://Satpromax.com/api/register', {
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

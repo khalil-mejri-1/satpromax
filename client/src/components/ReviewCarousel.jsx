@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ReviewCarousel.css';
+import { API_BASE_URL } from '../config';
 
 const ReviewCarousel = () => {
     const [reviews, setReviews] = useState([]);
@@ -9,7 +10,7 @@ const ReviewCarousel = () => {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const response = await fetch('https://Satpromax.com/api/reviews/approved');
+                const response = await fetch(`${API_BASE_URL}/api/reviews/approved`);
                 const data = await response.json();
                 if (data.success) {
                     setReviews(data.data);

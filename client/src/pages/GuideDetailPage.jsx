@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './GuideDetailPage.css';
+import { API_BASE_URL } from '../config';
 
 const GuideDetailPage = () => {
     const { slug } = useParams();
@@ -14,14 +15,14 @@ const GuideDetailPage = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('https://Satpromax.com/api/settings');
+                const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guide
-                const guideRes = await fetch(`https://Satpromax.com/api/guides/slug/${slug}`);
+                const guideRes = await fetch(`${API_BASE_URL}/api/guides/slug/${slug}`);
                 const guideData = await guideRes.json();
                 if (guideData.success) {
                     setGuide(guideData.data);
@@ -133,7 +134,7 @@ const ArticleContactForm = ({ articleTitle, articleSlug }) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const res = await fetch('https://Satpromax.com/api/guide-inquiries', {
+            const res = await fetch(`${API_BASE_URL}/api/guide-inquiries`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, articleTitle, articleSlug })

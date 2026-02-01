@@ -6,6 +6,7 @@ import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './CheckoutPage.css';
 import { countryCodes } from '../data/countryCodes';
+import { API_BASE_URL } from '../config';
 
 export default function CheckoutPage() {
     const { cartItems, getCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
@@ -39,7 +40,7 @@ export default function CheckoutPage() {
 
     // Fetch Payment Modes
     useEffect(() => {
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
@@ -130,7 +131,7 @@ export default function CheckoutPage() {
         };
 
         try {
-            const response = await fetch('https://Satpromax.com/api/orders', {
+            const response = await fetch(`${API_BASE_URL}/api/orders`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './ContactUs.css';
+import { API_BASE_URL } from '../config';
 
 const ContactUs = () => {
     const [settings, setSettings] = useState(null);
@@ -15,7 +16,7 @@ const ContactUs = () => {
     const [status, setStatus] = useState(null);
 
     useEffect(() => {
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -32,7 +33,7 @@ const ContactUs = () => {
         setSubmitting(true);
         setStatus(null);
         try {
-            const res = await fetch('https://Satpromax.com/api/contact-messages', {
+            const res = await fetch(`${API_BASE_URL}/api/contact-messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

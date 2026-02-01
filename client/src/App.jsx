@@ -28,12 +28,14 @@ const ProtectedAdminRoute = ({ children }) => {
 
 
 
+import { SITE_URL } from './config';
+
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Satpromax",
-  "url": "https://Satpromax.com",
-  "logo": "https://Satpromax.com/logo.png",
+  "url": SITE_URL,
+  "logo": `${SITE_URL}/logo.png`,
   "sameAs": [
     "https://www.facebook.com/Satpromax",
     "https://www.instagram.com/Satpromax"

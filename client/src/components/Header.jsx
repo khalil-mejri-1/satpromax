@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
+import { API_BASE_URL } from '../config';
 import './Header.css';
 
 // Simple SVG Icons
@@ -139,10 +140,11 @@ export default function Header() {
             }
             try {
                 setIsSearching(true);
-                const res = await fetch(`https://Satpromax.com/api/search?q=${searchTerm}`);
+                const res = await fetch(`${API_BASE_URL}/api/search?q=${searchTerm}`);
                 const data = await res.json();
                 if (data.success) {
-                    setSearchResults({ categories: data.categories || [], products: data.products || [] });
+                    // Backend returns { success: true, data: [products] }
+                    setSearchResults({ categories: [], products: data.data || [] });
                 }
             } catch (err) {
                 console.error("Search error", err);
@@ -174,7 +176,7 @@ export default function Header() {
         }
 
         // Fetch dynamic settings (Categories handled by Context now)
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {

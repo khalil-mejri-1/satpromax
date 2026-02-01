@@ -7,6 +7,7 @@ import { slugify } from '../utils/slugify';
 import './ProductsPage.css';
 import SEO from '../components/SEO/SEO';
 import { generateBreadcrumbSchema } from '../utils/schemaGenerator';
+import { API_BASE_URL } from '../config';
 
 const CATEGORIES_META = {
     streaming: {
@@ -266,7 +267,7 @@ export default function ProductsPage() {
                 // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = 'https://Satpromax.com/api/products';
+                let url = `${API_BASE_URL}/api/products`;
                 if (dbCategory && normalizedCategory !== 'promotions') {
                     url += `?category=${encodeURIComponent(dbCategory)}`;
                 } else if (categoryName && normalizedCategory !== 'promotions') {

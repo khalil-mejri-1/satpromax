@@ -3,13 +3,15 @@
  * Helper utility to generate JSON-LD schemas
  */
 
+import { SITE_URL } from '../config';
+
 // Generate Organization Schema
 export const generateOrganizationSchema = () => ({
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Satpromax",
-    "url": "https://Satpromax.com",
-    "logo": "https://Satpromax.com/logo.png",
+    "url": SITE_URL,
+    "logo": `${SITE_URL}/logo.png`,
     "sameAs": [
         "https://www.facebook.com/Satpromax",
         "https://www.instagram.com/Satpromax",
@@ -58,7 +60,7 @@ export const generateProductSchema = (product) => {
         },
         "offers": {
             "@type": "Offer",
-            "url": typeof window !== "undefined" ? window.location.href : `https://Satpromax.com/product/${product.slug}`,
+            "url": typeof window !== "undefined" ? window.location.href : `${SITE_URL}/product/${product.slug}`,
             "priceCurrency": "TND", // Adjust currency as needed
             "price": numericPrice,
             "priceValidUntil": product.promoEndDate || "2025-12-31",
@@ -105,7 +107,7 @@ export const generateArticleSchema = (article) => {
             "name": "Satpromax",
             "logo": {
                 "@type": "ImageObject",
-                "url": "https://Satpromax.com/logo.png"
+                "url": `${SITE_URL}/logo.png`
             }
         },
         "description": article.excerpt || article.description

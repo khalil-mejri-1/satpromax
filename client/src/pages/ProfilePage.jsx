@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import './ProfilePage.css';
 
+import { API_BASE_URL } from '../config';
+
 const ProfilePage = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
@@ -15,7 +17,7 @@ const ProfilePage = () => {
             setUser(parsedUser);
 
             // Fetch User Orders
-            fetch(`https://Satpromax.com/api/orders/user/${parsedUser.id || parsedUser._id}`)
+            fetch(`${API_BASE_URL}/api/orders/user/${parsedUser.id || parsedUser._id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {

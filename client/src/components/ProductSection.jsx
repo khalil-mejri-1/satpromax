@@ -121,20 +121,20 @@ export default function ProductSection({ title, products = [], loading = false, 
                                     <div className="product-info">
                                         <h5 className="product-cat-tag" style={{ fontSize: '11px', margin: 0, fontWeight: 700, opacity: 0.8 }}>{product.category}</h5>
                                         <h3 className="product-name">{product.name}</h3>
-                                        <h4 className="product-price" style={{ margin: '8px 0 0', fontSize: '1.1rem', fontWeight: '700' }}>
+                                        <div className="product-price" style={{ margin: '8px 0 0', fontSize: '1.1rem', fontWeight: '700' }}>
                                             {isPromoActive ? (
                                                 <>
-                                                    <h6 style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px', display: 'inline', margin: 0 }}>
+                                                    <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px', display: 'inline', margin: 0 }}>
                                                         {product.price}
-                                                    </h6>
-                                                    <h4 style={{ color: '#ef4444', fontWeight: 'bold', display: 'inline', margin: 0 }}>
+                                                    </span>
+                                                    <span style={{ color: '#ef4444', fontWeight: 'bold', display: 'inline', margin: 0 }}>
                                                         {product.promoPrice}
-                                                    </h4>
+                                                    </span>
                                                 </>
                                             ) : (
                                                 product.price
                                             )}
-                                        </h4>
+                                        </div>
                                     </div>
 
                                     <div className="card-actions-overlay">

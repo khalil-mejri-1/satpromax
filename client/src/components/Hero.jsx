@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Hero.css';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function Hero() {
     const [settings, setSettings] = useState(null);
@@ -8,7 +9,7 @@ export default function Hero() {
 
     // Fetch settings
     useEffect(() => {
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {

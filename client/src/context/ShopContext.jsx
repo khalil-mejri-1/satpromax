@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 
+import { API_BASE_URL } from '../config';
+
 export const ShopContext = createContext(null);
 
 export const ShopContextProvider = ({ children }) => {
@@ -30,7 +32,7 @@ export const ShopContextProvider = ({ children }) => {
 
     const fetchCategories = () => {
         setLoadingCategories(true);
-        fetch('https://Satpromax.com/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data && data.data.categories) {

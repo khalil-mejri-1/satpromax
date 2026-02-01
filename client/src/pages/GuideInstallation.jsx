@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import './GuideInstallation.css';
+import { API_BASE_URL } from '../config';
 
 const GuideInstallation = () => {
     const [guides, setGuides] = useState([]);
@@ -14,14 +15,14 @@ const GuideInstallation = () => {
         const fetchData = async () => {
             try {
                 // Fetch settings for hero image
-                const settingsRes = await fetch('https://Satpromax.com/api/settings');
+                const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
                 const settingsData = await settingsRes.json();
                 if (settingsData.success) {
                     setSettings(settingsData.data);
                 }
 
                 // Fetch guides
-                const guidesRes = await fetch('https://Satpromax.com/api/guides');
+                const guidesRes = await fetch(`${API_BASE_URL}/api/guides`);
                 const guidesData = await guidesRes.json();
                 if (guidesData.success) {
                     setGuides(guidesData.data);

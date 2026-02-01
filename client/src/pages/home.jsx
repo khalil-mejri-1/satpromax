@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL, SITE_URL } from '../config';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ProductSection from '../components/ProductSection';
@@ -28,9 +29,9 @@ export default function Home() {
     };
 
     // Fetch Products
-    const fetchProducts = fetch('https://Satpromax.com/api/products').then(res => res.json());
+    const fetchProducts = fetch(`${API_BASE_URL}/api/products`).then(res => res.json());
     // Fetch Settings (Categories & Promos)
-    const fetchSettings = fetch('https://Satpromax.com/api/settings').then(res => res.json());
+    const fetchSettings = fetch(`${API_BASE_URL}/api/settings`).then(res => res.json());
 
     Promise.all([fetchProducts, fetchSettings])
       .then(([productsData, settingsData]) => {
@@ -61,7 +62,7 @@ export default function Home() {
       <SEO
         title="Accueil"
         description="Satpromax- Votre destination pour les meilleurs abonnements Streaming, IPTV, Gaming et Logiciels en Tunisie."
-        canonical="https://Satpromax.com"
+        canonical={SITE_URL}
       />
       <Header />
       <Hero />
