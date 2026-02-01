@@ -891,7 +891,7 @@ const generateServerProductHTML = (product) => {
         <div class="ssr-content">
             <header>
                 <h1>${product.name}</h1>
-                <p>Catégorie: ${product.category}</p>
+                <h2>Catégorie: ${product.category}</h2>
             </header>
             <main>
                 <img src="${product.image}" alt="${product.name}" style="max-width:300px;" />
@@ -899,15 +899,15 @@ const generateServerProductHTML = (product) => {
                     ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price}</del> <strong>${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
                 </div>
                 <div class="description">
-                    <p>${product.description || ''}</p>
-                    <div style="line-height: 1.6;">${product.descriptionGlobal || ''}</div>
+                    <h3>${product.description || ''}</h3>
+                    <h3 style="line-height: 1.6;">${product.descriptionGlobal || ''}</h3>
                 </div>
                 <div class="extra-sections">
                     ${extraContent}
                 </div>
                 <div class="meta" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; color: #64748b;">
-                    <p>SKU: ${product.sku || 'N/A'}</p>
-                    <p>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</p>
+                    <h3>SKU: ${product.sku || 'N/A'}</h3>
+                    <h3>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</h3>
                 </div>
             </main>
         </div>
@@ -918,7 +918,7 @@ const generateServerHomeHTML = (products, categories) => {
     return `
         <div class="ssr-content">
             <h1>Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie</h1>
-            <p>Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax.</p>
+            <h5>Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax.</h5>
             
             <section class="categories" style="margin-top: 40px;">
                 <h2>Nos Catégories</h2>
@@ -934,7 +934,7 @@ const generateServerHomeHTML = (products, categories) => {
                         <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
                             <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
                             <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
-                            <p style="color: #ef4444; font-weight: bold;">${p.price} DT</p>
+                            <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
                             <a href="/${slugify(p.category)}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir Détails</a>
                         </div>
                     `).join('')}
@@ -1034,13 +1034,13 @@ app.get(/.*/, async (req, res, next) => {
                     const bodyContent = `
                         <div class="ssr-content">
                             <h1>Boutique ${categoryName} - Satpromax</h1>
-                            <p>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</p>
+                            <h4>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</h4>
                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
                                 ${categoryProducts.map(p => `
                                     <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
                                         <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
                                         <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
-                                        <p style="color: #ef4444; font-weight: bold;">${p.price} DT</p>
+                                        <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
                                         <a href="/${categorySlug}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir</a>
                                     </div>
                                 `).join('')}
