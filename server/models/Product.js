@@ -11,7 +11,13 @@ const productSchema = new mongoose.Schema(
         extraSections: [
             {
                 title: String,
-                content: String
+                content: String,
+                items: [
+                    {
+                        type: { type: String },
+                        content: String
+                    }
+                ]
             }
         ],
         sku: String,

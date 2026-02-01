@@ -701,7 +701,7 @@ const ProductsManager = () => {
             sku: formData.skuList.join(', '),
             tags: formData.tagsList.join(', '),
             gallery: formData.galleryList.filter(url => url.trim() !== ''),
-            extraSections: formData.extraSections.filter(s => s.title.trim() !== '' || s.content.trim() !== '')
+            extraSections: formData.extraSections.filter(s => (s.title && s.title.trim() !== '') || (s.items && s.items.length > 0) || (s.content && s.content.trim() !== ''))
         };
 
         try {
