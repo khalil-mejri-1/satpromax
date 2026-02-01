@@ -873,11 +873,9 @@ const generateServerBreadcrumbSchema = (crumbs) => ({
 });
 
 // --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
-app.use(async (req, res, next) => {
-    // 1. Only Handle GET requests
-    if (req.method !== 'GET') return next();
-
-    // 2. Explicitly Ignore /api/ routes
+// --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
+app.get(/.*/, async (req, res, next) => {
+    // 1. Explicitly Ignore /api/ routes (Safety check)
     if (req.path.startsWith('/api/')) return next();
 
     // 3. Load Index HTML
