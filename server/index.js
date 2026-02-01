@@ -31,6 +31,41 @@ const GuideInquiry = require("./models/GuideInquiry");
 const ContactMessage = require("./models/ContactMessage");
 const SupportTicket = require("./models/SupportTicket");
 
+// --- SETTINGS UTILS ---
+const getSafeSettings = async () => {
+    try {
+        let settings = await GeneralSettings.findOne();
+        if (settings) {
+            if (settings.paymentModes && Array.isArray(settings.paymentModes) && settings.paymentModes.some(m => typeof m === 'string')) {
+                settings.paymentModes = settings.paymentModes.map(m => typeof m === 'string' ? { name: m, logo: '' } : m);
+                await settings.save();
+            }
+            if (settings.categories && Array.isArray(settings.categories) && settings.categories.some(c => typeof c === 'string')) {
+                settings.categories = settings.categories.map(c => typeof c === 'string' ? { name: c, icon: '', slug: slugify(c) } : c);
+                await settings.save();
+            }
+            return settings;
+        }
+    } catch (err) {
+        console.error("Error in getSafeSettings:", err);
+        const rawSettings = await GeneralSettings.collection.findOne();
+        if (rawSettings) {
+            await GeneralSettings.collection.replaceOne({ _id: rawSettings._id }, rawSettings);
+            return await GeneralSettings.findById(rawSettings._id);
+        }
+    }
+
+    const settings = new GeneralSettings({
+        paymentModes: [{ name: 'D17', logo: '' }, { name: 'Flouci', logo: '' }, { name: 'Main à main', logo: '' }],
+        categories: [
+            { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Offres Streaming" },
+            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV', description: "Offres IPTV" }
+        ]
+    });
+    await settings.save();
+    return settings;
+};
+
 // --- UTILS ---
 const slugify = (text) => {
     if (!text) return "";
@@ -51,6 +86,41 @@ const generateUniqueSlug = async (name, currentId = null) => {
 };
 
 // --- API ROUTES (MUST COME FIRST) ---
+app.use("/api", (req, res, next) => {
+    console.log(`[API LOG] ${req.method} ${req.originalUrl}`);
+    if (req.method === 'POST') {
+        console.log(`[POST DEBUG] Body Keys: ${Object.keys(req.body || {})}`);
+    }
+    next();
+});
+
+app.post("/api/support/fields", async (req, res) => {
+    console.log(">>> [TOP PRIORITY] POST /api/support/fields called!");
+    console.log(">>> Body:", JSON.stringify(req.body, null, 2));
+    try {
+        const { fields } = req.body;
+        if (!Array.isArray(fields)) {
+            console.log(">>> Error: fields is not an array");
+            return res.status(400).json({ success: false, message: "Fields must be an array" });
+        }
+        const settings = await getSafeSettings();
+        settings.supportFormFields = fields;
+        await settings.save();
+        console.log(">>> Fields saved successfully");
+        res.json({ success: true, data: settings.supportFormFields });
+    } catch (error) {
+        console.error(">>> CRITICAL Error in POST /api/support/fields:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get("/api/api-status", (req, res) => {
+    res.json({
+        status: "ok ok ok",
+        version: "1.0.1",
+        time: new Date().toISOString()
+    });
+});
 
 // Seeding
 app.post("/api/seed", async (req, res) => {
@@ -77,6 +147,124 @@ app.post("/api/migrate-slugs", async (req, res) => {
         res.status(200).json({ success: true, message: `${updatedCount} products updated` });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// --- SUPPORT ROUTES ---
+app.get("/api/support/config", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+        res.json({
+            success: true,
+            telegramUser: settings.support?.telegramUser || 'SatpromaxSupport',
+            whatsappNumber: settings.support?.whatsappNumber || '21699999999',
+            heroImage: settings.supportHeroImage || '',
+            fields: settings.supportFormFields || [],
+            types: settings.supportIssueTypes ? settings.supportIssueTypes.map(t => t.name) : []
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error" });
+    }
+});
+
+app.put("/api/support/config", async (req, res) => {
+    try {
+        const { heroImage } = req.body;
+        const settings = await getSafeSettings();
+        if (heroImage !== undefined) settings.supportHeroImage = heroImage;
+        await settings.save();
+        res.json({ success: true, heroImage: settings.supportHeroImage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error" });
+    }
+});
+
+app.get("/api/support/types", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+        const types = settings.supportIssueTypes && settings.supportIssueTypes.length > 0
+            ? settings.supportIssueTypes.map(t => t.name)
+            : ['Payment Issue', 'Order Inquiry', 'Technical Support', 'Other'];
+
+        if (!settings.supportIssueTypes || settings.supportIssueTypes.length === 0) {
+            settings.supportIssueTypes = types.map(name => ({ name }));
+            await settings.save();
+        }
+
+        res.json({ success: true, data: types });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post("/api/support/types", async (req, res) => {
+    console.log("POST /api/support/types called", req.body);
+    try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Name required" });
+        const settings = await getSafeSettings();
+        if (!settings.supportIssueTypes) settings.supportIssueTypes = [];
+        if (!settings.supportIssueTypes.some(t => t.name === name)) {
+            settings.supportIssueTypes.push({ name });
+            await settings.save();
+        }
+        res.json({ success: true, data: settings.supportIssueTypes.map(t => t.name) });
+    } catch (error) {
+        console.error("Error in POST /api/support/types:", error);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete("/api/support/types/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.supportIssueTypes) {
+            settings.supportIssueTypes = settings.supportIssueTypes.filter(t => t.name !== name);
+            await settings.save();
+        }
+        res.json({ success: true, data: settings.supportIssueTypes.map(t => t.name) });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// Products
+
+app.post("/api/support/tickets", async (req, res) => {
+    try {
+        const ticket = new SupportTicket(req.body);
+        await ticket.save();
+        res.status(201).json({ success: true, data: ticket });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.get("/api/support/tickets", async (req, res) => {
+    try {
+        const tickets = await SupportTicket.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: tickets });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.put("/api/support/tickets/:id", async (req, res) => {
+    try {
+        const ticket = await SupportTicket.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.status(200).json({ success: true, data: ticket });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete("/api/support/tickets/:id", async (req, res) => {
+    try {
+        const ticket = await SupportTicket.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
     }
 });
 
@@ -349,38 +537,7 @@ app.patch("/api/users/:id/role", async (req, res) => {
 });
 
 // Settings
-const getSafeSettings = async () => {
-    try {
-        let settings = await GeneralSettings.findOne();
-        if (settings) {
-            if (settings.paymentModes && Array.isArray(settings.paymentModes) && settings.paymentModes.some(m => typeof m === 'string')) {
-                settings.paymentModes = settings.paymentModes.map(m => typeof m === 'string' ? { name: m, logo: '' } : m);
-                await settings.save();
-            }
-            if (settings.categories && Array.isArray(settings.categories) && settings.categories.some(c => typeof c === 'string')) {
-                settings.categories = settings.categories.map(c => typeof c === 'string' ? { name: c, icon: '', slug: slugify(c) } : c);
-                await settings.save();
-            }
-            return settings;
-        }
-    } catch (err) {
-        const rawSettings = await GeneralSettings.collection.findOne();
-        if (rawSettings) {
-            await GeneralSettings.collection.replaceOne({ _id: rawSettings._id }, rawSettings);
-            return await GeneralSettings.findById(rawSettings._id);
-        }
-    }
-
-    const settings = new GeneralSettings({
-        paymentModes: [{ name: 'D17', logo: '' }, { name: 'Flouci', logo: '' }, { name: 'Main à main', logo: '' }],
-        categories: [
-            { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Offres Streaming" },
-            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV', description: "Offres IPTV" }
-        ]
-    });
-    await settings.save();
-    return settings;
-};
+// getSafeSettings moved to top for safety
 
 app.get("/api/settings", async (req, res) => {
     try {
@@ -540,57 +697,6 @@ app.delete("/api/orders", async (req, res) => {
         res.status(200).json({ success: true, message: "Toutes les commandes supprimées" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
-    }
-});
-
-// Support
-app.get("/api/support/config", async (req, res) => {
-    try {
-        const settings = await GeneralSettings.findOne();
-        res.json({ success: true, telegramUser: settings.support?.telegramUser || 'SatpromaxSupport', whatsappNumber: settings.support?.whatsappNumber || '21699999999' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Error" });
-    }
-});
-
-app.get("/api/support/types", async (req, res) => {
-    res.json({ success: true, data: ['Payment Issue', 'Order Inquiry', 'Technical Support', 'Other'] });
-});
-
-app.post("/api/support/tickets", async (req, res) => {
-    try {
-        const ticket = new SupportTicket(req.body);
-        await ticket.save();
-        res.status(201).json({ success: true, data: ticket });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.get("/api/support/tickets", async (req, res) => {
-    try {
-        const tickets = await SupportTicket.find().sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: tickets });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.put("/api/support/tickets/:id", async (req, res) => {
-    try {
-        const ticket = await SupportTicket.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.status(200).json({ success: true, data: ticket });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.delete("/api/support/tickets/:id", async (req, res) => {
-    try {
-        await SupportTicket.findByIdAndDelete(req.params.id);
-        res.status(200).json({ success: true });
-    } catch (error) {
-        res.status(500).json({ success: false });
     }
 });
 
@@ -1007,10 +1113,11 @@ const generateServerHomeHTML = (products, categories) => {
 };
 
 // --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
-// --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
 app.get(/.*/, async (req, res, next) => {
-    // 1. Explicitly Ignore /api/ routes (Safety check)
-    if (req.path.startsWith('/api/')) return next();
+    // 1. Explicitly ignore ALL API calls to let them reach their routes
+    if (req.path.startsWith('/api')) {
+        return next();
+    }
 
     // 2. Load Index HTML
     let htmlContent;

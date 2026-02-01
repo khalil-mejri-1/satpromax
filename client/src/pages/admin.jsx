@@ -4758,7 +4758,7 @@ const SupportManager = () => {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}support/tickets`);
+            const res = await fetch(`${API_BASE_URL}/api/support/tickets`);
             const data = await res.json();
             if (data.success) setTickets(data.data);
         } catch (error) {
@@ -4771,16 +4771,29 @@ const SupportManager = () => {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}support/config`);
-            const data = await res.json();
-            if (data.success) {
-                setIssueTypes(data.types);
-                setFormFields(data.fields);
-                setHeroImage(data.heroImage || '');
-                setCurrentHeroImage(data.heroImage || '');
+            const resConfig = await fetch(`${API_BASE_URL}/api/support/config`);
+            const dataConfig = await resConfig.json();
+
+            // Backend returns data: ['Type1', 'Type2'] for types endpoint
+            const resTypes = await fetch(`${API_BASE_URL}/api/support/types`);
+            const DataTypes = await resTypes.json();
+
+            if (DataTypes.success) {
+                setIssueTypes(DataTypes.data || []);
+            }
+
+            // Fields and HeroImage endpoints are not yet implemented in backend, avoid crash
+            if (dataConfig.success) {
+                // If backend eventually supports these in config
+                setHeroImage(dataConfig.heroImage || '');
+                setCurrentHeroImage(dataConfig.heroImage || '');
+                if (dataConfig.fields) setFormFields(dataConfig.fields);
+                else setFormFields([]);
             }
         } catch (error) {
             console.error(error);
+            setIssueTypes([]);
+            setFormFields([]);
         }
     };
 
@@ -4801,7 +4814,7 @@ const SupportManager = () => {
     const deleteTicket = async (id) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`${API_BASE_URL}support/tickets/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/support/tickets/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Ticket supprimé', 'success');
@@ -4817,7 +4830,7 @@ const SupportManager = () => {
         e.preventDefault();
         if (!newType.trim()) return;
         try {
-            const res = await fetch(`${API_BASE_URL}support/types`, {
+            const res = await fetch(`${API_BASE_URL}/api/support/types`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newType })
@@ -4847,7 +4860,7 @@ const SupportManager = () => {
     const deleteType = async (name) => {
         setConfirmModal({ ...confirmModal, show: false });
         try {
-            const res = await fetch(`${API_BASE_URL}support/types/${name}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/support/types/${name}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification('Type supprimé', 'success');
@@ -4900,8 +4913,8 @@ const SupportManager = () => {
 
     const saveFields = async (fields) => {
         try {
-            const res = await fetch(`${API_BASE_URL}support/fields`, {
-                method: 'PUT',
+            const res = await fetch(`${API_BASE_URL}/api/support/fields`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fields })
             });
@@ -4919,7 +4932,7 @@ const SupportManager = () => {
 
     const saveHeroImage = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}support/config`, {
+            const res = await fetch(`${API_BASE_URL}/api/support/config`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ heroImage })
