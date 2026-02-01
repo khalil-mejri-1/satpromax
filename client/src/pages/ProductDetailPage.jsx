@@ -145,7 +145,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                     />
                 </div>
                 <div style={{ padding: '10px 20px' }}>
-                    <h4 style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px', margin: 0 }}>{item.category}</h4>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>{item.category}</div>
                     <h3 style={{
                         fontSize: '15px',
                         fontWeight: '800',
@@ -158,7 +158,7 @@ const SimilarProductCard = ({ item, addToCart, setModal }) => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical'
                     }}>{item.name}</h3>
-                    <h3 style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F', margin: 0 }}>{item.price}</h3>
+                    <div style={{ fontSize: '20px', fontWeight: '900', color: '#D32F2F' }}>{item.price}</div>
                 </div>
             </Link>
 
@@ -488,11 +488,11 @@ export default function ProductDetailPage() {
     };
 
     if (loading) {
-        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><h2>Chargement...</h2></main><Footer /></div>;
+        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement...</main><Footer /></div>;
     }
 
     if (!product) {
-        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><h2>Produit introuvable</h2></main><Footer /></div>;
+        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Produit introuvable</main><Footer /></div>;
     }
 
     const handleConfirmOrder = async () => {
@@ -743,7 +743,7 @@ export default function ProductDetailPage() {
                         <div className="product-image-section">
                             <div className="detail-image-wrapper">
                                 {/* Zoom Icon */}
-                                <h4 className="zoom-icon" onClick={() => setIsZoomOpen(true)} style={{ margin: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>⛶</h4>
+                                <div className="zoom-icon" onClick={() => setIsZoomOpen(true)}>⛶</div>
                                 {product.promoPrice && new Date(product.promoEndDate) > new Date() && (
                                     <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '100px', height: '100px', zIndex: 5, pointerEvents: 'none' }}>
                                         <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -837,16 +837,14 @@ export default function ProductDetailPage() {
                                 </div>
                             ) : (
                                 <div className="detail-price">
-                                    <h3 style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
-                                        {product.price}
-                                    </h3>
+                                    {product.price}
                                 </div>
                             )}
 
-                            <h4 className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`} style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
-                                <span className="stock-dot" style={{ display: 'inline-block' }}></span>
+                            <div className={`stock-status ${product.inStock !== false ? 'in-stock' : 'out-of-stock'}`}>
+                                <div className="stock-dot"></div>
                                 {product.inStock !== false ? 'Disponible' : 'Épuisé'}
-                            </h4>
+                            </div>
 
                             {/* {product.hasDelivery && product.deliveryPrice && (
                                 <div style={{
@@ -951,7 +949,7 @@ export default function ProductDetailPage() {
                             )}
 
                             <div className="detail-description">
-                                <h3 style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{product.description}</h3>
+                                <div style={{ whiteSpace: 'pre-wrap' }}>{product.description}</div>
                             </div>
 
                             {isIPTVCategory && (
@@ -1134,7 +1132,7 @@ export default function ProductDetailPage() {
                                                     {mode.logo ? (
                                                         <img src={mode.logo} alt={mode.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                     ) : (
-                                                        <h3 style={{ fontSize: '24px', margin: 0 }}>💳</h3>
+                                                        <div style={{ fontSize: '24px' }}>💳</div>
                                                     )}
                                                 </div>
                                                 <h4 style={{ fontSize: '12px', fontWeight: '700', color: billingInfo.paymentMode === mode.name ? '#0369a1' : '#1e293b', textAlign: 'center', margin: 0, display: 'block' }}>{mode.name}</h4>
@@ -1299,21 +1297,21 @@ export default function ProductDetailPage() {
                                 <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
                             </div>
 
-                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Prix</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444', margin: 0, fontSize: 'inherit' }}>{compareProduct.price}</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444', margin: 0, fontSize: 'inherit' }}>{product.price}</h4>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Prix</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{compareProduct.price}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}>{product.price}</div>
 
-                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Catégorie</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', margin: 0, fontSize: 'inherit' }}>{compareProduct.category}</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', margin: 0, fontSize: 'inherit' }}>{product.category}</h4>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Catégorie</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{compareProduct.category}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}>{product.category}</div>
 
-                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>Description</h4>
-                            <h4 style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6', margin: 0, fontWeight: 'normal' }}>{compareProduct.description}</h4>
-                            <h4 style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6', margin: 0, fontWeight: 'normal' }}>{product.description}</h4>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>Description</div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{compareProduct.description}</div>
+                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}>{product.description}</div>
 
-                            <h4 style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b', margin: 0, fontSize: 'inherit' }}>SKU</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{compareProduct.sku}</h4>
-                            <h4 style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}>{product.sku}</h4>
+                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}>SKU</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{compareProduct.sku}</div>
+                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}>{product.sku}</div>
                         </div>
                         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                             <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
@@ -1342,17 +1340,16 @@ export default function ProductDetailPage() {
                             borderBottom: '1px solid #e2e8f0',
                             marginBottom: '40px'
                         }}>
-                            <h3 style={{
+                            <div style={{
                                 padding: '10px 0',
                                 fontSize: '18px',
                                 fontWeight: '800',
                                 color: '#0f172a',
                                 borderBottom: '3px solid #fbbf24',
-                                marginBottom: '-1px',
-                                margin: 0
+                                marginBottom: '-1px'
                             }}>
                                 Description
-                            </h3>
+                            </div>
                         </div>
 
                         {/* Global Description */}
@@ -1404,8 +1401,8 @@ export default function ProductDetailPage() {
                                                         {item.content}
                                                     </h3>
                                                 ) : (
-                                                    <h4
-                                                        style={{ color: '#475569', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}
+                                                    <div
+                                                        style={{ color: '#475569' }}
                                                         dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
                                                     />
                                                 )}
@@ -1413,8 +1410,8 @@ export default function ProductDetailPage() {
                                         ))
                                     ) : (
                                         // Old Format: backward compatibility
-                                        <h4
-                                            style={{ color: '#475569', margin: 0, fontSize: 'inherit', fontWeight: 'normal' }}
+                                        <div
+                                            style={{ color: '#475569' }}
                                             dangerouslySetInnerHTML={{ __html: section.content ? section.content.replace(/\n/g, '<br/>') : '' }}
                                         />
                                     )}
@@ -1473,7 +1470,7 @@ export default function ProductDetailPage() {
                                                 <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
                                                     <div style={{ width: `${percentage}%`, height: '100%', background: '#fbbf24', borderRadius: '10px' }}></div>
                                                 </div>
-                                                <h4 style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600', margin: 0 }}>{count}</h4>
+                                                <div style={{ minWidth: '40px', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>{count}</div>
                                             </div>
                                         );
                                     })}
@@ -1521,8 +1518,8 @@ export default function ProductDetailPage() {
                                                     {rev.username ? rev.username.charAt(0).toUpperCase() : 'A'}
                                                 </div>
                                                 <div>
-                                                    <h4 style={{ fontWeight: '800', color: '#0f172a', margin: 0 }}>{rev.username}</h4>
-                                                    <h5 style={{ fontSize: '12px', color: '#64748b', margin: 0, fontWeight: 'normal' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</h5>
+                                                    <div style={{ fontWeight: '800', color: '#0f172a' }}>{rev.username}</div>
+                                                    <div style={{ fontSize: '12px', color: '#64748b' }}>{new Date(rev.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '2px' }}>

@@ -916,13 +916,6 @@ app.get(/.*/, async (req, res, next) => {
             const product = await Product.findOne({ slug: potentialSlug });
 
             if (product) {
-                // Fetch Reviews
-                const reviews = await Review.find({ productId: product._id, status: 'approved' });
-                const reviewsCount = reviews.length;
-                const averageRating = reviewsCount > 0
-                    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviewsCount).toFixed(1)
-                    : 0;
-
                 const productSchema = generateServerProductSchema(product, fullUrl);
                 const breadcrumbSchema = generateServerBreadcrumbSchema([
                     { name: 'Home', url: 'https://Satpromax.com/' },
@@ -930,43 +923,6 @@ app.get(/.*/, async (req, res, next) => {
                     { name: product.name, url: fullUrl }
                 ]);
 
-                // Generate Server-Side HTML for View Source
-                const serverHtml = `
-                    <div id="root">
-                        <div class="product-page-server">
-                            <h1>${product.name}</h1>
-                            <h3>${product.price}</h3>
-                            ${product.promoPrice ? `<h3>Promo: ${product.promoPrice}</h3>` : ''}
-                            <h4>Catégorie: ${product.category}</h4>
-                            <h4>SKU: ${product.sku || 'N/A'}</h4>
-                            <h4>Status: ${product.inStock !== false ? 'Disponible' : 'Épuisé'}</h4>
-                            
-                            <div class="description-section">
-                                <h3>Description</h3>
-                                <h3 style="white-space: pre-wrap;">${product.description}</h3>
-                                ${product.descriptionGlobal ? `<div class="global-description">${product.descriptionGlobal}</div>` : ''}
-                                ${product.extraSections ? product.extraSections.map(s => `
-                                    <h2>${s.title}</h2>
-                                    ${s.items ? s.items.map(i => `<h3>${i.content}</h3>`).join('') : `<h4>${s.content}</h4>`}
-                                `).join('') : ''}
-                            </div>
-
-                            <div class="reviews-section">
-                                <h2>Avis Clients (${reviewsCount})</h2>
-                                <h3>Note Moyenne: ${averageRating} / 5</h3>
-                                ${reviews.map(r => `
-                                    <div class="review">
-                                        <h4>${r.username} - ${r.rating}/5</h4>
-                                        <h5>${new Date(r.createdAt).toLocaleDateString()}</h5>
-                                        <h3>${r.comment}</h3>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // Inject SEO tags
                 htmlContent = injectSEO(htmlContent, {
                     title: `${product.name} | Satpromax`,
                     description: product.description ? product.description.substring(0, 160).replace(/"/g, '&quot;') : "Découvrez ce produit sur Satpromax.",
@@ -974,10 +930,6 @@ app.get(/.*/, async (req, res, next) => {
                     url: fullUrl,
                     schema: [productSchema, breadcrumbSchema]
                 });
-
-                // Inject Content into Body (Replace empty root)
-                htmlContent = htmlContent.replace('<div id="root"></div>', serverHtml);
-
             } else {
                 if (parts.length === 1) {
                     const categorySlug = parts[0];
