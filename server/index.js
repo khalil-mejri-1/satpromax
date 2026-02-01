@@ -873,7 +873,40 @@ const generateServerBreadcrumbSchema = (crumbs) => ({
     }))
 });
 
-const generateServerProductHTML = (product) => {
+const generateServerHeader = (categories) => {
+    const navLinks = categories.map(c =>
+        `<li><a href="/${c.slug || slugify(c.name)}">${c.name}</a></li>`
+    ).join('');
+
+    return `
+    <header class="ssr-header" style="padding: 15px; border-bottom: 1px solid #eee;">
+        <div class="logo" style="margin-bottom: 10px;"><a href="/" style="font-weight: bold; font-size: 20px; text-decoration: none; color: #333;">Satpromax</a></div>
+        <nav>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 15px; flex-wrap: wrap;">
+                <li><a href="/" style="text-decoration: none; color: #555;">Accueil</a></li>
+                ${navLinks}
+                <li><a href="/contact" style="text-decoration: none; color: #555;">Contact</a></li>
+                <li><a href="/support" style="text-decoration: none; color: #555;">Support</a></li>
+            </ul>
+        </nav>
+    </header>
+    `;
+};
+
+const generateServerFooter = () => `
+    <footer class="ssr-footer" style="margin-top: 50px; padding: 30px; background: #f8fafc; text-align: center;">
+        <div class="footer-links" style="margin-bottom: 20px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="/about" style="color: #64748b;">À propos</a>
+            <a href="/guide-installation" style="color: #64748b;">Guides</a>
+            <a href="/contact" style="color: #64748b;">Contact</a>
+            <a href="/terms" style="color: #64748b;">CGV</a>
+            <a href="/privacy" style="color: #64748b;">Confidentialité</a>
+        </div>
+        <p style="color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Satpromax. Tous droits réservés.</p>
+    </footer>
+`;
+
+const generateServerProductHTML = (product, similarProducts = [], categories = []) => {
     if (!product) return "";
     const isPromo = product.promoPrice && product.promoEndDate && new Date(product.promoEndDate) > new Date();
 
@@ -887,59 +920,88 @@ const generateServerProductHTML = (product) => {
         `).join('');
     }
 
+    const similarLinks = similarProducts.map(p => `
+        <a href="/${slugify(p.category)}/${p.slug}" class="ssr-similar-link" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; margin-bottom: 10px;">
+            <img src="${p.image}" alt="${p.name}" width="50" height="50" style="object-fit: cover; border-radius: 4px;" />
+            <span style="font-size: 14px; font-weight: 500;">${p.name}</span>
+        </a>
+    `).join('');
+
     return `
-        <div class="ssr-content">
-            <header>
-                <h1>${product.name}</h1>
-                <h2>Catégorie: ${product.category}</h2>
-            </header>
-            <main>
-                <img src="${product.image}" alt="${product.name}" style="max-width:300px;" />
-                <div class="price" style="font-size: 24px; color: #ef4444; margin: 15px 0;">
-                    ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price}</del> <strong>${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
+        <div class="ssr-shell">
+            ${generateServerHeader(categories)}
+            <div class="ssr-content product-page" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+                <div class="breadcrumb" style="margin-bottom: 20px; color: #64748b; font-size: 14px;">
+                    <a href="/" style="color: inherit;">Accueil</a> / 
+                    <a href="/${slugify(product.category)}" style="color: inherit;">${product.category}</a> / 
+                    <span>${product.name}</span>
                 </div>
-                <div class="description">
-                    <h3>${product.description || ''}</h3>
-                    <h3 style="line-height: 1.6;">${product.descriptionGlobal || ''}</h3>
-                </div>
-                <div class="extra-sections">
-                    ${extraContent}
-                </div>
-                <div class="meta" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; color: #64748b;">
-                    <h3>SKU: ${product.sku || 'N/A'}</h3>
-                    <h3>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</h3>
-                </div>
-            </main>
+
+                <main style="display: grid; grid-template-columns: 300px 1fr; gap: 40px;">
+                    <div class="image-col">
+                         <img src="${product.image}" alt="${product.name}" style="width: 100%; border-radius: 12px;" />
+                    </div>
+                    <div class="info-col">
+                        <h1 style="margin-top: 0;">${product.name}</h1>
+                        <div class="price" style="font-size: 24px; color: #ef4444; margin: 15px 0;">
+                            ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price}</del> <strong>${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
+                        </div>
+                        <div class="description">
+                            <h3>${product.description || ''}</h3>
+                            <h3 style="line-height: 1.6;">${product.descriptionGlobal || ''}</h3>
+                        </div>
+                        <div class="extra-sections">
+                            ${extraContent}
+                        </div>
+                        <div class="meta" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; color: #64748b;">
+                            <h3>SKU: ${product.sku || 'N/A'}</h3>
+                            <h3>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</h3>
+                        </div>
+                    </div>
+                </main>
+
+                <aside class="similar-products" style="margin-top: 60px;">
+                    <h3 style="border-bottom: 2px solid #fbbf24; padding-bottom: 10px; display: inline-block;">Vous aimerez aussi</h3>
+                    <div class="links-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                        ${similarLinks}
+                    </div>
+                </aside>
+            </div>
+            ${generateServerFooter()}
         </div>
     `;
 };
 
 const generateServerHomeHTML = (products, categories) => {
     return `
-        <div class="ssr-content">
-            <h1>Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie</h1>
-            <h5>Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax.</h5>
-            
-            <section class="categories" style="margin-top: 40px;">
-                <h2>Nos Catégories</h2>
-                <ul style="display: flex; gap: 20px; list-style: none; padding: 0; flex-wrap: wrap;">
-                    ${categories.map(c => `<li style="background: #f1f5f9; padding: 10px 20px; border-radius: 8px;"><a href="/${c.slug || slugify(c.name)}" style="text-decoration: none; color: #1e293b; font-weight: bold;">${c.name}</a></li>`).join('')}
-                </ul>
-            </section>
+        <div class="ssr-shell">
+            ${generateServerHeader(categories)}
+            <div class="ssr-content home-page" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+                <h1>Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie</h1>
+                <h5>Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax.</h5>
+                
+                <section class="categories" style="margin-top: 40px;">
+                    <h2>Nos Catégories</h2>
+                    <ul style="display: flex; gap: 20px; list-style: none; padding: 0; flex-wrap: wrap;">
+                        ${categories.map(c => `<li style="background: #f1f5f9; padding: 10px 20px; border-radius: 8px;"><a href="/${c.slug || slugify(c.name)}" style="text-decoration: none; color: #1e293b; font-weight: bold;">${c.name}</a></li>`).join('')}
+                    </ul>
+                </section>
 
-            <section class="products" style="margin-top: 50px;">
-                <h2>Derniers Produits</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
-                    ${products.map(p => `
-                        <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
-                            <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
-                            <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
-                            <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
-                            <a href="/${slugify(p.category)}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir Détails</a>
-                        </div>
-                    `).join('')}
-                </div>
-            </section>
+                <section class="products" style="margin-top: 50px;">
+                    <h2>Derniers Produits</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+                        ${products.map(p => `
+                            <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
+                                <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
+                                <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
+                                <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
+                                <a href="/${slugify(p.category)}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir Détails</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            </div>
+            ${generateServerFooter()}
         </div>
     `;
 };
@@ -950,7 +1012,7 @@ app.get(/.*/, async (req, res, next) => {
     // 1. Explicitly Ignore /api/ routes (Safety check)
     if (req.path.startsWith('/api/')) return next();
 
-    // 3. Load Index HTML
+    // 2. Load Index HTML
     let htmlContent;
     try {
         htmlContent = fs.readFileSync(INDEX_HTML, 'utf8');
@@ -962,6 +1024,8 @@ app.get(/.*/, async (req, res, next) => {
     try {
         const fullUrl = `https://Satpromax.com${req.path}`;
         const parts = req.path.split('/').filter(Boolean);
+        const settings = await GeneralSettings.findOne(); // Fetch settings once for global Navbar
+        const categories = settings?.categories || [];
 
         // A. HOME PAGE
         if (parts.length === 0) {
@@ -974,8 +1038,6 @@ app.get(/.*/, async (req, res, next) => {
             };
 
             const homeProducts = await Product.find().sort({ createdAt: -1 }).limit(20);
-            const settings = await GeneralSettings.findOne();
-            const categories = settings?.categories || [];
 
             const bodyContent = generateServerHomeHTML(homeProducts, categories);
             htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
@@ -995,6 +1057,12 @@ app.get(/.*/, async (req, res, next) => {
             const product = await Product.findOne({ slug: potentialSlug });
 
             if (product) {
+                // Fetch Similar Products for Internal Linking
+                const similarProducts = await Product.find({
+                    category: product.category,
+                    _id: { $ne: product._id }
+                }).limit(8).select('name slug category image price');
+
                 const productSchema = generateServerProductSchema(product, fullUrl);
                 const breadcrumbSchema = generateServerBreadcrumbSchema([
                     { name: 'Home', url: 'https://Satpromax.com/' },
@@ -1009,7 +1077,7 @@ app.get(/.*/, async (req, res, next) => {
                     .trim()
                     .substring(0, 160);
 
-                const bodyContent = generateServerProductHTML(product);
+                const bodyContent = generateServerProductHTML(product, similarProducts, categories);
                 htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
 
                 htmlContent = injectSEO(htmlContent, {
@@ -1022,7 +1090,6 @@ app.get(/.*/, async (req, res, next) => {
             } else {
                 if (parts.length === 1) {
                     const categorySlug = parts[0];
-                    const settings = await GeneralSettings.findOne();
                     const category = settings?.categories?.find(c => c.slug === categorySlug);
                     const categoryName = category ? category.name : (categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' '));
 
@@ -1032,19 +1099,23 @@ app.get(/.*/, async (req, res, next) => {
                     }).limit(24);
 
                     const bodyContent = `
-                        <div class="ssr-content">
-                            <h1>Boutique ${categoryName} - Satpromax</h1>
-                            <h4>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
-                                ${categoryProducts.map(p => `
-                                    <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
-                                        <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
-                                        <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
-                                        <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
-                                        <a href="/${categorySlug}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir</a>
-                                    </div>
-                                `).join('')}
+                        <div class="ssr-shell">
+                            ${generateServerHeader(categories)}
+                            <div class="ssr-content category-page">
+                                <h1>Boutique ${categoryName} - Satpromax</h1>
+                                <h4>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+                                    ${categoryProducts.map(p => `
+                                        <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
+                                            <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
+                                            <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
+                                            <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
+                                            <a href="/${categorySlug}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir</a>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
+                            ${generateServerFooter()}
                         </div>
                     `;
                     htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
