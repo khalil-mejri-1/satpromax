@@ -6,6 +6,7 @@ const productSchema = new mongoose.Schema(
         price: { type: String, required: true },
         image: { type: String, required: true },
         category: { type: String, required: true },
+        subCategory: String,
         description: String,
         descriptionGlobal: String,
         extraSections: [
@@ -35,7 +36,9 @@ const productSchema = new mongoose.Schema(
         hasDelivery: { type: Boolean, default: false },
         deliveryPrice: String,
         inStock: { type: Boolean, default: true },
-        hasTest: { type: Boolean, default: false }
+        hasTest: { type: Boolean, default: false },
+        seoH1: String,
+        seoSubheadings: [{ level: String, text: String }]
     },
     { timestamps: true }
 );

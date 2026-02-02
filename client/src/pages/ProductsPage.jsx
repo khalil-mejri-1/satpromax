@@ -238,6 +238,7 @@ export default function ProductsPage() {
     const [selectedResolution, setSelectedResolution] = useState('All');
     const [selectedRegion, setSelectedRegion] = useState('All');
     const [selectedSort, setSelectedSort] = useState('Popularité');
+    const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(20);
 
@@ -302,6 +303,7 @@ export default function ProductsPage() {
         };
 
         fetchProducts();
+        setSelectedSubCategory('All');
     }, [normalizedCategory, categoryName]);
 
     // Apply filtering on the client side
@@ -320,6 +322,12 @@ export default function ProductsPage() {
             );
         }
 
+        if (selectedSubCategory !== 'All') {
+            filtered = filtered.filter(p =>
+                p.subCategory === selectedSubCategory
+            );
+        }
+
         // Apply Sorting
         if (selectedSort === 'Prix: Croissant') {
             filtered.sort((a, b) => {
@@ -333,7 +341,7 @@ export default function ProductsPage() {
 
         setFilteredProducts(filtered);
         setCurrentPage(1); // Reset to first page on filter/sort change
-    }, [products, selectedResolution, selectedRegion, normalizedCategory, selectedSort]);
+    }, [products, selectedResolution, selectedRegion, selectedSubCategory, normalizedCategory, selectedSort]);
 
     // Scroll to top when page changes
     useEffect(() => {
@@ -379,6 +387,47 @@ export default function ProductsPage() {
                     <div className="category-description">
                         <p>{meta.description}</p>
                     </div>
+
+                    {/* SubCategories Buttons */}
+                    {dynamicCategory && dynamicCategory.subCategories && dynamicCategory.subCategories.length > 0 && (
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                            <button
+                                onClick={() => setSelectedSubCategory('All')}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    border: '1px solid #e2e8f0',
+                                    background: selectedSubCategory === 'All' ? '#1e293b' : '#fff',
+                                    color: selectedSubCategory === 'All' ? '#fff' : '#475569',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                Tout afficher
+                            </button>
+                            {dynamicCategory.subCategories.map((sub, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setSelectedSubCategory(sub.name)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '20px',
+                                        border: '1px solid #e2e8f0',
+                                        background: selectedSubCategory === sub.name ? '#0ea5e9' : '#fff',
+                                        color: selectedSubCategory === sub.name ? '#fff' : '#475569',
+                                        cursor: 'pointer',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {sub.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Toolbar */}
                     <div className="products-toolbar">

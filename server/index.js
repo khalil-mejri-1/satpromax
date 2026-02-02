@@ -340,6 +340,21 @@ app.delete("/api/products/:id", async (req, res) => {
     }
 });
 
+app.put("/api/products/:id/seo", async (req, res) => {
+    try {
+        const { h1, subheadings } = req.body;
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            { seoH1: h1, seoSubheadings: subheadings },
+            { new: true }
+        );
+        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+        res.status(200).json({ success: true, data: product });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Auth
 app.post("/api/register", async (req, res) => {
     try {

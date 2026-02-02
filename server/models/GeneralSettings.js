@@ -15,7 +15,14 @@ const GeneralSettingsSchema = new mongoose.Schema({
         metaTitle: { type: String, trim: true },
         metaDescription: { type: String, trim: true },
         keywords: { type: String, trim: true },
-        subcategories: [String]
+        subcategories: [String],
+        subCategories: [{
+            name: { type: String, trim: true },
+            seoH1: String,
+            seoSubheadings: [{ level: String, text: String }]
+        }],
+        seoH1: String,
+        seoSubheadings: [{ level: String, text: String }]
     }],
     whatsappNumber: { type: String, trim: true, default: "21697496300" },
     topStripText: { type: String, trim: true, default: "WhatsApp : +216 97 490 300" },
@@ -88,7 +95,14 @@ const GeneralSettingsSchema = new mongoose.Schema({
         type: { type: String, enum: ['text', 'number'], default: 'text' },
         placeholder: { type: String }
     }],
-    supportHeroImage: { type: String, default: "/images/support-hero-bg.png" }
+    reviewsPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
+    guidesPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
+    questionsPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
+    contactPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
+    supportPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
+    supportHeroImage: { type: String, default: "/images/support-hero-bg.png" },
+    homeSeoH1: String,
+    homeSeoSubheadings: [{ level: String, text: String }]
 }, { timestamps: true });
 
 // Ensure only one document exists usually

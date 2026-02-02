@@ -11,6 +11,8 @@ const IconClient = () => <svg width="20" height="20" fill="none" stroke="current
 const IconHome = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
 const IconCategory = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>;
 const IconGuide = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" /></svg>;
+const IconSubCategory = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>;
+const IconSEO = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 
 const slugify = (text) => {
     return text
@@ -27,11 +29,13 @@ const slugify = (text) => {
 
 export default function Admin() {
     const [activeTab, setActiveTab] = useState('products');
+    const [globalSeoOpen, setGlobalSeoOpen] = useState(false);
+    const [preSelectedSeo, setPreSelectedSeo] = useState({ type: 'home', id: '' });
 
     const renderContent = () => {
         switch (activeTab) {
             case 'products':
-                return <ProductsManager />;
+                return <ProductsManager openGlobalSeo={(type, id) => { setGlobalSeoOpen(true); setPreSelectedSeo({ type, id }); }} />;
             case 'promos':
                 return <PromoManager />;
             case 'orders':
@@ -42,18 +46,20 @@ export default function Admin() {
                 return <HomeManager />;
             case 'categories':
                 return <CategoryManager />;
+            case 'subcategories':
+                return <SubCategoryManager openGlobalSeo={(parentId, subId) => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'subcategory', id: parentId + '|' + subId }); }} />;
             case 'reviews':
-                return <ReviewsManager />;
+                return <ReviewsManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'reviews' }); }} />;
             case 'details':
                 return <SettingsManager />;
             case 'guides':
-                return <GuidesManager />;
+                return <GuidesManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'guides' }); }} />;
             case 'inquiries':
-                return <GuideInquiriesManager />;
+                return <GuideInquiriesManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'questions' }); }} />;
             case 'messages':
-                return <ContactMessagesManager />;
+                return <ContactMessagesManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'contact' }); }} />;
             case 'support':
-                return <SupportManager />;
+                return <SupportManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'support' }); }} />;
             default:
                 return <ProductsManager />;
         }
@@ -100,6 +106,12 @@ export default function Admin() {
                         onClick={() => setActiveTab('categories')}
                     >
                         <IconCategory /> Gestion des Catégories
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'subcategories' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('subcategories')}
+                    >
+                        <IconSubCategory /> Gestion de Sous-catégories
                     </button>
                     <button
                         className={`admin-nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
@@ -158,16 +170,424 @@ export default function Admin() {
                         {activeTab === 'support' && 'Gestion de Support'}
                         {activeTab === 'details' && 'Détails Généraux'}
                     </div>
-                    <div className="admin-user-info">Admin User</div>
+                    <div className="admin-user-info">
+                        <button
+                            onClick={() => setGlobalSeoOpen(true)}
+                            className="btn btn-primary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '15px' }}
+                        >
+                            <IconSEO /> SEO
+                        </button>
+                        Admin User
+                    </div>
                 </div>
 
                 <div className="admin-main-view">
                     {renderContent()}
                 </div>
             </main>
+
+            {/* Global SEO Modal */}
+            <GlobalSeoModal isOpen={globalSeoOpen} onClose={() => setGlobalSeoOpen(false)} initialData={preSelectedSeo} />
         </div >
     );
 }
+
+// Global SEO Modal Component
+const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
+    const [targetType, setTargetType] = useState('home'); // home, product, category, subcategory
+    const [targetId, setTargetId] = useState(''); // productId or category name. For subcategory: "ParentName|SubName"
+    const [parentCategory, setParentCategory] = useState(''); // Only for subcategory selection inside modal ui
+    const [subCategory, setSubCategory] = useState(''); // Only for subcategory selection inside modal ui
+    // Data for selectors
+    const [products, setProducts] = useState([]);
+    const [settings, setSettings] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // Form Data
+    const [seoData, setSeoData] = useState({
+        h1: '',
+        subheadings: [] // { level: 'h2', text: '' }
+    });
+
+    // Fetch initial data
+    useEffect(() => {
+        if (isOpen) {
+            if (initialData) {
+                setTargetType(initialData.type || 'home');
+                setTargetId(initialData.id || '');
+                if (initialData.type === 'subcategory' && initialData.id) {
+                    const [p, s] = initialData.id.split('|');
+                    if (p && s) {
+                        setParentCategory(p);
+                        setSubCategory(s);
+                    }
+                }
+            }
+            fetchSettings();
+            fetchProducts();
+        }
+    }, [isOpen, initialData]);
+
+    const fetchSettings = () => {
+        fetch(`${API_BASE_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setSettings(data.data);
+            });
+    };
+
+    const fetchProducts = () => {
+        fetch(`${API_BASE_URL}/api/products`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setProducts(data.data);
+            });
+    };
+
+    // When selection changes, populate form
+    useEffect(() => {
+        if (!settings) return;
+
+        if (targetType === 'home') {
+            setSeoData({
+                h1: settings.homeSeoH1 || '',
+                subheadings: settings.homeSeoSubheadings || []
+            });
+        } else if (targetType === 'contact') {
+            setSeoData({
+                h1: settings.contactPageSeo?.h1 || '',
+                subheadings: settings.contactPageSeo?.subheadings || []
+            });
+        } else if (targetType === 'support') {
+            setSeoData({
+                h1: settings.supportPageSeo?.h1 || '',
+                subheadings: settings.supportPageSeo?.subheadings || []
+            });
+        } else if (targetType === 'reviews') {
+            setSeoData({
+                h1: settings.reviewsPageSeo?.h1 || '',
+                subheadings: settings.reviewsPageSeo?.subheadings || []
+            });
+        } else if (targetType === 'guides') {
+            setSeoData({
+                h1: settings.guidesPageSeo?.h1 || '',
+                subheadings: settings.guidesPageSeo?.subheadings || []
+            });
+        } else if (targetType === 'questions') {
+            setSeoData({
+                h1: settings.questionsPageSeo?.h1 || '',
+                subheadings: settings.questionsPageSeo?.subheadings || []
+            });
+        } else if (targetType === 'category' && targetId) {
+            const cat = settings.categories.find(c => c.name === targetId);
+            if (cat) {
+                setSeoData({
+                    h1: cat.seoH1 || '',
+                    subheadings: cat.seoSubheadings || []
+                });
+            }
+        } else if (targetType === 'subcategory') {
+            // targetId might be pre-set, or we use parentCategory/subCategory state
+            let pName = parentCategory;
+            let sName = subCategory;
+
+            if (targetId && targetId.includes('|')) {
+                [pName, sName] = targetId.split('|');
+            }
+
+            if (settings && settings.categories) {
+                const cat = settings.categories.find(c => c.name === pName);
+                if (cat && cat.subCategories) {
+                    const sub = cat.subCategories.find(s => s.name === sName);
+                    if (sub) {
+                        setSeoData({
+                            h1: sub.seoH1 || '',
+                            subheadings: sub.seoSubheadings || []
+                        });
+                    } else {
+                        setSeoData({ h1: '', subheadings: [] });
+                    }
+                }
+            }
+        } else if (targetType === 'product' && targetId) {
+            const prod = products.find(p => p._id === targetId);
+            if (prod) {
+                setSeoData({
+                    h1: prod.seoH1 || '',
+                    subheadings: prod.seoSubheadings || []
+                });
+            }
+        } else {
+            // Reset if no selection
+            setSeoData({ h1: '', subheadings: [] });
+        }
+    }, [targetType, targetId, settings, products]);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (targetType === 'home') {
+                const newSettings = { ...settings, homeSeoH1: seoData.h1, homeSeoSubheadings: seoData.subheadings };
+                await fetch(`${API_BASE_URL}/api/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newSettings)
+                });
+            } else if (['contact', 'support', 'reviews', 'guides', 'questions'].includes(targetType)) {
+                const fieldName = `${targetType}PageSeo`;
+                const newSettings = { ...settings, [fieldName]: { h1: seoData.h1, subheadings: seoData.subheadings } };
+                await fetch(`${API_BASE_URL}/api/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newSettings)
+                });
+            } else if (targetType === 'category') {
+                const newSettings = { ...settings };
+                const catIndex = newSettings.categories.findIndex(c => c.name === targetId);
+                if (catIndex !== -1) {
+                    newSettings.categories[catIndex].seoH1 = seoData.h1;
+                    newSettings.categories[catIndex].seoSubheadings = seoData.subheadings;
+                    await fetch(`${API_BASE_URL}/api/settings`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newSettings)
+                    });
+                }
+            } else if (targetType === 'subcategory') {
+                const newSettings = { ...settings };
+                // Use state directly if targetId is empty or rely on splitting targetId if it was passed
+                let pName = parentCategory;
+                let sName = subCategory;
+                if (targetId && targetId.includes('|')) {
+                    [pName, sName] = targetId.split('|');
+                }
+
+                const catIndex = newSettings.categories.findIndex(c => c.name === pName);
+                if (catIndex !== -1) {
+                    if (!newSettings.categories[catIndex].subCategories) newSettings.categories[catIndex].subCategories = [];
+                    const subIndex = newSettings.categories[catIndex].subCategories.findIndex(s => s.name === sName);
+
+                    if (subIndex !== -1) {
+                        newSettings.categories[catIndex].subCategories[subIndex].seoH1 = seoData.h1;
+                        newSettings.categories[catIndex].subCategories[subIndex].seoSubheadings = seoData.subheadings;
+                    } else {
+                        // If somehow it doesn't exist, create it (auto-fix)
+                        newSettings.categories[catIndex].subCategories.push({
+                            name: sName,
+                            seoH1: seoData.h1,
+                            seoSubheadings: seoData.subheadings
+                        });
+                    }
+                    await fetch(`${API_BASE_URL}/api/settings`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newSettings)
+                    });
+                }
+            } else if (targetType === 'product') {
+                await fetch(`${API_BASE_URL}/api/products/${targetId}/seo`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(seoData)
+                });
+            }
+            alert("SEO mis à jour avec succès !");
+            onClose();
+            // Refresh settings locally if needed
+            fetchSettings();
+        } catch (error) {
+            console.error(error);
+            alert("Erreur lors de la sauvegarde.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3 className="modal-title">Optimisation SEO Globale</h3>
+                    <button className="modal-close" onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={handleSave}>
+                    <div className="form-group">
+                        <label className="form-label">Type de Page</label>
+                        <select
+                            className="form-select"
+                            value={targetType}
+                            onChange={e => { setTargetType(e.target.value); setTargetId(''); }}
+                        >
+                            <option value="home">Page d'Accueil</option>
+                            <option value="contact">Page Contact</option>
+                            <option value="support">Page Support</option>
+                            <option value="reviews">Page Commentaires</option>
+                            <option value="guides">Page Guides</option>
+                            <option value="questions">Page Questions (FAQ)</option>
+                            <option value="questions">Page Questions (FAQ)</option>
+                            <option value="category">Catégorie</option>
+                            <option value="subcategory">Sous-Catégorie</option>
+                            <option value="product">Produit</option>
+                        </select>
+                    </div>
+
+                    {targetType === 'subcategory' && settings && (
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label className="form-label">Catégorie Parente</label>
+                                <select
+                                    className="form-select"
+                                    value={parentCategory}
+                                    onChange={e => {
+                                        setParentCategory(e.target.value);
+                                        setSubCategory('');
+                                        setTargetId(''); // Clear targetId so we rely on state
+                                    }}
+                                >
+                                    <option value="">-- Choisir Parente --</option>
+                                    {settings.categories.map((c, i) => (
+                                        <option key={i} value={c.name}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label className="form-label">Sous-Catégorie</label>
+                                <select
+                                    className="form-select"
+                                    value={subCategory}
+                                    onChange={e => {
+                                        setSubCategory(e.target.value);
+                                        setTargetId(parentCategory + '|' + e.target.value); // Set targetID for consistency
+                                    }}
+                                    disabled={!parentCategory}
+                                >
+                                    <option value="">-- Choisir Sous-Catégorie --</option>
+                                    {settings.categories.find(c => c.name === parentCategory)?.subCategories?.map((s, i) => (
+                                        <option key={i} value={s.name}>{s.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {targetType === 'category' && settings && (
+                        <div className="form-group">
+                            <label className="form-label">Choisir la Catégorie</label>
+                            <select
+                                className="form-select"
+                                value={targetId}
+                                onChange={e => setTargetId(e.target.value)}
+                                required
+                            >
+                                <option value="">-- Sélectionner --</option>
+                                {settings.categories.map((c, i) => (
+                                    <option key={i} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {targetType === 'product' && (
+                        <div className="form-group">
+                            <label className="form-label">Choisir le Produit</label>
+                            <select
+                                className="form-select"
+                                value={targetId}
+                                onChange={e => setTargetId(e.target.value)}
+                                required
+                            >
+                                <option value="">-- Sélectionner --</option>
+                                {products.map(p => (
+                                    <option key={p._id} value={p._id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {(targetType === 'home' || targetType === 'contact' || targetType === 'support' || targetType === 'reviews' || targetType === 'guides' || targetType === 'questions' || targetId || (targetType === 'subcategory' && subCategory)) && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Titre Principal (H1)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={seoData.h1}
+                                    onChange={(e) => setSeoData({ ...seoData, h1: e.target.value })}
+                                    placeholder="Titre H1..."
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Sous-titres (H2, H3, ...)</label>
+                                {seoData.subheadings.map((sub, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                        <select
+                                            className="form-select"
+                                            style={{ width: '80px' }}
+                                            value={sub.level}
+                                            onChange={(e) => {
+                                                const newSubs = [...seoData.subheadings];
+                                                newSubs[index].level = e.target.value;
+                                                setSeoData({ ...seoData, subheadings: newSubs });
+                                            }}
+                                        >
+                                            <option value="h2">H2</option>
+                                            <option value="h3">H3</option>
+                                            <option value="h4">H4</option>
+                                            <option value="h5">H5</option>
+                                            <option value="h6">H6</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={sub.text}
+                                            onChange={(e) => {
+                                                const newSubs = [...seoData.subheadings];
+                                                newSubs[index].text = e.target.value;
+                                                setSeoData({ ...seoData, subheadings: newSubs });
+                                            }}
+                                            placeholder="Texte..."
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newSubs = seoData.subheadings.filter((_, i) => i !== index);
+                                                setSeoData({ ...seoData, subheadings: newSubs });
+                                            }}
+                                            style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '0 10px', cursor: 'pointer' }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setSeoData({ ...seoData, subheadings: [...seoData.subheadings, { level: 'h2', text: '' }] })}
+                                    style={{ fontSize: '12px', padding: '5px 10px' }}
+                                >
+                                    + Ajouter
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="modal-actions">
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>Annuler</button>
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? 'Sauvegarde...' : 'Sauvegarder SEO'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
 
 // ---------------------------------------------------------------------
 // Placeholder Components for each section
@@ -566,7 +986,7 @@ const ProductsManager = () => {
     const [modalType, setModalType] = useState('add'); // 'add', 'edit', 'delete'
     const [currentProduct, setCurrentProduct] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', price: '', image: '', category: 'Streaming', description: '', skuList: [], tagsList: [],
+        name: '', price: '', image: '', category: 'Streaming', subCategory: '', description: '', skuList: [], tagsList: [],
         metaTitle: '', metaDescription: '', resolution: '', region: '', downloadLink: '', galleryList: [],
         descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: '', hasTest: false
     });
@@ -574,10 +994,6 @@ const ProductsManager = () => {
     const [linkGenerator, setLinkGenerator] = useState({ customTitle: '', customUrl: '' });
 
 
-
-    const showNotification = (message, type) => {
-        setNotification({ message, type });
-    };
 
     const fetchProducts = () => {
         setLoading(true);
@@ -631,6 +1047,7 @@ const ProductsManager = () => {
             price: '',
             image: '',
             category: categories.length > 0 ? (typeof categories[0] === 'object' ? categories[0].name : categories[0]) : 'Streaming',
+            subCategory: '',
             description: '',
             skuList: [],
             tagsList: [],
@@ -662,6 +1079,7 @@ const ProductsManager = () => {
             price: product.price,
             image: product.image,
             category: product.category,
+            subCategory: product.subCategory || '',
             description: product.description || '',
             skuList: skuList,
             tagsList: tagsList,
@@ -948,13 +1366,35 @@ const ProductsManager = () => {
                         </div>
                         <div className="form-group">
                             <label className="form-label">Catégorie</label>
-                            <select name="category" className="form-select" value={formData.category} onChange={handleInputChange}>
+                            <select name="category" className="form-select" value={formData.category} onChange={e => {
+                                handleInputChange(e);
+                                setFormData(prev => ({ ...prev, category: e.target.value, subCategory: '' })); // Reset subcategory when category changes
+                            }}>
                                 {categories.map(cat => {
                                     const name = typeof cat === 'object' ? cat.name : cat;
                                     return <option key={name} value={name}>{name}</option>;
                                 })}
                             </select>
                         </div>
+                    </div>
+
+                    {/* SubCategory Selection */}
+                    <div className="form-group">
+                        <label className="form-label">Sous-Catégorie</label>
+                        <select
+                            name="subCategory"
+                            className="form-select"
+                            value={formData.subCategory || ''}
+                            onChange={handleInputChange}
+                            disabled={!formData.category}
+                        >
+                            <option value="">-- Aucune --</option>
+                            {/* We need to access the settings (which contain categories/subcategories) here. 'categories' context might not have subCategories populated dependent on implementation. 
+                                Ideally 'settings' fetched in ProductsManager has detailed categories. */}
+                            {settings.categories && settings.categories.find(c => c.name === formData.category)?.subCategories?.map((sub, idx) => (
+                                <option key={idx} value={sub.name}>{sub.name}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="form-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
@@ -3477,7 +3917,7 @@ const SettingsManager = () => {
     );
 };
 
-const GuidesManager = () => {
+const GuidesManager = ({ openGlobalSeo }) => {
     const [guides, setGuides] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -3658,10 +4098,25 @@ const GuidesManager = () => {
             {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                <h2>Gestion des Guides d'installation</h2>
-                <button className="btn btn-primary" onClick={() => { setEditingGuide(null); setIsModalOpen(true); }}>
-                    + Ajouter un Article
-                </button>
+                <h2 style={{ fontSize: '22px' }}>Gestion des Guides d'installation</h2>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        onClick={openGlobalSeo}
+                        className="btn btn-secondary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 15px',
+                            fontWeight: '600'
+                        }}
+                    >
+                        <IconSEO /> SEO
+                    </button>
+                    <button className="btn btn-primary" onClick={() => { setEditingGuide(null); setIsModalOpen(true); }}>
+                        + Ajouter un Article
+                    </button>
+                </div>
             </div>
 
             {/* Page Settings Section */}
@@ -3902,7 +4357,7 @@ const GuidesManager = () => {
 };
 
 // Reviews Manager Component
-const ReviewsManager = () => {
+const ReviewsManager = ({ openGlobalSeo }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -4052,6 +4507,19 @@ const ReviewsManager = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <button
+                        onClick={openGlobalSeo}
+                        className="btn btn-secondary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 15px',
+                            fontWeight: '600'
+                        }}
+                    >
+                        <IconSEO /> SEO
+                    </button>
                     <div style={{
                         background: '#f8fafc',
                         padding: '8px 16px',
@@ -4313,8 +4781,170 @@ const ReviewsManager = () => {
     );
 };
 
+const SubCategoryManager = ({ openGlobalSeo }) => {
+    const [settings, setSettings] = useState(null);
+    const [selectedParent, setSelectedParent] = useState('');
+    const [newSubCategory, setNewSubCategory] = useState('');
+    const [notification, setNotification] = useState(null);
+
+    const fetchSettings = () => {
+        fetch(`${API_BASE_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setSettings(data.data);
+            });
+    };
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const handleAdd = async (e) => {
+        e.preventDefault();
+        if (!selectedParent || !newSubCategory.trim()) return;
+
+        const catIndex = settings.categories.findIndex(c => c.name === selectedParent);
+        if (catIndex === -1) return;
+
+        const updatedCategories = [...settings.categories];
+        if (!updatedCategories[catIndex].subCategories) updatedCategories[catIndex].subCategories = [];
+
+        // Check duplicate
+        if (updatedCategories[catIndex].subCategories.some(s => s.name === newSubCategory.trim())) {
+            setNotification({ message: 'Cette sous-catégorie existe déjà', type: 'error' });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+        }
+
+        updatedCategories[catIndex].subCategories.push({
+            name: newSubCategory.trim(),
+            seoH1: '',
+            seoSubheadings: []
+        });
+
+        const newSettings = { ...settings, categories: updatedCategories };
+        // Save
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSettings)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSettings(data.data); // Update state with new settings
+                setNewSubCategory('');
+                setNotification({ message: 'Sous-catégorie ajoutée', type: 'success' });
+                setTimeout(() => setNotification(null), 3000);
+            }
+        } catch (error) {
+            setNotification({ message: 'Erreur serveur', type: 'error' });
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
+    const handleDelete = async (subName) => {
+        if (!window.confirm('Supprimer cette sous-catégorie ?')) return;
+
+        const catIndex = settings.categories.findIndex(c => c.name === selectedParent);
+        const updatedCategories = [...settings.categories];
+        updatedCategories[catIndex].subCategories = updatedCategories[catIndex].subCategories.filter(s => s.name !== subName);
+
+        const newSettings = { ...settings, categories: updatedCategories };
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSettings)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSettings(data.data);
+                setNotification({ message: 'Sous-catégorie supprimée', type: 'success' });
+                setTimeout(() => setNotification(null), 3000);
+            }
+        } catch (error) {
+            setNotification({ message: 'Erreur serveur', type: 'error' });
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
+    const parentCat = settings?.categories.find(c => c.name === selectedParent);
+
+    return (
+        <div className="admin-card">
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: 0 }}>Gestion de Sous-catégories</h2>
+            </div>
+
+            <div className="form-group">
+                <label className="form-label">Choisir une Catégorie Principale</label>
+                <select
+                    className="form-select"
+                    value={selectedParent}
+                    onChange={(e) => setSelectedParent(e.target.value)}
+                >
+                    <option value="">-- Sélectionner --</option>
+                    {settings?.categories.map((c, i) => <option key={i} value={c.name}>{c.name}</option>)}
+                </select>
+            </div>
+
+            {selectedParent && (
+                <div style={{ marginTop: '20px' }}>
+                    <form onSubmit={handleAdd} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                        <input
+                            className="form-input"
+                            placeholder="Nom de la sous-catégorie"
+                            value={newSubCategory}
+                            onChange={(e) => setNewSubCategory(e.target.value)}
+                            required
+                        />
+                        <button type="submit" className="btn btn-primary">Ajouter</button>
+                    </form>
+
+                    <h3 style={{ fontSize: '16px', marginBottom: '15px' }}>Sous-catégories existantes</h3>
+                    {parentCat?.subCategories?.length > 0 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                            {parentCat.subCategories.map((sub, idx) => (
+                                <div key={idx} style={{
+                                    background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px'
+                                }}>
+                                    <div style={{ fontWeight: 'bold', color: '#334155' }}>{sub.name}</div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button
+                                            onClick={() => openGlobalSeo(selectedParent, sub.name)}
+                                            style={{ flex: 1, padding: '6px', background: '#e0f2fe', color: '#0284c7', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+                                        >
+                                            SEO
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(sub.name)}
+                                            style={{ flex: 1, padding: '6px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
+                                        >
+                                            Suppr.
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p style={{ color: '#94a3b8' }}>Aucune sous-catégorie pour le moment.</p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // Guide Inquiries Manager Component
-const GuideInquiriesManager = () => {
+const GuideInquiriesManager = ({ openGlobalSeo }) => {
     const [inquiries, setInquiries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -4391,6 +5021,19 @@ const GuideInquiriesManager = () => {
                         <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{inquiries.length} question(s) en attente de réponse</p>
                     </div>
                 </div>
+                <button
+                    onClick={openGlobalSeo}
+                    className="btn btn-secondary"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 15px',
+                        fontWeight: '600'
+                    }}
+                >
+                    <IconSEO /> SEO
+                </button>
             </div>
 
             {loading ? (
@@ -4532,7 +5175,7 @@ const GuideInquiriesManager = () => {
 };
 
 // Contact Messages Manager Component
-const ContactMessagesManager = () => {
+const ContactMessagesManager = ({ openGlobalSeo }) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -4609,6 +5252,19 @@ const ContactMessagesManager = () => {
                         <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{messages.length} message(s) reçu(s)</p>
                     </div>
                 </div>
+                <button
+                    onClick={openGlobalSeo}
+                    className="btn btn-secondary"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 15px',
+                        fontWeight: '600'
+                    }}
+                >
+                    <IconSEO /> SEO
+                </button>
             </div>
 
             {loading ? (
@@ -4753,7 +5409,8 @@ const ContactMessagesManager = () => {
 /*                           SUPPORT MANAGER                             */
 /* --------------------------------------------------------------------- */
 
-const SupportManager = () => {
+// Support Manager Component
+const SupportManager = ({ openGlobalSeo }) => {
     const [activeSubTab, setActiveSubTab] = useState('tickets');
     const [tickets, setTickets] = useState([]);
 
@@ -5023,7 +5680,23 @@ const SupportManager = () => {
             <ConfirmationModal />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                <h2 style={{ color: '#1e293b', fontWeight: '700' }}>Gestion de Support</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <h2 style={{ color: '#1e293b', fontWeight: '700' }}>Gestion de Support</h2>
+                    <button
+                        onClick={openGlobalSeo}
+                        className="btn btn-secondary"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px 12px',
+                            fontWeight: '600',
+                            fontSize: '13px'
+                        }}
+                    >
+                        <IconSEO /> SEO
+                    </button>
+                </div>
                 <div className="tab-buttons" style={{ display: 'flex', gap: '8px', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
                     <button
                         style={{
