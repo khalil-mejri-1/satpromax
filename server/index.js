@@ -596,6 +596,48 @@ app.post("/api/settings/categories", async (req, res) => {
     }
 });
 
+app.put("/api/settings/categories/:category", async (req, res) => {
+    try {
+        const { category } = req.params;
+        const { newCategory, newIcon, newTitle, newDescription, newSlug, newMetaTitle, newMetaDescription, newKeywords, subcategories } = req.body;
+        let settings = await getSafeSettings();
+        if (settings && settings.categories) {
+            // Find by name (case-insensitive) or by slug
+            let catIndex = settings.categories.findIndex(c => c.name.toLowerCase() === category.toLowerCase());
+            if (catIndex === -1) {
+                catIndex = settings.categories.findIndex(c => c.slug === category);
+            }
+
+            if (catIndex !== -1) {
+                const oldName = settings.categories[catIndex].name;
+                settings.categories[catIndex] = {
+                    ...settings.categories[catIndex],
+                    name: newCategory || settings.categories[catIndex].name,
+                    icon: newIcon !== undefined ? newIcon : settings.categories[catIndex].icon,
+                    title: newTitle !== undefined ? newTitle : settings.categories[catIndex].title,
+                    description: newDescription !== undefined ? newDescription : settings.categories[catIndex].description,
+                    slug: newSlug || settings.categories[catIndex].slug,
+                    metaTitle: newMetaTitle !== undefined ? newMetaTitle : settings.categories[catIndex].metaTitle,
+                    metaDescription: newMetaDescription !== undefined ? newMetaDescription : settings.categories[catIndex].metaDescription,
+                    keywords: newKeywords !== undefined ? newKeywords : settings.categories[catIndex].keywords,
+                    subcategories: subcategories !== undefined ? subcategories : settings.categories[catIndex].subcategories
+                };
+                settings.markModified('categories');
+                await settings.save();
+
+                // If name changed, update all products in this category
+                if (newCategory && newCategory !== oldName) {
+                    await Product.updateMany({ category: oldName }, { category: newCategory });
+                }
+            }
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        console.error("Error updating category:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
 app.delete("/api/settings/categories/:category", async (req, res) => {
     try {
         const { category } = req.params;
