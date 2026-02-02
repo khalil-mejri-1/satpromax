@@ -568,7 +568,7 @@ const ProductsManager = () => {
     const [formData, setFormData] = useState({
         name: '', price: '', image: '', category: 'Streaming', description: '', skuList: [], tagsList: [],
         metaTitle: '', metaDescription: '', resolution: '', region: '', downloadLink: '', galleryList: [],
-        descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: ''
+        descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: '', hasTest: false
     });
     const [notification, setNotification] = useState(null);
     const [linkGenerator, setLinkGenerator] = useState({ customTitle: '', customUrl: '' });
@@ -643,7 +643,8 @@ const ProductsManager = () => {
             descriptionGlobal: '',
             extraSections: [],
             hasDelivery: false,
-            deliveryPrice: ''
+            deliveryPrice: '',
+            hasTest: false
         });
         setModalOpen(true);
     };
@@ -673,7 +674,8 @@ const ProductsManager = () => {
             descriptionGlobal: product.descriptionGlobal || '',
             extraSections: product.extraSections || [],
             hasDelivery: product.hasDelivery || false,
-            deliveryPrice: product.deliveryPrice || ''
+            deliveryPrice: product.deliveryPrice || '',
+            hasTest: product.hasTest || false
         });
         setModalOpen(true);
     };
@@ -698,11 +700,13 @@ const ProductsManager = () => {
         // Prepare data for backend (convert arrays back to strings)
         const submissionData = {
             ...formData,
+            hasTest: formData.hasTest, // Explicitly include hasTest
             sku: formData.skuList.join(', '),
             tags: formData.tagsList.join(', '),
             gallery: formData.galleryList.filter(url => url.trim() !== ''),
             extraSections: formData.extraSections.filter(s => (s.title && s.title.trim() !== '') || (s.items && s.items.length > 0) || (s.content && s.content.trim() !== ''))
         };
+        console.log("Submitting Product Data:", submissionData);
 
         try {
             const response = await fetch(url, {
@@ -859,6 +863,9 @@ const ProductsManager = () => {
                                             <td style={{ padding: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>{product.sku || '-'}</td>
                                             <td style={{ padding: '12px' }}>
                                                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                                    {product.hasTest && (
+                                                        <span style={{ fontSize: '10px', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', color: '#166534', fontWeight: 'bold', border: '1px solid #86efac' }}>TEST</span>
+                                                    )}
                                                     {product.tags ? product.tags.split(',').slice(0, 2).map((tag, i) => (
                                                         <span key={i} style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', color: '#64748b' }}>{tag.trim()}</span>
                                                     )) : '-'}
@@ -975,6 +982,21 @@ const ProductsManager = () => {
                                 />
                             </div>
                         )}
+                    </div>
+
+                    <div className="form-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                                type="checkbox"
+                                id="hasTest"
+                                checked={formData.hasTest}
+                                onChange={(e) => setFormData({ ...formData, hasTest: e.target.checked })}
+                                style={{ width: '18px', height: '18px', marginRight: '10px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="hasTest" style={{ cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+                                Test Gratuit (2 jours) ?
+                            </label>
+                        </div>
                     </div>
 
                     {(formData.category === 'IPTV Premium' || formData.category === 'Abonnement IPTV') && (

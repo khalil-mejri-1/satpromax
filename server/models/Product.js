@@ -34,10 +34,10 @@ const productSchema = new mongoose.Schema(
         slug: { type: String, unique: true, sparse: true },
         hasDelivery: { type: Boolean, default: false },
         deliveryPrice: String,
-        inStock: { type: Boolean, default: true }
+        inStock: { type: Boolean, default: true },
+        hasTest: { type: Boolean, default: false }
     },
     { timestamps: true }
 );
 
-// 👇 هنا الحل
 module.exports = mongoose.model("Product", productSchema, "products");

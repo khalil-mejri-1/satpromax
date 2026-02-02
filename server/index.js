@@ -320,6 +320,7 @@ app.post("/api/products", async (req, res) => {
 app.put("/api/products/:id", async (req, res) => {
     try {
         const productData = req.body;
+        console.log("PUT /api/products/:id received:", JSON.stringify(productData, null, 2));
         if (productData.name) productData.slug = await generateUniqueSlug(productData.name, req.params.id);
         const product = await Product.findByIdAndUpdate(req.params.id, productData, { new: true, runValidators: true });
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
