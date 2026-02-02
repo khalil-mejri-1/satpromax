@@ -252,12 +252,21 @@ export default function ProductsPage() {
     // Improvement: Check if normalizedCategory maps to a known DB name via CATEGORY_DB_MAP
     const mappedDBName = CATEGORY_DB_MAP[normalizedCategory];
 
-    const dynamicCategory = categories.find(c =>
-        (c.slug && c.slug.toLowerCase() === normalizedCategory) ||
-        slugify(c.name) === normalizedCategory ||
-        (mappedDBName && c.name.toLowerCase() === mappedDBName.toLowerCase()) ||
-        (mappedDBName && c.name.toLowerCase().includes(mappedDBName.toLowerCase())) // Fallback partial match
-    );
+    // Normalize for comparison (removes accents/special chars)
+    const normalize = (val) => val ? val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").trim() : "";
+    const cleanNormalized = normalize(normalizedCategory);
+    const cleanMapped = normalize(mappedDBName);
+
+    const dynamicCategory = categories.find(c => {
+        const cleanName = normalize(c.name);
+        const cleanSlug = normalize(c.slug || '');
+
+        return (cleanSlug && cleanSlug === cleanNormalized) ||
+            slugify(c.name) === cleanNormalized ||
+            (cleanMapped && cleanName === cleanMapped) ||
+            (cleanMapped && cleanName.includes(cleanMapped)) ||
+            (cleanName === cleanNormalized)
+    });
 
     const meta = dynamicCategory ? {
         title: dynamicCategory.title || dynamicCategory.name,
