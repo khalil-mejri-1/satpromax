@@ -3951,13 +3951,13 @@ const GuidesManager = ({ openGlobalSeo }) => {
 
     const fetchOtherData = async () => {
         try {
-            const [pRes, cRes] = await Promise.all([
+            const [pRes, sRes] = await Promise.all([
                 fetch(`${API_BASE_URL}/api/products`),
-                fetch(`${API_BASE_URL}/api/categories`)
+                fetch(`${API_BASE_URL}/api/settings`)
             ]);
-            const [pData, cData] = await Promise.all([pRes.json(), cRes.json()]);
+            const [pData, sData] = await Promise.all([pRes.json(), sRes.json()]);
             if (pData.success) setAvailableProducts(pData.data);
-            if (cData.success) setAvailableCategories(cData.data);
+            if (sData.success && sData.data.categories) setAvailableCategories(sData.data.categories);
         } catch (error) {
             console.error("Error fetching helper data:", error);
         }
@@ -3966,13 +3966,13 @@ const GuidesManager = ({ openGlobalSeo }) => {
     const fetchGuides = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}guides`);
+            const res = await fetch(`${API_BASE_URL}/api/guides`);
             const data = await res.json();
             if (data.success) {
                 setGuides(data.data);
             }
             // Fetch page settings
-            const settingsRes = await fetch(`${API_BASE_URL}settings`);
+            const settingsRes = await fetch(`${API_BASE_URL}/api/settings`);
             const settingsData = await settingsRes.json();
             if (settingsData.success) {
                 setPageSettings({
@@ -3989,7 +3989,7 @@ const GuidesManager = ({ openGlobalSeo }) => {
 
     const handleSavePageSettings = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}settings`, {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pageSettings)
@@ -4014,8 +4014,8 @@ const GuidesManager = ({ openGlobalSeo }) => {
         e.preventDefault();
         const method = editingGuide ? 'PUT' : 'POST';
         const url = editingGuide
-            ? `${API_BASE_URL}guides/${editingGuide._id}`
-            : `${API_BASE_URL}guides`;
+            ? `${API_BASE_URL}/api/guides/${editingGuide._id}`
+            : `${API_BASE_URL}/api/guides`;
 
         try {
             const res = await fetch(url, {
@@ -4041,7 +4041,7 @@ const GuidesManager = ({ openGlobalSeo }) => {
     const handleDelete = async (id) => {
         if (!window.confirm("Voulez-vous vraiment supprimer cet article ?")) return;
         try {
-            const res = await fetch(`${API_BASE_URL}guides/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE_URL}/api/guides/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.success) {
                 showNotification("Article supprimé", "success");
@@ -4091,15 +4091,49 @@ const GuidesManager = ({ openGlobalSeo }) => {
         g.content.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (loading) return <div>Chargement...</div>;
+    if (loading) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column', gap: '15px' }}>
+            <div className="admin-spinner"></div>
+            <p style={{ color: '#64748b', fontSize: '14px' }}>Chargement des guides...</p>
+        </div>
+    );
 
     return (
-        <div className="admin-card">
+        <div className="admin-view-container">
             {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                <h2 style={{ fontSize: '22px' }}>Gestion des Guides d'installation</h2>
-                <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Header Section */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '32px',
+                background: '#fff',
+                padding: '24px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                border: '1px solid #f1f5f9'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{
+                        width: '48px',
+                        height: '48px',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        boxShadow: '0 8px 16px rgba(99, 102, 241, 0.2)'
+                    }}>
+                        <IconGuide />
+                    </div>
+                    <div>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', margin: 0 }}>Gestion des Guides</h2>
+                        <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>{guides.length} articles publiés à ce jour</p>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
                     <button
                         onClick={openGlobalSeo}
                         className="btn btn-secondary"
@@ -4107,252 +4141,484 @@ const GuidesManager = ({ openGlobalSeo }) => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '10px 15px',
-                            fontWeight: '600'
+                            padding: '12px 20px',
+                            fontWeight: '600',
+                            borderRadius: '12px',
+                            transition: 'all 0.3s ease'
                         }}
                     >
-                        <IconSEO /> SEO
+                        <IconSEO /> Configurer SEO
                     </button>
-                    <button className="btn btn-primary" onClick={() => { setEditingGuide(null); setIsModalOpen(true); }}>
-                        + Ajouter un Article
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => { setEditingGuide(null); setIsModalOpen(true); }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '12px 24px',
+                            fontWeight: '700',
+                            borderRadius: '12px',
+                            background: '#1e293b',
+                            border: 'none',
+                            boxShadow: '0 4px 12px rgba(30, 41, 59, 0.15)'
+                        }}
+                    >
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                        Nouvel Article
                     </button>
                 </div>
             </div>
 
-            {/* Page Settings Section */}
-            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', marginBottom: '15px' }}>Paramètres de la page Guide</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Image Hero (Bouton Blog & Article)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={pageSettings.guideHeroImage}
-                            onChange={(e) => setPageSettings({ ...pageSettings, guideHeroImage: e.target.value })}
-                            placeholder="URL de l'image Hero"
-                        />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '30px', alignItems: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Search & Bulk Actions */}
+                    <div style={{
+                        background: '#fff',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        border: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                            <svg style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Rechercher par titre ou contenu..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ paddingLeft: '40px', marginBottom: 0, borderRadius: '10px' }}
+                            />
+                        </div>
                     </div>
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">Image Fond de Page (Background)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={pageSettings.guidePageBgImage}
-                            onChange={(e) => setPageSettings({ ...pageSettings, guidePageBgImage: e.target.value })}
-                            placeholder="URL de l'image de fond"
-                        />
-                    </div>
-                </div>
-                <button
-                    className="btn btn-primary"
-                    style={{ marginTop: '20px', padding: '10px 20px', fontSize: '14px' }}
-                    onClick={handleSavePageSettings}
-                >
-                    Enregistrer les paramètres de page
-                </button>
-            </div>
 
-            <div className="form-group" style={{ maxWidth: '400px', marginBottom: '20px' }}>
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Chercher un article..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-            </div>
-
-            <div className="admin-table-container">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Titre</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredGuides.map(guide => (
-                            <tr key={guide._id}>
-                                <td>
-                                    <img src={guide.image || "https://premium.Satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"} alt="" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }} />
-                                </td>
-                                <td style={{ fontWeight: 'bold' }}>{guide.title}</td>
-                                <td>{new Date(guide.createdAt).toLocaleDateString()}</td>
-                                <td>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button className="btn" onClick={() => handleEdit(guide)}>Modifier</button>
-                                        <button className="btn" style={{ color: '#ef4444' }} onClick={() => handleDelete(guide._id)}>Supprimer</button>
+                    {/* Guides List Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                        {filteredGuides.length > 0 ? filteredGuides.map(guide => (
+                            <div key={guide._id} style={{
+                                background: '#fff',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                border: '1px solid #f1f5f9',
+                                transition: 'all 0.3s ease',
+                                cursor: 'default',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+                            }} className="guide-admin-card">
+                                <div style={{ height: '160px', position: 'relative' }}>
+                                    <img
+                                        src={guide.image || "https://premium.Satpromax.com/wp-content/uploads/2024/09/Logo-sat-PRO-MAX-site-e1726059632832.png"}
+                                        alt=""
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '12px',
+                                        right: '12px',
+                                        background: 'rgba(255,255,255,0.9)',
+                                        backdropFilter: 'blur(4px)',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontSize: '11px',
+                                        fontWeight: '700',
+                                        color: '#64748b'
+                                    }}>
+                                        {new Date(guide.createdAt).toLocaleDateString()}
                                     </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </div>
+                                <div style={{ padding: '20px' }}>
+                                    <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#1e293b', marginBottom: '8px', lineHeight: '1.4' }}>{guide.title}</h3>
+                                    <p style={{
+                                        fontSize: '13px',
+                                        color: '#64748b',
+                                        margin: '0 0 20px 0',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: '2',
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        lineHeight: '1.6'
+                                    }}>
+                                        {guide.excerpt || "Aucun extrait disponible pour cet article..."}
+                                    </p>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button
+                                            className="btn"
+                                            onClick={() => handleEdit(guide)}
+                                            style={{
+                                                flex: 1,
+                                                padding: '8px',
+                                                background: '#f1f5f9',
+                                                color: '#1e293b',
+                                                fontWeight: '600',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontSize: '13px'
+                                            }}
+                                        >
+                                            Modifier
+                                        </button>
+                                        <button
+                                            className="btn"
+                                            onClick={() => handleDelete(guide._id)}
+                                            style={{
+                                                padding: '8px 12px',
+                                                background: '#fff1f2',
+                                                color: '#f43f5e',
+                                                fontWeight: '600',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontSize: '13px'
+                                            }}
+                                        >
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )) : (
+                            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '60px', background: '#fff', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                                <p style={{ color: '#94a3b8', fontSize: '15px' }}>Aucun guide trouvé correspondant à votre recherche.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Sidebar Settings */}
+                <div style={{
+                    background: '#fff',
+                    padding: '24px',
+                    borderRadius: '20px',
+                    border: '1px solid #f1f5f9',
+                    position: 'sticky',
+                    top: '20px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+                }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        Apparence Page
+                    </h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontWeight: '700', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Hero Desktop</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={pageSettings.guideHeroImage}
+                                onChange={(e) => setPageSettings({ ...pageSettings, guideHeroImage: e.target.value })}
+                                placeholder="URL de l'image"
+                                style={{ borderRadius: '10px', fontSize: '13px' }}
+                            />
+                            {pageSettings.guideHeroImage && (
+                                <img src={pageSettings.guideHeroImage} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px', border: '1px solid #e2e8f0' }} alt="Preview" />
+                            )}
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontWeight: '700', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fond de Page</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                value={pageSettings.guidePageBgImage}
+                                onChange={(e) => setPageSettings({ ...pageSettings, guidePageBgImage: e.target.value })}
+                                placeholder="URL du fond"
+                                style={{ borderRadius: '10px', fontSize: '13px' }}
+                            />
+                        </div>
+
+                        <button
+                            className="btn btn-primary"
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                fontWeight: '700',
+                                background: '#1e293b',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                            }}
+                            onClick={handleSavePageSettings}
+                        >
+                            Enregistrer Modifications
+                        </button>
+                    </div>
+                </div>
             </div>
 
+            {/* Modal for Add/Edit */}
             {isModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '800px' }}>
-                        <h3>{editingGuide ? "Modifier l'Article" : "Nouvel Article"}</h3>
-                        <form onSubmit={handleSave}>
-                            <div className="form-group">
-                                <label className="form-label">Titre *</label>
-                                <input
-                                    className="form-input"
-                                    value={newGuide.title}
-                                    onChange={e => setNewGuide({ ...newGuide, title: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Image URL</label>
-                                <input
-                                    className="form-input"
-                                    value={newGuide.image}
-                                    onChange={e => setNewGuide({ ...newGuide, image: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Extrait (Excerpt)</label>
-                                <textarea
-                                    className="form-input"
-                                    style={{ height: '60px' }}
-                                    value={newGuide.excerpt}
-                                    onChange={e => setNewGuide({ ...newGuide, excerpt: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Introduction (Optionnel)</label>
-                                <textarea
-                                    className="form-input"
-                                    style={{ height: '100px' }}
-                                    value={newGuide.content}
-                                    onChange={e => setNewGuide({ ...newGuide, content: e.target.value })}
-                                />
-                            </div>
+                <div className="modal-overlay" style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', zIndex: 2000 }}>
+                    <div className="modal-content" style={{
+                        maxWidth: '960px',
+                        width: '95%',
+                        borderRadius: '24px',
+                        padding: '40px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                            <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', margin: 0 }}>
+                                {editingGuide ? "Modifier l'Article" : "Nouvel Article"}
+                            </h3>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <svg width="20" height="20" fill="none" stroke="#64748b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
 
-                            <div style={{ marginBottom: '25px', padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
-                                    CRÉER UN LIEN DANS LE TEXTE (Lien Bleu)
-                                </h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr auto', gap: '8px' }}>
+                        <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '32px' }}>
+                            {/* Main Content Area */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label" style={{ fontWeight: '700' }}>Titre de l'article *</label>
                                     <input
                                         className="form-input"
-                                        placeholder="Le mot ou la phrase à cliquer..."
-                                        value={linkGenerator.customTitle}
-                                        onChange={e => setLinkGenerator({ ...linkGenerator, customTitle: e.target.value })}
-                                        style={{ height: '38px', fontSize: '13px' }}
+                                        value={newGuide.title}
+                                        onChange={e => setNewGuide({ ...newGuide, title: e.target.value })}
+                                        placeholder="Ex: Guide d'installation IPTV sur Android"
+                                        required
+                                        style={{ height: '50px', fontSize: '16px', borderRadius: '12px' }}
                                     />
+                                </div>
 
-                                    <input
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label" style={{ fontWeight: '700' }}>Introduction (Format texte brut)</label>
+                                    <textarea
                                         className="form-input"
-                                        placeholder="Lien ou URL (ex: /contact ou https://...)"
-                                        value={linkGenerator.customUrl}
-                                        onChange={e => setLinkGenerator({ ...linkGenerator, customUrl: e.target.value })}
-                                        style={{ height: '38px', fontSize: '13px' }}
+                                        style={{ height: '120px', borderRadius: '12px', padding: '15px' }}
+                                        value={newGuide.content}
+                                        onChange={e => setNewGuide({ ...newGuide, content: e.target.value })}
+                                        placeholder="Écrivez une introduction captivante..."
                                     />
-
-                                    <button
-                                        type="button"
-                                        className="btn btn-primary"
-                                        onClick={() => {
-                                            const text = linkGenerator.customTitle || "Cliquez ici";
-                                            const url = linkGenerator.customUrl;
-                                            if (!url) return showNotification("Veuillez saisir une destination", "error");
-
-                                            const html = `<a href="${url}">${text}</a>`;
-                                            navigator.clipboard.writeText(html);
-                                            showNotification("Lien copié !", "success");
-                                        }}
-                                        style={{ height: '38px', padding: '0 15px', fontSize: '12px' }}
-                                    >
-                                        Copier HTML
-                                    </button>
-                                </div>
-                                <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>* Écrivez le texte, collez l'URL, copiez puis collez le code HTML dans votre article.</p>
-                            </div>
-
-
-                            <div style={{ marginBottom: '25px', padding: '20px', background: '#f1f5f9', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                    <h4 style={{ margin: 0, fontSize: '15px', color: '#334155', fontWeight: '800' }}>SECTIONS DE L'ARTICLE</h4>
-                                    <button type="button" className="btn btn-primary" style={{ padding: '5px 12px', fontSize: '12px' }} onClick={addSection}>+ Ajouter Section</button>
                                 </div>
 
-                                {newGuide.sections.map((section, index) => (
-                                    <div key={index} style={{ background: '#fff', padding: '15px', borderRadius: '12px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'relative' }}>
+                                {/* Section Creator */}
+                                <div style={{
+                                    background: '#f8fafc',
+                                    padding: '24px',
+                                    borderRadius: '20px',
+                                    border: '1px solid #e2e8f0'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#334155' }}>SECTIONS DÉTAILLÉES</h4>
                                         <button
                                             type="button"
-                                            onClick={() => removeSection(index)}
-                                            style={{ position: 'absolute', top: '10px', right: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
+                                            className="btn btn-primary"
+                                            style={{
+                                                padding: '8px 16px',
+                                                fontSize: '13px',
+                                                borderRadius: '10px',
+                                                background: '#6366f1'
+                                            }}
+                                            onClick={addSection}
                                         >
-                                            &times;
+                                            + Ajouter une étape
                                         </button>
-                                        <div className="form-group">
-                                            <label className="form-label" style={{ fontSize: '12px' }}>Titre de Section</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={section.title}
-                                                onChange={e => updateSection(index, 'title', e.target.value)}
-                                                placeholder="Ex: Comment installer..."
-                                            />
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        {newGuide.sections.map((section, index) => (
+                                            <div key={index} style={{
+                                                background: '#fff',
+                                                padding: '20px',
+                                                borderRadius: '16px',
+                                                border: '1px solid #cbd5e1',
+                                                position: 'relative',
+                                                boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                                            }}>
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    left: '-12px',
+                                                    top: '20px',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    background: '#1e293b',
+                                                    color: '#fff',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '12px',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    {index + 1}
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSection(index)}
+                                                    style={{ position: 'absolute', top: '20px', right: '20px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer' }}
+                                                >
+                                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        style={{ fontWeight: '700', marginBottom: 0, border: 'none', background: '#f1f5f9', borderRadius: '8px' }}
+                                                        value={section.title}
+                                                        onChange={e => updateSection(index, 'title', e.target.value)}
+                                                        placeholder="Titre de cette étape (ex: Étape 1 : Connexion)"
+                                                    />
+                                                    <textarea
+                                                        className="form-input"
+                                                        style={{ height: '100px', marginBottom: 0, borderRadius: '8px' }}
+                                                        value={section.content}
+                                                        onChange={e => updateSection(index, 'content', e.target.value)}
+                                                        placeholder="Explication détaillée..."
+                                                    />
+                                                    <div style={{ position: 'relative' }}>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            style={{ paddingLeft: '35px', marginBottom: 0, fontSize: '13px', borderRadius: '8px' }}
+                                                            value={section.image}
+                                                            onChange={e => updateSection(index, 'image', e.target.value)}
+                                                            placeholder="URL de l'image illustrative"
+                                                        />
+                                                        <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {newGuide.sections.length === 0 && (
+                                        <div style={{ textAlign: 'center', padding: '40px', background: '#fff', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                                            <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Décomposez votre guide en étapes claires.</p>
                                         </div>
-                                        <div className="form-group">
-                                            <label className="form-label" style={{ fontSize: '12px' }}>Texte de Section</label>
-                                            <textarea
-                                                className="form-input"
-                                                style={{ height: '100px' }}
-                                                value={section.content}
-                                                onChange={e => updateSection(index, 'content', e.target.value)}
-                                                placeholder="Contenu de cette section..."
-                                            />
-                                        </div>
-                                        <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label" style={{ fontSize: '12px' }}>Image explicative (Optionnel)</label>
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={section.image}
-                                                onChange={e => updateSection(index, 'image', e.target.value)}
-                                                placeholder="URL de l'image"
-                                            />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Sidebar / Options */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                                    <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', fontWeight: '800' }}>APERÇU & MÉDIA</h4>
+
+                                    <div className="form-group">
+                                        <label className="form-label" style={{ fontWeight: '700', fontSize: '12px' }}>IMAGE DE COUVERTURE</label>
+                                        <input
+                                            className="form-input"
+                                            value={newGuide.image}
+                                            onChange={e => setNewGuide({ ...newGuide, image: e.target.value })}
+                                            placeholder="URL de l'image principale"
+                                            style={{ borderRadius: '10px' }}
+                                        />
+                                        <div style={{
+                                            width: '100%',
+                                            height: '180px',
+                                            background: '#f1f5f9',
+                                            borderRadius: '12px',
+                                            marginTop: '12px',
+                                            overflow: 'hidden',
+                                            border: '1px solid #e2e8f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            {newGuide.image ? (
+                                                <img src={newGuide.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
+                                            ) : (
+                                                <svg width="48" height="48" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
-                                {newGuide.sections.length === 0 && <p style={{ textAlign: 'center', color: '#64748b', fontSize: '13px' }}>Aucune section ajoutée. Cliquez sur le bouton ci-dessus pour commencer.</p>}
-                            </div>
 
-                            <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
-                                <h4 style={{ marginBottom: '15px', fontSize: '14px', color: '#64748b', fontWeight: '800' }}>PARAMÈTRES SEO (Article)</h4>
-                                <div className="form-group">
-                                    <label className="form-label">Meta Nom</label>
-                                    <input className="form-input" value={newGuide.metaTitle} onChange={e => setNewGuide({ ...newGuide, metaTitle: e.target.value })} />
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <label className="form-label" style={{ fontWeight: '700', fontSize: '12px' }}>RÉSUMÉ (EXCERPT)</label>
+                                        <textarea
+                                            className="form-input"
+                                            style={{ height: '100px', borderRadius: '10px' }}
+                                            value={newGuide.excerpt}
+                                            onChange={e => setNewGuide({ ...newGuide, excerpt: e.target.value })}
+                                            placeholder="Court résumé s'affichant sur la liste des guides..."
+                                        />
+                                    </div>
                                 </div>
-                                <div className="form-group">
-                                    <label className="form-label">Meta Description</label>
-                                    <textarea className="form-input" style={{ height: '60px' }} value={newGuide.metaDescription} onChange={e => setNewGuide({ ...newGuide, metaDescription: e.target.value })} />
-                                </div>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">Mot Clé</label>
-                                    <input className="form-input" value={newGuide.keywords} onChange={e => setNewGuide({ ...newGuide, keywords: e.target.value })} />
-                                </div>
-                            </div>
 
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button type="button" className="btn" onClick={() => setIsModalOpen(false)}>Annuler</button>
-                                <button type="submit" className="btn btn-primary">Enregistrer</button>
+                                {/* Link Generator */}
+                                <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', padding: '24px', borderRadius: '20px', color: '#fff' }}>
+                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                                        GÉNÉRATEUR DE LIENS
+                                    </h4>
+                                    <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '20px' }}>Générez des liens stylés à insérer dans vos textes.</p>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <input
+                                            className="form-input"
+                                            placeholder="Texte du lien..."
+                                            value={linkGenerator.customTitle}
+                                            onChange={e => setLinkGenerator({ ...linkGenerator, customTitle: e.target.value })}
+                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                        />
+                                        <input
+                                            className="form-input"
+                                            placeholder="URL de destination..."
+                                            value={linkGenerator.customUrl}
+                                            onChange={e => setLinkGenerator({ ...linkGenerator, customUrl: e.target.value })}
+                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            onClick={() => {
+                                                const text = linkGenerator.customTitle || "Cliquez ici";
+                                                const url = linkGenerator.customUrl;
+                                                if (!url) return showNotification("Saisissez une URL", "error");
+                                                const html = `<a href="${url}" style="color: #6366f1; font-weight: 700; text-decoration: underline;">${text}</a>`;
+                                                navigator.clipboard.writeText(html);
+                                                showNotification("HTML Copié !", "success");
+                                            }}
+                                            style={{ background: '#fff', color: '#1e293b', fontWeight: '800' }}
+                                        >
+                                            Copier le Code HTML
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* SEO Card */}
+                                <div style={{ background: '#fff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                                    <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#1e293b', fontWeight: '800' }}>SEO ARTICLE</h4>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '11px', fontWeight: '700' }}>META TITLE</label>
+                                            <input className="form-input" value={newGuide.metaTitle} onChange={e => setNewGuide({ ...newGuide, metaTitle: e.target.value })} />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label" style={{ fontSize: '11px', fontWeight: '700' }}>META DESCRIPTION</label>
+                                            <textarea className="form-input" style={{ height: '80px' }} value={newGuide.metaDescription} onChange={e => setNewGuide({ ...newGuide, metaDescription: e.target.value })} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '12px', paddingTop: '20px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn"
+                                        onClick={() => setIsModalOpen(false)}
+                                        style={{ flex: 1, padding: '15px', fontWeight: '700', borderRadius: '12px' }}
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
+                                        style={{ flex: 2, padding: '15px', fontWeight: '800', borderRadius: '12px', background: '#1e293b' }}
+                                    >
+                                        Enregistrer l'Article
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
-
-        </div >
+        </div>
     );
 };
 
@@ -4375,7 +4641,7 @@ const ReviewsManager = ({ openGlobalSeo }) => {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}products`);
+            const response = await fetch(`${API_BASE_URL}/api/products`);
             const data = await response.json();
             if (data.success) {
                 setProducts(data.data);
@@ -4388,7 +4654,7 @@ const ReviewsManager = ({ openGlobalSeo }) => {
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}reviews`);
+            const response = await fetch(`${API_BASE_URL}/api/reviews`);
             const data = await response.json();
             if (data.success) {
                 setReviews(data.data);
@@ -4406,7 +4672,7 @@ const ReviewsManager = ({ openGlobalSeo }) => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`${API_BASE_URL}reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -4428,7 +4694,7 @@ const ReviewsManager = ({ openGlobalSeo }) => {
     const confirmDelete = async () => {
         const id = deleteModal.id;
         try {
-            const response = await fetch(`${API_BASE_URL}reviews/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -4449,7 +4715,7 @@ const ReviewsManager = ({ openGlobalSeo }) => {
             if (reviewType === 'general') {
                 delete body.productId;
             }
-            const response = await fetch(`${API_BASE_URL}reviews`, {
+            const response = await fetch(`${API_BASE_URL}/api/reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -4952,7 +5218,7 @@ const GuideInquiriesManager = ({ openGlobalSeo }) => {
     const fetchInquiries = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}guide-inquiries`);
+            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries`);
             const data = await response.json();
             if (data.success) {
                 setInquiries(data.data);
@@ -4971,7 +5237,7 @@ const GuideInquiriesManager = ({ openGlobalSeo }) => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer cette question ?")) return;
         try {
-            const response = await fetch(`${API_BASE_URL}guide-inquiries/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/guide-inquiries/${id}`, {
                 method: 'DELETE'
             });
             const data = await response.json();
@@ -5183,7 +5449,7 @@ const ContactMessagesManager = ({ openGlobalSeo }) => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}contact-messages`);
+            const res = await fetch(`${API_BASE_URL}/api/contact-messages`);
             const data = await res.json();
             if (data.success) {
                 setMessages(data.data);
@@ -5202,7 +5468,7 @@ const ContactMessagesManager = ({ openGlobalSeo }) => {
     const handleDelete = async (id) => {
         if (!window.confirm("Supprimer ce message ?")) return;
         try {
-            const res = await fetch(`${API_BASE_URL}contact-messages/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/contact-messages/${id}`, {
                 method: 'DELETE'
             });
             const data = await res.json();
