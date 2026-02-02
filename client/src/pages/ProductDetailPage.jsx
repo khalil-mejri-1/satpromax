@@ -227,6 +227,8 @@ export default function ProductDetailPage() {
     const [deviceChoices, setDeviceChoices] = useState([]);
     const [selectedDevice, setSelectedDevice] = useState('');
     const [receiverSerial, setReceiverSerial] = useState('');
+    const [macAddress, setMacAddress] = useState('');
+    const [deviceKey, setDeviceKey] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
     const [activeImage, setActiveImage] = useState(null);
     const [settings, setSettings] = useState(null);
@@ -527,6 +529,11 @@ export default function ProductDetailPage() {
             return;
         }
 
+        if (isPlayerActivationCategory && (!macAddress || !deviceKey)) {
+            setModal({ show: true, message: "Veuillez entrer l'adresse MAC et la Device Key.", type: 'error' });
+            return;
+        }
+
         if (!billingInfo.whatsapp || !localWhatsapp || localWhatsapp.trim().length === 0) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
@@ -566,7 +573,9 @@ export default function ProductDetailPage() {
                 price: displayPrice,
                 image: product.image,
                 deviceChoice: isIPTVCategory ? selectedDevice : null,
-                receiverSerial: isSharingCategory ? receiverSerial : null
+                receiverSerial: isSharingCategory ? receiverSerial : null,
+                macAddress: isPlayerActivationCategory ? macAddress : null,
+                deviceKey: isPlayerActivationCategory ? deviceKey : null
             }],
             totalAmount: totalAmount,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -597,6 +606,7 @@ export default function ProductDetailPage() {
                     `Paiement: ${billingInfo.paymentMode || "COD"}\n` +
                     (isIPTVCategory ? `Appareil: ${selectedDevice || "N/A"}\n` : "") +
                     (isSharingCategory ? `S/N Récepteur: ${receiverSerial || "N/A"}\n` : "") +
+                    (isPlayerActivationCategory ? `MAC: ${macAddress || "N/A"}\nKey: ${deviceKey || "N/A"}\n` : "") +
                     `\n` +
                     `---------------------------\n\n` +
                     `Merci de confirmer cette commande.`;
@@ -683,6 +693,7 @@ export default function ProductDetailPage() {
     const currentCategory = categoryMapping[product.category] || { name: product.category, slug: product.category.toLowerCase().replace(/ /g, '-') };
     const isIPTVCategory = currentCategory.name === 'Abonnement IPTV' || product.category === 'IPTV Premium';
     const isSharingCategory = product.category.toLowerCase().includes('sharing') || currentCategory.name.toLowerCase().includes('sharing');
+    const isPlayerActivationCategory = product.category.toLowerCase().includes('player activation') || currentCategory.name.toLowerCase().includes('player activation');
 
     const breadcrumbs = [
         { name: 'Accueil', url: 'https://Satpromax.com/' },
@@ -1022,6 +1033,34 @@ export default function ProductDetailPage() {
                                 </div>
                             )}
 
+                            {isPlayerActivationCategory && (
+                                <div className="product-options">
+                                    <div className="option-row">
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Détails de l'appareil *"}</h6>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <input
+                                                type="text"
+                                                className="option-select"
+                                                placeholder="Address MAC"
+                                                value={macAddress}
+                                                onChange={(e) => setMacAddress(e.target.value)}
+                                                required
+                                                style={{ padding: '12px' }}
+                                            />
+                                            <input
+                                                type="text"
+                                                className="option-select"
+                                                placeholder="Device Key"
+                                                value={deviceKey}
+                                                onChange={(e) => setDeviceKey(e.target.value)}
+                                                required
+                                                style={{ padding: '12px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="add-to-cart-section">
                                 <div className="qty-input">
                                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>
@@ -1047,10 +1086,16 @@ export default function ProductDetailPage() {
                                             setModal({ show: true, message: "Veuillez entrer le numéro de série de votre récepteur.", type: 'error' });
                                             return;
                                         }
+                                        if (isPlayerActivationCategory && (!macAddress || !deviceKey)) {
+                                            setModal({ show: true, message: "Veuillez entrer l'adresse MAC et la Device Key.", type: 'error' });
+                                            return;
+                                        }
                                         addToCart({
                                             ...productWithId,
                                             selectedDevice: isIPTVCategory ? selectedDevice : null,
-                                            receiverSerial: isSharingCategory ? receiverSerial : null
+                                            receiverSerial: isSharingCategory ? receiverSerial : null,
+                                            macAddress: isPlayerActivationCategory ? macAddress : null,
+                                            deviceKey: isPlayerActivationCategory ? deviceKey : null
                                         }, quantity);
                                     }}
                                 >
@@ -1247,7 +1292,7 @@ export default function ProductDetailPage() {
 
 
                 </div>
-            </main>
+            </main >
 
             {shareModalOpen && (
                 <div className="checkout-modal-overlay" onClick={() => setShareModalOpen(false)} style={{ zIndex: 9999 }}>
@@ -1306,149 +1351,154 @@ export default function ProductDetailPage() {
                         <button onClick={() => setShareModalOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', width: 'auto', fontWeight: '600', fontSize: '16px', padding: '10px 20px', transition: 'color 0.2s' }} onMouseOver={(e) => e.target.style.color = '#1e293b'} onMouseOut={(e) => e.target.style.color = '#64748b'}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Fermer</h6></button>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* Comparison Modal */}
-            {compareModalOpen && compareProduct && (
-                <div className="checkout-modal-overlay" onClick={() => setCompareModalOpen(false)} style={{ zIndex: 9999 }}>
-                    <div className="checkout-modal-content" onClick={e => e.stopPropagation()} style={{ background: '#fff', width: '90%', maxWidth: '800px', borderRadius: '24px', padding: '40px', maxHeight: '90vh', overflowY: 'auto' }}>
-                        <h2 style={{ marginBottom: '30px', textAlign: 'center', color: '#0f172a', fontWeight: '900' }}>Comparaison de Produits</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
-                            <div style={{ background: '#f8fafc', padding: '20px' }}></div>
-                            <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
-                                <img src={compareProduct.image} alt={compareProduct.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
-                                <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{compareProduct.name}</h4>
+            {
+                compareModalOpen && compareProduct && (
+                    <div className="checkout-modal-overlay" onClick={() => setCompareModalOpen(false)} style={{ zIndex: 9999 }}>
+                        <div className="checkout-modal-content" onClick={e => e.stopPropagation()} style={{ background: '#fff', width: '90%', maxWidth: '800px', borderRadius: '24px', padding: '40px', maxHeight: '90vh', overflowY: 'auto' }}>
+                            <h2 style={{ marginBottom: '30px', textAlign: 'center', color: '#0f172a', fontWeight: '900' }}>Comparaison de Produits</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden' }}>
+                                <div style={{ background: '#f8fafc', padding: '20px' }}></div>
+                                <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
+                                    <img src={compareProduct.image} alt={compareProduct.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
+                                    <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{compareProduct.name}</h4>
+                                </div>
+                                <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
+                                    <img src={product.image} alt={product.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
+                                    <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
+                                </div>
+
+                                <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Prix</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.price}</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.price}</h6></div>
+
+                                <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Catégorie</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.category}</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.category}</h6></div>
+
+                                <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h6></div>
+                                <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.description}</h6></div>
+                                <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.description}</h6></div>
+
+                                <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>SKU</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.sku}</h6></div>
+                                <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.sku}</h6></div>
                             </div>
-                            <div style={{ textAlign: 'center', background: '#fff', padding: '20px' }}>
-                                <img src={product.image} alt={product.name} style={{ width: '120px', height: '120px', objectFit: 'contain', marginBottom: '15px' }} />
-                                <h4 style={{ fontSize: '16px', color: '#0f172a' }}>{product.name}</h4>
+                            <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                                <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
+                                <button onClick={() => setCompareModalOpen(false)} style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Fermer</button>
                             </div>
-
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Prix</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.price}</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontWeight: '800', color: '#ef4444' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.price}</h6></div>
-
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Catégorie</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.category}</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.category}</h6></div>
-
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h6></div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.description}</h6></div>
-                            <div style={{ fontSize: '13px', padding: '15px 20px', background: '#fff', lineHeight: '1.6' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.description}</h6></div>
-
-                            <div style={{ fontWeight: 'bold', padding: '15px 20px', background: '#f8fafc', color: '#64748b' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>SKU</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{compareProduct.sku}</h6></div>
-                            <div style={{ textAlign: 'center', padding: '15px 20px', background: '#fff', fontFamily: 'monospace' }}><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{product.sku}</h6></div>
-                        </div>
-                        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
-                            <button onClick={() => { setCompareModalOpen(false); localStorage.removeItem('compare_product'); }} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Réinitialiser</button>
-                            <button onClick={() => setCompareModalOpen(false)} style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: '700' }}>Fermer</button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             {/* Rich Description Section */}
-            {(product.descriptionGlobal || (product.extraSections && product.extraSections.length > 0)) && (
-                <section className="product-rich-description" style={{
-                    padding: '80px 0',
-                    background: '#fff',
-                    borderTop: '1px solid #f1f5f9'
-                }}>
-                    <div className="container" style={{
-                        maxWidth: '900px',
-                        margin: '0 auto',
-                        padding: '0 20px',
-                        direction: 'ltr' // Keeping it LTR as per the French content example
+            {
+                (product.descriptionGlobal || (product.extraSections && product.extraSections.length > 0)) && (
+                    <section className="product-rich-description" style={{
+                        padding: '80px 0',
+                        background: '#fff',
+                        borderTop: '1px solid #f1f5f9'
                     }}>
-                        {/* Tab-like Title */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '30px',
-                            borderBottom: '1px solid #e2e8f0',
-                            marginBottom: '40px'
+                        <div className="container" style={{
+                            maxWidth: '900px',
+                            margin: '0 auto',
+                            padding: '0 20px',
+                            direction: 'ltr' // Keeping it LTR as per the French content example
                         }}>
+                            {/* Tab-like Title */}
                             <div style={{
-                                padding: '10px 0',
-                                fontSize: '18px',
-                                fontWeight: '800',
-                                color: '#0f172a',
-                                borderBottom: '3px solid #fbbf24',
-                                marginBottom: '-1px'
+                                display: 'flex',
+                                gap: '30px',
+                                borderBottom: '1px solid #e2e8f0',
+                                marginBottom: '40px'
                             }}>
-                                <h4 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h4>
-                            </div>
-                        </div>
-
-                        {/* Global Description */}
-                        {product.descriptionGlobal && (
-                            <div style={{ marginBottom: '50px' }}>
-                                <h6
-                                    style={{
-                                        fontSize: '19px',
-                                        color: '#475569',
-                                        lineHeight: '1.8',
-                                        fontWeight: '500',
-                                        margin: 0
-                                    }}
-                                    dangerouslySetInnerHTML={{ __html: product.descriptionGlobal.replace(/\n/g, '<br/>') }}
-                                />
-                            </div>
-                        )}
-
-                        {/* Extra Sections */}
-                        {product.extraSections && product.extraSections.map((section, index) => (
-                            <div key={index} style={{ marginBottom: '50px' }}>
-                                <h2 style={{
-
-
-
-                                    fontSize: '32px',
-                                    fontWeight: '900',
+                                <div style={{
+                                    padding: '10px 0',
+                                    fontSize: '18px',
+                                    fontWeight: '800',
                                     color: '#0f172a',
-                                    marginBottom: '25px',
-                                    letterSpacing: '-0.02em',
-                                    lineHeight: '1.2'
+                                    borderBottom: '3px solid #fbbf24',
+                                    marginBottom: '-1px'
                                 }}>
-                                    {section.title}
-                                </h2>
-                                <div style={{ fontSize: '17px', color: '#334155', lineHeight: '1.7' }}>
-                                    {section.items ? (
-                                        // New Format: Array of items
-                                        section.items.map((item, itemIdx) => (
-                                            <div key={itemIdx} style={{ marginBottom: item.type === 'subtitle' ? '15px' : '20px' }}>
-                                                {item.type === 'subtitle' ? (
-                                                    <h3 style={{
-                                                        fontSize: '22px',
-                                                        fontWeight: '800',
-                                                        color: '#1e293b',
-                                                        marginBottom: '10px',
-                                                        marginTop: itemIdx === 0 ? '0' : '20px',
-                                                        paddingLeft: '12px',
-                                                        borderLeft: '4px solid #fbbf24'
-                                                    }}>
-                                                        {item.content}
-                                                    </h3>
-                                                ) : (
-                                                    <h6
-                                                        style={{ color: '#475569', margin: 0, fontSize: 'inherit', lineHeight: '1.7' }}
-                                                        dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
-                                                    />
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        // Old Format: backward compatibility
-                                        <div
-                                            style={{ color: '#475569' }}
-                                            dangerouslySetInnerHTML={{ __html: section.content ? section.content.replace(/\n/g, '<br/>') : '' }}
-                                        />
-                                    )}
+                                    <h4 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Description</h4>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </section>
-            )}
+
+                            {/* Global Description */}
+                            {product.descriptionGlobal && (
+                                <div style={{ marginBottom: '50px' }}>
+                                    <h6
+                                        style={{
+                                            fontSize: '19px',
+                                            color: '#475569',
+                                            lineHeight: '1.8',
+                                            fontWeight: '500',
+                                            margin: 0
+                                        }}
+                                        dangerouslySetInnerHTML={{ __html: product.descriptionGlobal.replace(/\n/g, '<br/>') }}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Extra Sections */}
+                            {product.extraSections && product.extraSections.map((section, index) => (
+                                <div key={index} style={{ marginBottom: '50px' }}>
+                                    <h2 style={{
+
+
+
+                                        fontSize: '32px',
+                                        fontWeight: '900',
+                                        color: '#0f172a',
+                                        marginBottom: '25px',
+                                        letterSpacing: '-0.02em',
+                                        lineHeight: '1.2'
+                                    }}>
+                                        {section.title}
+                                    </h2>
+                                    <div style={{ fontSize: '17px', color: '#334155', lineHeight: '1.7' }}>
+                                        {section.items ? (
+                                            // New Format: Array of items
+                                            section.items.map((item, itemIdx) => (
+                                                <div key={itemIdx} style={{ marginBottom: item.type === 'subtitle' ? '15px' : '20px' }}>
+                                                    {item.type === 'subtitle' ? (
+                                                        <h3 style={{
+                                                            fontSize: '22px',
+                                                            fontWeight: '800',
+                                                            color: '#1e293b',
+                                                            marginBottom: '10px',
+                                                            marginTop: itemIdx === 0 ? '0' : '20px',
+                                                            paddingLeft: '12px',
+                                                            borderLeft: '4px solid #fbbf24'
+                                                        }}>
+                                                            {item.content}
+                                                        </h3>
+                                                    ) : (
+                                                        <h6
+                                                            style={{ color: '#475569', margin: 0, fontSize: 'inherit', lineHeight: '1.7' }}
+                                                            dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br/>') }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            // Old Format: backward compatibility
+                                            <div
+                                                style={{ color: '#475569' }}
+                                                dangerouslySetInnerHTML={{ __html: section.content ? section.content.replace(/\n/g, '<br/>') : '' }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )
+            }
 
             {/* Detailed Reviews Section - Moved under Description */}
             <section className="product-reviews-section" style={{ padding: '40px 0', background: '#fafafa' }}>
@@ -1577,113 +1627,115 @@ export default function ProductDetailPage() {
 
 
             {/* Similar Products Section */}
-            {similarProducts.length > 0 && (
-                <section className="similar-products" style={{ marginTop: '80px', padding: '60px 0', background: '#fafafa' }}>
-                    <div className="container" style={{ position: 'relative' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', padding: '0 10px' }}>
-                            <h2 className='Produits-s' style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.5px' }}>Produits Similaires</h2>
-                            <Link to={`/${product.category.toLowerCase().replace(/ & /g, '-').replace(/[ /]/g, '-')}`} style={{
-                                color: '#64748b',
-                                fontWeight: '700',
-                                textDecoration: 'none',
-                                fontSize: '14px',
-                                background: '#fff',
-                                padding: '8px 20px',
-                                borderRadius: '50px',
-                                border: '1px solid #e2e8f0',
-                                transition: 'all 0.3s'
-                            }}
-                                onMouseOver={(e) => e.target.style.borderColor = '#0ea5e9'}
-                                onMouseOut={(e) => e.target.style.borderColor = '#e2e8f0'}
-                            >
-                                <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Voir tout</h6>
-                            </Link>
-                        </div>
-
-                        {/* Carousel Wrapper */}
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            {/* Left Arrow */}
-                            <button
-                                onClick={() => scrollCarousel('left')}
-                                style={{
-                                    position: 'absolute',
-                                    left: '-20px',
-                                    zIndex: 10,
-                                    width: '45px',
-                                    height: '45px',
-                                    borderRadius: '50%',
+            {
+                similarProducts.length > 0 && (
+                    <section className="similar-products" style={{ marginTop: '80px', padding: '60px 0', background: '#fafafa' }}>
+                        <div className="container" style={{ position: 'relative' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', padding: '0 10px' }}>
+                                <h2 className='Produits-s' style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.5px' }}>Produits Similaires</h2>
+                                <Link to={`/${product.category.toLowerCase().replace(/ & /g, '-').replace(/[ /]/g, '-')}`} style={{
+                                    color: '#64748b',
+                                    fontWeight: '700',
+                                    textDecoration: 'none',
+                                    fontSize: '14px',
                                     background: '#fff',
+                                    padding: '8px 20px',
+                                    borderRadius: '50px',
                                     border: '1px solid #e2e8f0',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#64748b'
+                                    transition: 'all 0.3s'
                                 }}
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                            </button>
-
-                            {/* Scrollable Area */}
-                            <div
-                                ref={carouselRef}
-                                className="similar-products-carousel"
-                                style={{
-                                    display: 'flex',
-                                    overflowX: 'auto',
-                                    gap: '15px',
-                                    padding: '10px 0 30px 0',
-                                    scrollSnapType: 'x mandatory',
-                                    msOverflowStyle: 'none',
-                                    scrollbarWidth: 'none',
-                                    width: '100%',
-                                    position: 'relative'
-                                }}
-                            >
-                                {similarProducts.map(item => (
-                                    <div key={item._id || item.id} style={{ scrollSnapAlign: 'start' }}>
-                                        <SimilarProductCard
-                                            item={item}
-                                            addToCart={addToCart}
-                                            setModal={setModal}
-                                        />
-                                    </div>
-                                ))}
+                                    onMouseOver={(e) => e.target.style.borderColor = '#0ea5e9'}
+                                    onMouseOut={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                >
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Voir tout</h6>
+                                </Link>
                             </div>
 
-                            {/* Right Arrow */}
-                            <button
-                                onClick={() => scrollCarousel('right')}
-                                style={{
-                                    position: 'absolute',
-                                    right: '-20px',
-                                    zIndex: 10,
-                                    width: '45px',
-                                    height: '45px',
-                                    borderRadius: '50%',
-                                    background: '#fff',
-                                    border: '1px solid #e2e8f0',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#64748b'
-                                }}
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                            </button>
-                        </div>
-                    </div>
+                            {/* Carousel Wrapper */}
+                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                {/* Left Arrow */}
+                                <button
+                                    onClick={() => scrollCarousel('left')}
+                                    style={{
+                                        position: 'absolute',
+                                        left: '-20px',
+                                        zIndex: 10,
+                                        width: '45px',
+                                        height: '45px',
+                                        borderRadius: '50%',
+                                        background: '#fff',
+                                        border: '1px solid #e2e8f0',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#64748b'
+                                    }}
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                </button>
 
-                    <style>{`
+                                {/* Scrollable Area */}
+                                <div
+                                    ref={carouselRef}
+                                    className="similar-products-carousel"
+                                    style={{
+                                        display: 'flex',
+                                        overflowX: 'auto',
+                                        gap: '15px',
+                                        padding: '10px 0 30px 0',
+                                        scrollSnapType: 'x mandatory',
+                                        msOverflowStyle: 'none',
+                                        scrollbarWidth: 'none',
+                                        width: '100%',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    {similarProducts.map(item => (
+                                        <div key={item._id || item.id} style={{ scrollSnapAlign: 'start' }}>
+                                            <SimilarProductCard
+                                                item={item}
+                                                addToCart={addToCart}
+                                                setModal={setModal}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Right Arrow */}
+                                <button
+                                    onClick={() => scrollCarousel('right')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '-20px',
+                                        zIndex: 10,
+                                        width: '45px',
+                                        height: '45px',
+                                        borderRadius: '50%',
+                                        background: '#fff',
+                                        border: '1px solid #e2e8f0',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#64748b'
+                                    }}
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <style>{`
                         .similar-products-carousel::-webkit-scrollbar {
                             display: none;
                         }
                     `}</style>
-                </section>
-            )}
+                    </section>
+                )
+            }
 
             {/* Review Modal */}
             {
@@ -1746,6 +1798,6 @@ export default function ProductDetailPage() {
             }
 
             <Footer />
-        </div>
+        </div >
     );
 }

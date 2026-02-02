@@ -124,7 +124,9 @@ export default function CheckoutPage() {
                 price: item.price,
                 image: item.image,
                 deviceChoice: item.selectedDevice || null,
-                receiverSerial: item.receiverSerial || null
+                receiverSerial: item.receiverSerial || null,
+                macAddress: item.macAddress || null,
+                deviceKey: item.deviceKey || null
             })),
             totalAmount: finalTotal,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -150,6 +152,8 @@ export default function CheckoutPage() {
                         `   Prix: ${item.price}\n` +
                         (item.selectedDevice ? `   Appareil: ${item.selectedDevice}\n` : "") +
                         (item.receiverSerial ? `   S/N Récepteur: ${item.receiverSerial}\n` : "") +
+                        (item.macAddress ? `   MAC: ${item.macAddress}\n` : "") +
+                        (item.deviceKey ? `   Key: ${item.deviceKey}\n` : "") +
                         `\n`;
                 });
 
@@ -281,6 +285,20 @@ export default function CheckoutPage() {
                                                     <span className="device-tag" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
                                                         S/N: {item.receiverSerial}
                                                     </span>
+                                                </div>
+                                            )}
+                                            {(item.macAddress || item.deviceKey) && (
+                                                <div className="checkout-product-device" style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    {item.macAddress && (
+                                                        <span className="device-tag" style={{ background: '#ecfdf5', color: '#059669' }}>
+                                                            MAC: {item.macAddress}
+                                                        </span>
+                                                    )}
+                                                    {item.deviceKey && (
+                                                        <span className="device-tag" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                                                            Key: {item.deviceKey}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
