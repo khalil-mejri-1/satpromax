@@ -247,9 +247,13 @@ export default function ProductsPage() {
     const normalizedCategory = categoryName ? categoryName.toLowerCase() : '';
 
     // Find dynamic category metadata from DB
+    // Improvement: Check if normalizedCategory maps to a known DB name via CATEGORY_DB_MAP
+    const mappedDBName = CATEGORY_DB_MAP[normalizedCategory];
+
     const dynamicCategory = categories.find(c =>
         (c.slug && c.slug.toLowerCase() === normalizedCategory) ||
-        slugify(c.name) === normalizedCategory
+        slugify(c.name) === normalizedCategory ||
+        (mappedDBName && c.name === mappedDBName)
     );
 
     const meta = dynamicCategory ? {

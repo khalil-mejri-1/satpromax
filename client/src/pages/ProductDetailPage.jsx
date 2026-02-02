@@ -991,7 +991,7 @@ export default function ProductDetailPage() {
                             {isIPTVCategory && (
                                 <div className="product-options">
                                     <div className="option-row">
-                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choix d'appareil"}</h6>
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choisi mon appareil"}</h6>
                                         <select
                                             className="option-select"
                                             value={selectedDevice}
