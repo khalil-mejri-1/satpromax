@@ -1214,13 +1214,13 @@ export default function ProductDetailPage() {
 
                                 <div className="order-summary">
                                     <div className="summary-row">
-                                        <h6>Prix des produits</h6>
-                                        <h6>{product.price}</h6>
+                                        <h4>Prix des produits</h4>
+                                        <h4>{product.price}</h4>
                                     </div>
                                     {product.hasDelivery && product.deliveryPrice && (
                                         <div className="summary-row">
-                                            <h6>Livraison</h6>
-                                            <h6>{product.deliveryPrice}</h6>
+                                            <h4>Livraison</h4>
+                                            <h4>{product.deliveryPrice}</h4>
                                         </div>
                                     )}
                                     <div className="summary-row total">
@@ -1283,9 +1283,9 @@ export default function ProductDetailPage() {
                             <hr className="divider" />
 
                             <div className="product-meta">
-                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>SKU:</h6> <h6 className="value" style={{ display: 'inline', margin: 0 }}>{product.sku}</h6></div>
-                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>Catégories:</h6> <h6 className="value link" style={{ display: 'inline', margin: 0 }}>{product.name}, {currentCategory.name}</h6></div>
-                                <div className="meta-row"><h6 className="label" style={{ display: 'inline', margin: 0 }}>Tags:</h6> <h6 className="value" style={{ display: 'inline', margin: 0 }}>{product.tags}</h6></div>
+                                <div className="meta-row"><h2 className="label" style={{ display: 'inline', margin: 0 }}>SKU:</h2> <h4 className="value" style={{ display: 'inline', margin: 0 }}>{product.sku}</h4></div>
+                                <div className="meta-row"><h2 className="label" style={{ display: 'inline', margin: 0 }}>Catégories:</h2> <h4 className="value link" style={{ display: 'inline', margin: 0 }}>{product.name}, {currentCategory.name}</h4></div>
+                                <div className="meta-row"><h2 className="label" style={{ display: 'inline', margin: 0 }}>Tags:</h2> <h4 className="value" style={{ display: 'inline', margin: 0 }}>{product.tags}</h4></div>
                             </div>
                         </div>
                     </div>
