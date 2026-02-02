@@ -66,9 +66,11 @@ const CATEGORY_DB_MAP = {
     'iptv-premium': 'IPTV Premium',
     'music': 'Musique',
     'musique': 'Musique',
-    'box-android': 'Box Android & Recepteur',
-    'box-android-recepteur': 'Box Android & Recepteur',
-    'gaming': 'Gaming',
+    'box-android': 'Box Android Récepteurs tv',
+    'box-android-recepteur': 'Box Android Récepteurs tv',
+    'box-android-recepteurs-tv': 'Box Android Récepteurs tv',
+    'gaming': 'Gaming et Clés Digitales',
+    'gaming-et-cles-digitales': 'Gaming et Clés Digitales',
     'gift-card': 'Cartes Cadeaux',
     'cartes-cadeaux': 'Cartes Cadeaux',
     'software': 'Logiciels',
@@ -253,7 +255,8 @@ export default function ProductsPage() {
     const dynamicCategory = categories.find(c =>
         (c.slug && c.slug.toLowerCase() === normalizedCategory) ||
         slugify(c.name) === normalizedCategory ||
-        (mappedDBName && c.name === mappedDBName)
+        (mappedDBName && c.name.toLowerCase() === mappedDBName.toLowerCase()) ||
+        (mappedDBName && c.name.toLowerCase().includes(mappedDBName.toLowerCase())) // Fallback partial match
     );
 
     const meta = dynamicCategory ? {
