@@ -218,10 +218,10 @@ const ProductListCard = ({ product, addToCart }) => {
                     )}
                 </div>
                 <button className="btn-list-add" onClick={() => addToCart(product)}>
-                    AJOUTER AU PANIER
+                    Ajouter au Panier
                 </button>
                 <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="btn-list-view">
-                    VUE RAPIDE
+                    Vue Rapide
                 </Link>
             </div>
         </div>

@@ -6491,7 +6491,7 @@ const ButtonManager = () => {
 
     // Define known buttons requested by user
     const KNOWN_BUTTONS = [
-        { id: 'btn-add-cart', name: 'AJOUTER AU PANIER', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-add-cart' },
+        { id: 'btn-add-cart', name: 'Ajouter au panier', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-add-cart' },
         { id: 'btn-express', name: 'Commande Express', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-confirm-order' },
         { id: 'btn-review', name: 'Rédiger un avis', defaultBg: '#f1f5f9', defaultColor: '#475569', selector: '.btn-review' },
         { id: 'btn-contact-footer', name: 'Contactez-nous à tout moment !', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.contact-btn' },

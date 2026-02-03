@@ -714,7 +714,6 @@
     border-radius: 8px;
     /* Slightly squarer than pill */
     cursor: pointer;
-    text-transform: uppercase;
     transition: all 0.2s;
     margin-top: 20px;
     display: flex;

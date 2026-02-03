@@ -1119,7 +1119,7 @@ export default function ProductDetailPage() {
                                     className="btn-add-cart"
                                     onClick={() => {
                                         if (isIPTVCategory && !selectedDevice) {
-                                            setModal({ show: true, message: "Veuillez choisir votre appareil avant d'ajouter au panier.", type: 'error' });
+                                            setModal({ show: true, message: "Veuillez choisir votre appareil avant d'Ajouter au panier.", type: 'error' });
                                             return;
                                         }
                                         if (isSharingCategory && !receiverSerial) {
@@ -1140,7 +1140,7 @@ export default function ProductDetailPage() {
                                         }, quantity);
                                     }}
                                 >
-                                    <h5 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>AJOUTER AU PANIER</h5>
+                                    <h5 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Ajouter au panier</h5>
                                 </button>
                             </div>
 
