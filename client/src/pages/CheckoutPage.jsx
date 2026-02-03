@@ -126,7 +126,8 @@ export default function CheckoutPage() {
                 deviceChoice: item.selectedDevice || null,
                 receiverSerial: item.receiverSerial || null,
                 macAddress: item.macAddress || null,
-                deviceKey: item.deviceKey || null
+                deviceKey: item.deviceKey || null,
+                subscriptionFormat: item.subscriptionFormat || null
             })),
             totalAmount: finalTotal,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -154,6 +155,7 @@ export default function CheckoutPage() {
                         (item.receiverSerial ? `   S/N Récepteur: ${item.receiverSerial}\n` : "") +
                         (item.macAddress ? `   MAC: ${item.macAddress}\n` : "") +
                         (item.deviceKey ? `   Key: ${item.deviceKey}\n` : "") +
+                        (item.subscriptionFormat ? `   Format: ${item.subscriptionFormat}\n` : "") +
                         `\n`;
                 });
 
@@ -352,6 +354,13 @@ export default function CheckoutPage() {
                                                             Key: {item.deviceKey}
                                                         </span>
                                                     )}
+                                                </div>
+                                            )}
+                                            {item.subscriptionFormat && (
+                                                <div className="checkout-product-device" style={{ marginTop: '5px' }}>
+                                                    <span className="device-tag" style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>
+                                                        Format: {item.subscriptionFormat}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>

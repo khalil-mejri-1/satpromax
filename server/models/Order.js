@@ -18,7 +18,10 @@ const orderSchema = new mongoose.Schema({
         price: String,
         image: String,
         deviceChoice: String,
-        receiverSerial: String
+        receiverSerial: String,
+        macAddress: String,
+        deviceKey: String,
+        subscriptionFormat: String
     }],
     totalAmount: Number,
     status: {

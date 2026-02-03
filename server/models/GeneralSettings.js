@@ -94,6 +94,10 @@ const GeneralSettingsSchema = new mongoose.Schema({
         name: { type: String, trim: true },
         image: { type: String, trim: true }
     }],
+    subscriptionFormats: [{
+        name: { type: String, trim: true },
+        image: { type: String, trim: true }
+    }],
     supportFormFields: [{
         label: { type: String, required: true },
         type: { type: String, enum: ['text', 'number'], default: 'text' },

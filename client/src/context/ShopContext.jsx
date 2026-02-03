@@ -29,6 +29,13 @@ export const ShopContextProvider = ({ children }) => {
     // Categories State
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
+    const [customButtons, setCustomButtons] = useState([]);
+
+    const getButtonText = (btnId, defaultText) => {
+        if (!customButtons || customButtons.length === 0) return defaultText;
+        const btn = customButtons.find(b => b.id === btnId);
+        return (btn && btn.customText) ? btn.customText : defaultText;
+    };
 
     const fetchCategories = () => {
         setLoadingCategories(true);
@@ -45,6 +52,10 @@ export const ShopContextProvider = ({ children }) => {
                     }
                     if (data.data.buttonTextColor) {
                         document.documentElement.style.setProperty('--button-text', data.data.buttonTextColor);
+                    }
+
+                    if (data.data.customButtons) {
+                        setCustomButtons(data.data.customButtons);
                     }
 
                     // Inject Custom Button Styles
@@ -221,7 +232,11 @@ export const ShopContextProvider = ({ children }) => {
         getCartTotal,
         getCartCount,
         getWishlistCount,
-        clearCart
+        getCartCount,
+        getWishlistCount,
+        clearCart,
+        customButtons, // Consumed by components to check for custom text
+        getButtonText // Helper function
     };
 
     return (

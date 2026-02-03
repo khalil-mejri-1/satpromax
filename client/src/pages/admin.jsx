@@ -1123,7 +1123,9 @@ const ProductsManager = () => {
             deliveryPrice: '',
             hasTest: false,
             hasBouquets: false,
-            selectedBouquets: []
+            selectedBouquets: [],
+            hasSubscriptionFormats: false,
+            selectedSubscriptionFormats: []
         });
         setModalOpen(true);
     };
@@ -1158,7 +1160,9 @@ const ProductsManager = () => {
             deliveryPrice: product.deliveryPrice || '',
             hasTest: product.hasTest || false,
             hasBouquets: product.hasBouquets || false,
-            selectedBouquets: product.selectedBouquets || []
+            selectedBouquets: product.selectedBouquets || [],
+            hasSubscriptionFormats: product.hasSubscriptionFormats || false,
+            selectedSubscriptionFormats: product.selectedSubscriptionFormats || []
         });
         setModalOpen(true);
     };
@@ -1186,6 +1190,8 @@ const ProductsManager = () => {
             hasTest: formData.hasTest, // Explicitly include hasTest
             hasBouquets: formData.hasBouquets,
             selectedBouquets: formData.selectedBouquets,
+            hasSubscriptionFormats: formData.hasSubscriptionFormats,
+            selectedSubscriptionFormats: formData.selectedSubscriptionFormats,
             sku: formData.skuList.join(', '),
             tags: formData.tagsList.join(', '),
             gallery: formData.galleryList.filter(url => url.trim() !== ''),
@@ -1562,6 +1568,67 @@ const ProductsManager = () => {
                                             </div>
                                         );
                                     }) : <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Aucun bouquet configuré (Allez dans Détails Généraux)</p>}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: formData.hasSubscriptionFormats ? '15px' : '0' }}>
+                            <input
+                                type="checkbox"
+                                id="hasSubscriptionFormats"
+                                checked={formData.hasSubscriptionFormats}
+                                onChange={(e) => setFormData({ ...formData, hasSubscriptionFormats: e.target.checked })}
+                                style={{ width: '18px', height: '18px', marginRight: '10px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="hasSubscriptionFormats" style={{ cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+                                Ce produit contient des formats d'abonnement ?
+                            </label>
+                        </div>
+
+                        {formData.hasSubscriptionFormats && (
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Sélectionnez les Formats d'abonnement inclus</label>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '200px', overflowY: 'auto', padding: '5px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#fff' }}>
+                                    {settings.subscriptionFormats && settings.subscriptionFormats.length > 0 ? settings.subscriptionFormats.map(form => {
+                                        const isSelected = formData.selectedSubscriptionFormats && formData.selectedSubscriptionFormats.includes(form.name);
+                                        return (
+                                            <div
+                                                key={form.name}
+                                                onClick={() => {
+                                                    const current = formData.selectedSubscriptionFormats || [];
+                                                    const newSelection = isSelected
+                                                        ? current.filter(f => f !== form.name)
+                                                        : [...current, form.name];
+                                                    setFormData({ ...formData, selectedSubscriptionFormats: newSelection });
+                                                }}
+                                                style={{
+                                                    border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                                                    borderRadius: '8px',
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    background: isSelected ? '#eef2ff' : '#f8fafc',
+                                                    textAlign: 'center',
+                                                    width: '90px',
+                                                    transition: 'all 0.2s',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                {isSelected && (
+                                                    <div style={{ position: 'absolute', top: -5, right: -5, background: '#6366f1', color: 'white', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+                                                )}
+                                                <div style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
+                                                    {form.image ? (
+                                                        <img src={form.image} alt={form.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <span style={{ fontSize: '20px' }}>📅</span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#334155' }}>{form.name}</div>
+                                            </div>
+                                        );
+                                    }) : <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Aucun format configuré (Allez dans Détails Généraux)</p>}
                                 </div>
                             </div>
                         )}
@@ -3281,12 +3348,13 @@ const CategoryManager = () => {
 
 const SettingsManager = () => {
     const { fetchCategories } = useContext(ShopContext);
-    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [], resolutions: [], regions: [], bouquets: [] });
+    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [], resolutions: [], regions: [], bouquets: [], subscriptionFormats: [] });
     const [newMode, setNewMode] = useState({ name: '', logo: '' });
     const [newChoice, setNewChoice] = useState('');
     const [newResolution, setNewResolution] = useState({ name: '', image: '' });
     const [newRegion, setNewRegion] = useState({ name: '', image: '' });
     const [newBouquet, setNewBouquet] = useState({ name: '', image: '' });
+    const [newSubscriptionFormat, setNewSubscriptionFormat] = useState({ name: '', image: '' });
 
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -3526,6 +3594,46 @@ const SettingsManager = () => {
         }
     };
 
+    const handleAddSubscriptionFormat = async (e) => {
+        e.preventDefault();
+        if (!newSubscriptionFormat.name.trim()) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/settings/subscription-formats`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newSubscriptionFormat.name.trim(), image: newSubscriptionFormat.image.trim() })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                setNewSubscriptionFormat({ name: '', image: '' });
+                showNotification("Format ajouté", "success");
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDeleteSubscriptionFormat = async (name) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/settings/subscription-formats/${encodeURIComponent(name)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                showNotification("Format supprimé", "success");
+                closeConfirmModal();
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
     if (loading) return <div>Chargement des réglages...</div>;
 
     return (
@@ -3573,6 +3681,7 @@ const SettingsManager = () => {
                                     else if (confirmModal.type === 'resolution') handleDeleteResolution(confirmModal.item);
                                     else if (confirmModal.type === 'region') handleDeleteRegion(confirmModal.item);
                                     else if (confirmModal.type === 'bouquet') handleDeleteBouquet(confirmModal.item);
+                                    else if (confirmModal.type === 'subscriptionFormat') handleDeleteSubscriptionFormat(confirmModal.item);
                                 }}
                                 style={{
                                     flex: 1,
@@ -3972,6 +4081,58 @@ const SettingsManager = () => {
                             <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{bouquet.name}</span>
                             <button
                                 onClick={() => openConfirmModal(bouquet.name, 'bouquet')}
+                                style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div >
+
+            {/* Subscription Formats Management */}
+            <div style={{ marginTop: '30px' }}>
+                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion de Format de l'Abonnement</h3>
+
+                <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <form onSubmit={handleAddSubscriptionFormat} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Nom du format</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="ex: 12 Mois, 6 Mois"
+                                value={newSubscriptionFormat.name}
+                                onChange={(e) => setNewSubscriptionFormat({ ...newSubscriptionFormat, name: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <div style={{ flex: 2 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image (Optionnel)</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="https://..."
+                                value={newSubscriptionFormat.image}
+                                onChange={(e) => setNewSubscriptionFormat({ ...newSubscriptionFormat, image: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
+                            Ajouter
+                        </button>
+                    </form>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
+                    {settings.subscriptionFormats && settings.subscriptionFormats.map((format, index) => (
+                        <div key={index} style={{ background: '#fff', borderRadius: '12px', padding: '15px', border: '1px solid #e2e8f0', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {format.image ? <img src={format.image} alt={format.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '24px' }}>📅</span>}
+                            </div>
+                            <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{format.name}</span>
+                            <button
+                                onClick={() => openConfirmModal(format.name, 'subscriptionFormat')}
                                 style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                                 &times;
@@ -6499,14 +6660,14 @@ const ButtonManager = () => {
 
     // Define known buttons requested by user
     const KNOWN_BUTTONS = [
-        { id: 'btn-add-cart', name: 'Ajouter au panier', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-add-cart' },
-        { id: 'btn-express', name: 'Commande Express', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-confirm-order' },
-        { id: 'btn-review', name: 'Rédiger un avis', defaultBg: '#f1f5f9', defaultColor: '#475569', selector: '.btn-review' },
-        { id: 'btn-contact-footer', name: 'Contactez-nous à tout moment !', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.contact-btn' },
-        { id: 'btn-help-nav', name: 'Aide (Header)', defaultBg: '#ffd600', defaultColor: '#000000', selector: '.guide-btn-nav' },
-        { id: 'btn-support-nav', name: 'Support (Header)', defaultBg: '#eff6ff', defaultColor: '#1e40af', selector: '.support-btn-nav' },
-        { id: 'btn-apk', name: 'TÉLÉCHARGER APK', defaultBg: '#f97316', defaultColor: '#ffffff', selector: '.download-app-btn' },
-        { id: 'btn-guide-detail', name: "Guide d'installation", defaultBg: '#fef3c7', defaultColor: '#92400e', selector: '.installation-guide-btn' }
+        { id: 'btn-add-cart', name: 'Ajouter au panier', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '#btn-add-cart', defaultText: 'Ajouter au panier' },
+        { id: 'btn-express', name: 'Commande Express', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '#btn-confirm-order', defaultText: 'Commande Express' },
+        { id: 'btn-review', name: 'Rédiger un avis', defaultBg: '#f1f5f9', defaultColor: '#475569', selector: '#btn-review', defaultText: 'Laisser un avis' },
+        { id: 'btn-contact-footer', name: 'Contactez-nous à tout moment !', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.contact-btn', defaultText: 'Contactez-nous à tout moment !' },
+        { id: 'btn-help-nav', name: 'Aide (Header)', defaultBg: '#ffd600', defaultColor: '#000000', selector: '.guide-btn-nav', defaultText: 'Aide' },
+        { id: 'btn-support-nav', name: 'Support (Header)', defaultBg: '#eff6ff', defaultColor: '#1e40af', selector: '.support-btn-nav', defaultText: 'Support' },
+        { id: 'btn-apk', name: 'TÉLÉCHARGER APK', defaultBg: '#f97316', defaultColor: '#ffffff', selector: '.download-app-btn', defaultText: 'TÉLÉCHARGER APK' },
+        { id: 'btn-guide-detail', name: "Guide d'installation", defaultBg: '#fef3c7', defaultColor: '#92400e', selector: '.installation-guide-btn', defaultText: "Guide d'installation" }
     ];
 
     const showNotification = (message, type) => {
@@ -6532,7 +6693,8 @@ const ButtonManager = () => {
                         isGradient: saved ? (saved.isGradient || false) : false,
                         gradientColor1: saved ? (saved.gradientColor1 || kb.defaultBg) : kb.defaultBg,
                         gradientColor2: saved ? (saved.gradientColor2 || kb.defaultBg) : kb.defaultBg,
-                        gradientAngle: saved ? (saved.gradientAngle || 45) : 45
+                        gradientAngle: saved ? (saved.gradientAngle || 45) : 45,
+                        customText: saved ? (saved.customText || '') : ''
                     };
                 });
                 setLocalButtons(mergedButtons);
@@ -6567,7 +6729,8 @@ const ButtonManager = () => {
                 isGradient: btn.isGradient,
                 gradientColor1: btn.gradientColor1,
                 gradientColor2: btn.gradientColor2,
-                gradientAngle: btn.gradientAngle
+                gradientAngle: btn.gradientAngle,
+                customText: btn.customText
             }));
 
             const res = await fetch(`${API_BASE_URL}/api/settings`, {
@@ -6683,11 +6846,22 @@ const ButtonManager = () => {
                             border: '1px solid #e2e8f0'
                         }}>
                             <button style={getButtonStyle(btn)}>
-                                {btn.name}
+                                {btn.customText || btn.defaultText || btn.name}
                             </button>
                         </div>
 
                         <div style={{ display: 'grid', gap: '20px' }}>
+                            {/* Text Content Input */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Texte du bouton</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={btn.customText !== undefined ? btn.customText : (btn.defaultText || btn.name)}
+                                    placeholder={btn.defaultText || btn.name}
+                                    onChange={(e) => handleUpdate(btn.id, { customText: e.target.value })}
+                                />
+                            </div>
                             {/* Text Color Selector */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Couleur du Texte</span>

@@ -40,6 +40,8 @@ const productSchema = new mongoose.Schema(
         hasTest: { type: Boolean, default: false },
         hasBouquets: { type: Boolean, default: false },
         selectedBouquets: [String],
+        hasSubscriptionFormats: { type: Boolean, default: false },
+        selectedSubscriptionFormats: [String],
         rating: { type: Number, default: 0 },
         reviewCount: { type: Number, default: 0 },
         seoH1: String,

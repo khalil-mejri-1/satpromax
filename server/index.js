@@ -834,6 +834,39 @@ app.delete("/api/settings/bouquets/:name", async (req, res) => {
     }
 });
 
+// Subscription Formats
+app.post("/api/settings/subscription-formats", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+        const settings = await getSafeSettings();
+        if (!settings.subscriptionFormats) settings.subscriptionFormats = [];
+        if (!settings.subscriptionFormats.find(s => s.name === name)) {
+            settings.subscriptionFormats.push({ name, image });
+            settings.markModified('subscriptionFormats');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/subscription-formats/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.subscriptionFormats) {
+            settings.subscriptionFormats = settings.subscriptionFormats.filter(s => s.name !== name);
+            settings.markModified('subscriptionFormats');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
 // Orders
 app.post("/api/orders", async (req, res) => {
     try {

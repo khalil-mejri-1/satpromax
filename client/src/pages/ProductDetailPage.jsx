@@ -215,7 +215,7 @@ export default function ProductDetailPage() {
     const { category, slug } = useParams();
     const navigate = useNavigate();
     const [quantity, setQuantity] = useState(1);
-    const { addToCart, addToWishlist } = useContext(ShopContext);
+    const { addToCart, addToWishlist, getButtonText } = useContext(ShopContext);
     const carouselRef = React.useRef(null);
     const reviewsSectionRef = React.useRef(null);
     const [reviews, setReviews] = useState([]);
@@ -229,6 +229,7 @@ export default function ProductDetailPage() {
     const [receiverSerial, setReceiverSerial] = useState('');
     const [macAddress, setMacAddress] = useState('');
     const [deviceKey, setDeviceKey] = useState('');
+    const [selectedSubscriptionFormat, setSelectedSubscriptionFormat] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
     const [activeImage, setActiveImage] = useState(null);
     const [settings, setSettings] = useState(null);
@@ -534,6 +535,11 @@ export default function ProductDetailPage() {
             return;
         }
 
+        if (product.hasSubscriptionFormats && !selectedSubscriptionFormat) {
+            setModal({ show: true, message: "Veuillez choisir un format d'abonnement.", type: 'error' });
+            return;
+        }
+
         if (!billingInfo.whatsapp || !localWhatsapp || localWhatsapp.trim().length === 0) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
@@ -575,7 +581,8 @@ export default function ProductDetailPage() {
                 deviceChoice: isIPTVCategory ? selectedDevice : null,
                 receiverSerial: isSharingCategory ? receiverSerial : null,
                 macAddress: isPlayerActivationCategory ? macAddress : null,
-                deviceKey: isPlayerActivationCategory ? deviceKey : null
+                deviceKey: isPlayerActivationCategory ? deviceKey : null,
+                subscriptionFormat: selectedSubscriptionFormat
             }],
             totalAmount: totalAmount,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -607,6 +614,7 @@ export default function ProductDetailPage() {
                     (isIPTVCategory ? `Appareil: ${selectedDevice || "N/A"}\n` : "") +
                     (isSharingCategory ? `S/N Récepteur: ${receiverSerial || "N/A"}\n` : "") +
                     (isPlayerActivationCategory ? `MAC: ${macAddress || "N/A"}\nKey: ${deviceKey || "N/A"}\n` : "") +
+                    (selectedSubscriptionFormat ? `Format d'abonnement: ${selectedSubscriptionFormat}\n` : "") +
                     `\n` +
                     `---------------------------\n\n` +
                     `Merci de confirmer cette commande.`;
@@ -909,8 +917,8 @@ export default function ProductDetailPage() {
                                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                             </div>
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: '1.1' }}>
-                                                <span style={{ fontSize: '9px', fontWeight: '600', opacity: 0.9 }}>TÉLÉCHARGER</span>
-                                                <span style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px' }}>APK</span>
+                                                <span style={{ fontSize: '9px', fontWeight: '600', opacity: 0.9 }}>{getButtonText('btn-apk', 'TÉLÉCHARGER').split(' ')[0]}</span>
+                                                <span style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px' }}>{getButtonText('btn-apk', 'APK').split(' ')[1] || 'APK'}</span>
                                             </div>
                                         </button>
                                     )}
@@ -971,7 +979,7 @@ export default function ProductDetailPage() {
                                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                         </svg>
-                                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Guide d'installation</h6>
+                                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{getButtonText('btn-guide-detail', "Guide d'installation")}</h6>
                                     </Link>
 
                                     {product.hasTest && (
@@ -1059,7 +1067,7 @@ export default function ProductDetailPage() {
                             {product.hasBouquets && product.selectedBouquets && product.selectedBouquets.length > 0 && (
                                 <div className="product-options" style={{ marginTop: '20px' }}>
                                     <div className="option-row">
-                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choisi le bouquets"}</h6>
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choisi le bouquet prefere"}</h6>
                                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                             {product.selectedBouquets.map((bName, idx) => {
                                                 const bInfo = settings?.bouquets?.find(s => s.name === bName);
@@ -1084,6 +1092,53 @@ export default function ProductDetailPage() {
                                                             )}
                                                         </div>
                                                         <h6 style={{ margin: 0, fontSize: '10px', fontWeight: '700', color: '#334155', lineHeight: '1.2' }}>{bName}</h6>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {product.hasSubscriptionFormats && product.selectedSubscriptionFormats && product.selectedSubscriptionFormats.length > 0 && (
+                                <div className="product-options" style={{ marginTop: '20px' }}>
+                                    <div className="option-row">
+                                        <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choisi le format de l'abonnement"}</h6>
+                                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                            {product.selectedSubscriptionFormats.map((fName, idx) => {
+                                                const fInfo = settings?.subscriptionFormats?.find(s => s.name === fName);
+                                                const isSelected = selectedSubscriptionFormat === fName;
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => setSelectedSubscriptionFormat(fName)}
+                                                        style={{
+                                                            border: isSelected ? '2px solid #fbbf24' : '1px solid #e2e8f0',
+                                                            borderRadius: '12px',
+                                                            padding: '12px',
+                                                            width: '100px',
+                                                            textAlign: 'center',
+                                                            background: isSelected ? '#fffbeb' : '#f8fafc',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease',
+                                                            boxShadow: isSelected ? '0 4px 12px rgba(251, 191, 36, 0.15)' : 'none'
+                                                        }}
+                                                    >
+                                                        <div style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                                            {fInfo && fInfo.image ? (
+                                                                <img src={fInfo.image} alt={fName} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                            ) : (
+                                                                <span style={{ fontSize: '24px' }}>📅</span>
+                                                            )}
+                                                        </div>
+                                                        <h6 style={{ margin: 0, fontSize: '11px', fontWeight: '800', color: isSelected ? '#92400e' : '#334155', lineHeight: '1.2' }}>{fName}</h6>
+                                                        {isSelected && (
+                                                            <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 'bold', color: '#fbbf24' }}>✓ Sélectionné</div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -1153,6 +1208,7 @@ export default function ProductDetailPage() {
                                 </div>
                                 <button
                                     className="btn-add-cart"
+                                    id="btn-add-cart"
                                     onClick={() => {
                                         if (isIPTVCategory && !selectedDevice) {
                                             setModal({ show: true, message: "Veuillez choisir votre appareil avant d'Ajouter au panier.", type: 'error' });
@@ -1166,17 +1222,22 @@ export default function ProductDetailPage() {
                                             setModal({ show: true, message: "Veuillez entrer l'adresse MAC et la Device Key.", type: 'error' });
                                             return;
                                         }
+                                        if (product.hasSubscriptionFormats && !selectedSubscriptionFormat) {
+                                            setModal({ show: true, message: "Veuillez choisir un format d'abonnement.", type: 'error' });
+                                            return;
+                                        }
                                         addToCart({
                                             ...productWithId,
                                             price: (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price,
                                             selectedDevice: isIPTVCategory ? selectedDevice : null,
                                             receiverSerial: isSharingCategory ? receiverSerial : null,
                                             macAddress: isPlayerActivationCategory ? macAddress : null,
-                                            deviceKey: isPlayerActivationCategory ? deviceKey : null
+                                            deviceKey: isPlayerActivationCategory ? deviceKey : null,
+                                            subscriptionFormat: selectedSubscriptionFormat
                                         }, quantity);
                                     }}
                                 >
-                                    <h5 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Ajouter au panier</h5>
+                                    <h5 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{getButtonText('btn-add-cart', 'Ajouter au panier')}</h5>
                                 </button>
                             </div>
 
@@ -1324,11 +1385,12 @@ export default function ProductDetailPage() {
 
                                 <button
                                     className="btn-confirm-order"
+                                    id="btn-confirm-order"
                                     onClick={handleConfirmOrder}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        Commande Express
+                                        {getButtonText('btn-express', 'Commande Express')}
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M20 6L9 17L4 12" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
@@ -1337,9 +1399,9 @@ export default function ProductDetailPage() {
                             </div>
 
                             <div className="review-action">
-                                <button className="btn-review" onClick={() => setReviewModalOpen(true)}>
+                                <button className="btn-review" id="btn-review" onClick={() => setReviewModalOpen(true)}>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Laisser un avis</h6>
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{getButtonText('btn-review', 'Laisser un avis')}</h6>
                                 </button>
                             </div>
 
