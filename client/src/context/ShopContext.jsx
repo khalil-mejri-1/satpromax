@@ -56,7 +56,7 @@ export const ShopContextProvider = ({ children }) => {
                                 if (btn.isGradient) {
                                     backgroundStyle = `background: linear-gradient(${btn.gradientAngle || 45}deg, ${btn.gradientColor1}, ${btn.gradientColor2}) !important;`;
                                 } else if (btn.backgroundColor) {
-                                    backgroundStyle = `background-color: ${btn.backgroundColor} !important;`;
+                                    backgroundStyle = `background: ${btn.backgroundColor} !important;`;
                                 }
 
                                 if (backgroundStyle || btn.color) {

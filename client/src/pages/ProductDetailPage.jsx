@@ -1601,7 +1601,7 @@ export default function ProductDetailPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '30px' }}>
                             <button
-                                className="btn-confirm-order"
+                                className="btn-review"
                                 onClick={() => setReviewModalOpen(true)}
                                 style={{ width: 'auto', padding: '12px 30px', borderRadius: '14px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}
                             >
