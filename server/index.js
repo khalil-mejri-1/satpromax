@@ -929,8 +929,8 @@ app.post("/api/reviews", async (req, res) => {
         console.log("POST /api/reviews body:", req.body);
         const { username, comment, rating, productId } = req.body;
 
-        if (!username || !comment || !rating) {
-            return res.status(400).json({ success: false, message: "Nom, commentaire et note sont requis." });
+        if (!username || !rating) {
+            return res.status(400).json({ success: false, message: "Nom et note sont requis." });
         }
 
         const reviewData = { username, comment, rating, status: 'pending' };

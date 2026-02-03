@@ -1049,7 +1049,10 @@ const ProductsManager = () => {
     const [notification, setNotification] = useState(null);
     const [linkGenerator, setLinkGenerator] = useState({ customTitle: '', customUrl: '' });
 
-
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
 
     const fetchProducts = () => {
         setLoading(true);
@@ -5204,7 +5207,6 @@ const ReviewsManager = ({ openGlobalSeo }) => {
                                     value={newReviewForm.comment}
                                     onChange={e => setNewReviewForm({ ...newReviewForm, comment: e.target.value })}
                                     placeholder="Rédigez l'avis ici..."
-                                    required
                                 />
                             </div>
 
