@@ -6487,14 +6487,16 @@ const ButtonManager = () => {
     const [loading, setLoading] = useState(false);
     const [notification, setNotification] = useState(null);
 
-    // Define known buttons that exist in the site with their specific frontend classes
+    // Define known buttons requested by user
     const KNOWN_BUTTONS = [
-        { id: 'btn-main-action', name: 'Bouton Principal (Défaut)', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-primary' },
-        { id: 'btn-secondary', name: 'Bouton Secondaire', defaultBg: '#f1f5f9', defaultColor: '#1e293b', selector: '.btn-secondary' },
-        { id: 'btn-add-cart', name: 'Ajouter au Panier', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.add-to-cart-btn' },
-        { id: 'btn-checkout', name: 'Commander (Checkout)', defaultBg: '#10b981', defaultColor: '#ffffff', selector: '.checkout-btn' },
-        { id: 'btn-buy-now', name: 'Acheter Maintenant', defaultBg: '#ef4444', defaultColor: '#ffffff', selector: '.buy-now-btn' },
-        { id: 'btn-auth', name: 'Boutons Auth (Login/Register)', defaultBg: '#3b82f6', defaultColor: '#ffffff', selector: '.auth-btn' }
+        { id: 'btn-add-cart', name: 'AJOUTER AU PANIER', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-add-cart' },
+        { id: 'btn-express', name: 'Commande Express', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-confirm-order' },
+        { id: 'btn-review', name: 'Rédiger un avis', defaultBg: '#f1f5f9', defaultColor: '#475569', selector: '.btn-review' },
+        { id: 'btn-contact-footer', name: 'Contactez-nous à tout moment !', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.contact-btn' },
+        { id: 'btn-help-nav', name: 'Aide (Header)', defaultBg: '#ffd600', defaultColor: '#000000', selector: '.guide-btn-nav' },
+        { id: 'btn-support-nav', name: 'Support (Header)', defaultBg: '#eff6ff', defaultColor: '#1e40af', selector: '.support-btn-nav' },
+        { id: 'btn-apk', name: 'TÉLÉCHARGER APK', defaultBg: '#f97316', defaultColor: '#ffffff', selector: '.download-app-btn' },
+        { id: 'btn-guide-detail', name: "Guide d'installation", defaultBg: '#fef3c7', defaultColor: '#92400e', selector: '.installation-guide-btn' }
     ];
 
     const showNotification = (message, type) => {
@@ -6510,14 +6512,17 @@ const ButtonManager = () => {
             if (data.success) {
                 setSettings(data.data);
 
-                // Merge known buttons with saved custom buttons
                 const savedButtons = data.data.customButtons || [];
                 const mergedButtons = KNOWN_BUTTONS.map(kb => {
                     const saved = savedButtons.find(sb => sb.id === kb.id);
                     return {
                         ...kb,
                         backgroundColor: saved ? saved.backgroundColor : kb.defaultBg,
-                        color: saved ? saved.color : kb.defaultColor
+                        color: saved ? (saved.color || kb.defaultColor) : kb.defaultColor,
+                        isGradient: saved ? (saved.isGradient || false) : false,
+                        gradientColor1: saved ? (saved.gradientColor1 || kb.defaultBg) : kb.defaultBg,
+                        gradientColor2: saved ? (saved.gradientColor2 || kb.defaultBg) : kb.defaultBg,
+                        gradientAngle: saved ? (saved.gradientAngle || 45) : 45
                     };
                 });
                 setLocalButtons(mergedButtons);
@@ -6534,22 +6539,25 @@ const ButtonManager = () => {
         fetchSettings();
     }, []);
 
-    const handleColorChange = (id, field, value) => {
+    const handleUpdate = (id, fields) => {
         setLocalButtons(prev => prev.map(btn =>
-            btn.id === id ? { ...btn, [field]: value } : btn
+            btn.id === id ? { ...btn, ...fields } : btn
         ));
     };
 
     const saveButtons = async () => {
         setLoading(true);
         try {
-            // Transform localButtons to format for DB
             const buttonsToSave = localButtons.map(btn => ({
                 id: btn.id,
                 name: btn.name,
                 selector: btn.selector,
                 backgroundColor: btn.backgroundColor,
-                color: btn.color
+                color: btn.color,
+                isGradient: btn.isGradient,
+                gradientColor1: btn.gradientColor1,
+                gradientColor2: btn.gradientColor2,
+                gradientAngle: btn.gradientAngle
             }));
 
             const res = await fetch(`${API_BASE_URL}/api/settings`, {
@@ -6560,12 +6568,8 @@ const ButtonManager = () => {
 
             const data = await res.json();
             if (data.success) {
-                showNotification("Boutons mis à jour avec succès !", "success");
+                showNotification("Design des boutons mis à jour !", "success");
                 setSettings(data.data);
-
-                // Update CSS Variables locally for immediate effect (if variables are used)
-                // Or inform user to refresh.
-                // For direct class overrides, we rely on StoreContext to regenerate the style tag.
             } else {
                 showNotification("Erreur lors de la sauvegarde", "error");
             }
@@ -6575,6 +6579,30 @@ const ButtonManager = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const getButtonStyle = (btn) => {
+        const style = {
+            color: btn.color,
+            padding: '12px 28px',
+            borderRadius: '10px',
+            fontWeight: '600',
+            border: 'none',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            cursor: 'default',
+            fontSize: '14px',
+            display: 'block',
+            width: '100%',
+            textAlign: 'center'
+        };
+
+        if (btn.isGradient) {
+            style.background = `linear-gradient(${btn.gradientAngle}deg, ${btn.gradientColor1}, ${btn.gradientColor2})`;
+        } else {
+            style.backgroundColor = btn.backgroundColor;
+        }
+
+        return style;
     };
 
     return (
@@ -6592,117 +6620,187 @@ const ButtonManager = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', marginBottom: '8px', letterSpacing: '-0.5px' }}>Gestion des Boutons</h2>
-                    <p style={{ color: '#64748b', fontSize: '14px' }}>Personnalisez l'apparence de chaque bouton sur votre site.</p>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', marginBottom: '4px' }}>Personnalisation des Boutons</h2>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Gérez les couleurs et les dégradés pour chaque bouton clé.</p>
                 </div>
                 <button
                     onClick={saveButtons}
                     disabled={loading}
                     className="btn btn-primary"
                     style={{
-                        padding: '12px 24px',
+                        padding: '12px 30px',
                         fontSize: '15px',
                         fontWeight: '700',
-                        boxShadow: '0 4px 6px -1px rgba(251, 191, 36, 0.4)'
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)'
                     }}
                 >
-                    {loading ? 'Sauvegarde...' : 'Sauvegarder les Changements'}
+                    {loading ? 'Sauvegarde...' : 'Enregistrer Tout'}
                 </button>
             </div>
 
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
                 gap: '25px'
             }}>
                 {localButtons.map(btn => (
                     <div key={btn.id} style={{
                         background: 'white',
                         padding: '24px',
-                        borderRadius: '20px',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
+                        borderRadius: '24px',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
                         border: '1px solid #f1f5f9',
-                        transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)'; }}
-                    >
-                        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{btn.name}</h3>
-                                <code style={{ fontSize: '11px', background: '#f1f5f9', padding: '4px 6px', borderRadius: '4px', color: '#64748b' }}>{btn.selector}</code>
-                            </div>
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        <div style={{ marginBottom: '15px' }}>
+                            <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#0f172a', marginBottom: '5px' }}>{btn.name}</h3>
+                            <code style={{ fontSize: '11px', background: '#f8fafc', color: '#94a3b8', padding: '4px 8px', borderRadius: '6px' }}>{btn.selector}</code>
                         </div>
 
-                        {/* Preview Area */}
+                        {/* Preview */}
                         <div style={{
                             background: '#f8fafc',
-                            height: '100px',
-                            borderRadius: '12px',
+                            padding: '30px',
+                            borderRadius: '16px',
                             marginBottom: '20px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            border: '2px dashed #e2e8f0'
+                            border: '1px solid #e2e8f0'
                         }}>
-                            <button style={{
-                                backgroundColor: btn.backgroundColor,
-                                color: btn.color,
-                                padding: '12px 28px',
-                                borderRadius: '10px',
-                                fontWeight: '600',
-                                border: 'none',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                                cursor: 'default',
-                                fontSize: '14px',
-                                transition: 'all 0.3s ease'
-                            }}>
+                            <button style={getButtonStyle(btn)}>
                                 {btn.name}
                             </button>
                         </div>
 
-                        <div style={{ display: 'grid', gap: '15px' }}>
-                            {/* Background Picker */}
-                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px' }}>Couleur de Fond</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'grid', gap: '20px' }}>
+                            {/* Text Color Selector */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Couleur du Texte</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <input
                                         type="color"
-                                        value={btn.backgroundColor}
-                                        onChange={(e) => handleColorChange(btn.id, 'backgroundColor', e.target.value)}
-                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
+                                        value={btn.color}
+                                        onChange={(e) => handleUpdate(btn.id, { color: e.target.value })}
+                                        style={{ width: '32px', height: '32px', border: 'none', cursor: 'pointer', background: 'none' }}
                                     />
                                     <input
                                         type="text"
-                                        value={btn.backgroundColor}
-                                        onChange={(e) => handleColorChange(btn.id, 'backgroundColor', e.target.value)}
-                                        className="form-input"
-                                        style={{ fontSize: '13px', flex: 1, letterSpacing: '1px' }}
+                                        value={btn.color}
+                                        onChange={(e) => handleUpdate(btn.id, { color: e.target.value })}
+                                        style={{ width: '80px', fontSize: '12px', padding: '4px', border: '1px solid #ddd', borderRadius: '4px' }}
                                     />
                                 </div>
                             </div>
 
-                            {/* Text Color Picker */}
-                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px' }}>Couleur du Texte</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <input
-                                        type="color"
-                                        value={btn.color}
-                                        onChange={(e) => handleColorChange(btn.id, 'color', e.target.value)}
-                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
-                                    />
-                                    <input
-                                        type="text"
-                                        value={btn.color}
-                                        onChange={(e) => handleColorChange(btn.id, 'color', e.target.value)}
-                                        className="form-input"
-                                        style={{ fontSize: '13px', flex: 1, letterSpacing: '1px' }}
-                                    />
+                            <hr style={{ border: '0', borderTop: '1px solid #f1f5f9', margin: '0' }} />
+
+                            {/* Gradient Toggle */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Type de Fond</span>
+                                <div style={{
+                                    display: 'flex',
+                                    background: '#f1f5f9',
+                                    borderRadius: '8px',
+                                    padding: '3px'
+                                }}>
+                                    <button
+                                        onClick={() => handleUpdate(btn.id, { isGradient: false })}
+                                        style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            border: 'none',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            background: !btn.isGradient ? 'white' : 'transparent',
+                                            boxShadow: !btn.isGradient ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Couleur Unie
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdate(btn.id, { isGradient: true })}
+                                        style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            border: 'none',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            background: btn.isGradient ? 'white' : 'transparent',
+                                            boxShadow: btn.isGradient ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Dégradé
+                                    </button>
                                 </div>
                             </div>
+
+                            {btn.isGradient ? (
+                                <div style={{ display: 'grid', gap: '15px', padding: '15px', background: '#f8fafc', borderRadius: '12px' }}>
+                                    <div style={{ display: 'flex', gap: '15px' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>COULEUR 1</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <input
+                                                    type="color"
+                                                    value={btn.gradientColor1}
+                                                    onChange={(e) => handleUpdate(btn.id, { gradientColor1: e.target.value })}
+                                                    style={{ width: '100%', height: '30px', border: 'none', cursor: 'pointer', background: 'none' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>COULEUR 2</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <input
+                                                    type="color"
+                                                    value={btn.gradientColor2}
+                                                    onChange={(e) => handleUpdate(btn.id, { gradientColor2: e.target.value })}
+                                                    style={{ width: '100%', height: '30px', border: 'none', cursor: 'pointer', background: 'none' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                                            <label style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>ANGLE</label>
+                                            <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b' }}>{btn.gradientAngle}°</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="360"
+                                            value={btn.gradientAngle}
+                                            onChange={(e) => handleUpdate(btn.id, { gradientAngle: parseInt(e.target.value) })}
+                                            style={{ width: '100%', accentColor: '#fbbf24' }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Couleur de Fond</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <input
+                                            type="color"
+                                            value={btn.backgroundColor}
+                                            onChange={(e) => handleUpdate(btn.id, { backgroundColor: e.target.value })}
+                                            style={{ width: '32px', height: '32px', border: 'none', cursor: 'pointer', background: 'none' }}
+                                        />
+                                        <input
+                                            type="text"
+                                            value={btn.backgroundColor}
+                                            onChange={(e) => handleUpdate(btn.id, { backgroundColor: e.target.value })}
+                                            style={{ width: '80px', fontSize: '12px', padding: '4px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}

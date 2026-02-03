@@ -666,7 +666,7 @@ export default function Header() {
                         Aide
                     </Link>
 
-                    <Link to="/support" className="nav-link" style={{
+                    <Link to="/support" className="nav-link support-btn-nav" style={{
                         background: '#eff6ff',
                         color: '#1e40af',
                         borderRadius: '12px',

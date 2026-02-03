@@ -51,8 +51,22 @@ export const ShopContextProvider = ({ children }) => {
                     if (data.data.customButtons && Array.isArray(data.data.customButtons)) {
                         let css = '';
                         data.data.customButtons.forEach(btn => {
-                            if (btn.selector && btn.backgroundColor) {
-                                css += `${btn.selector} { background-color: ${btn.backgroundColor} !important; color: ${btn.color} !important; border-color: ${btn.backgroundColor} !important; }\n`;
+                            if (btn.selector) {
+                                let backgroundStyle = '';
+                                if (btn.isGradient) {
+                                    backgroundStyle = `background: linear-gradient(${btn.gradientAngle || 45}deg, ${btn.gradientColor1}, ${btn.gradientColor2}) !important;`;
+                                } else if (btn.backgroundColor) {
+                                    backgroundStyle = `background-color: ${btn.backgroundColor} !important;`;
+                                }
+
+                                if (backgroundStyle || btn.color) {
+                                    css += `${btn.selector} { 
+                                        ${backgroundStyle} 
+                                        ${btn.color ? `color: ${btn.color} !important;` : ''} 
+                                        border-color: transparent !important;
+                                        transition: all 0.3s ease !important;
+                                    }\n`;
+                                }
                             }
                         });
 

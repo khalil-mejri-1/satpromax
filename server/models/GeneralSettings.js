@@ -112,7 +112,11 @@ const GeneralSettingsSchema = new mongoose.Schema({
         name: String,
         selector: String,
         backgroundColor: String,
-        color: String
+        color: String,
+        isGradient: { type: Boolean, default: false },
+        gradientColor1: String,
+        gradientColor2: String,
+        gradientAngle: { type: Number, default: 45 }
     }]
 }, { timestamps: true });
 

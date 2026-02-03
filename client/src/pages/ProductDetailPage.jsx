@@ -951,6 +951,7 @@ export default function ProductDetailPage() {
                                     )}
                                     <Link
                                         to="/guide-installation"
+                                        className="installation-guide-btn"
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
