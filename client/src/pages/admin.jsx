@@ -1120,7 +1120,9 @@ const ProductsManager = () => {
             extraSections: [],
             hasDelivery: false,
             deliveryPrice: '',
-            hasTest: false
+            hasTest: false,
+            hasBouquets: false,
+            selectedBouquets: []
         });
         setModalOpen(true);
     };
@@ -1152,7 +1154,9 @@ const ProductsManager = () => {
             extraSections: product.extraSections || [],
             hasDelivery: product.hasDelivery || false,
             deliveryPrice: product.deliveryPrice || '',
-            hasTest: product.hasTest || false
+            hasTest: product.hasTest || false,
+            hasBouquets: product.hasBouquets || false,
+            selectedBouquets: product.selectedBouquets || []
         });
         setModalOpen(true);
     };
@@ -1178,6 +1182,8 @@ const ProductsManager = () => {
         const submissionData = {
             ...formData,
             hasTest: formData.hasTest, // Explicitly include hasTest
+            hasBouquets: formData.hasBouquets,
+            selectedBouquets: formData.selectedBouquets,
             sku: formData.skuList.join(', '),
             tags: formData.tagsList.join(', '),
             gallery: formData.galleryList.filter(url => url.trim() !== ''),
