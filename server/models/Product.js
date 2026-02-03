@@ -28,6 +28,7 @@ const productSchema = new mongoose.Schema(
         resolution: String,
         region: String,
         downloadLink: String,
+        googlePlayLink: String,
         gallery: [String],
         promoPrice: String,
         promoStartDate: Date,

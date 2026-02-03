@@ -616,12 +616,13 @@ export default function ProductDetailPage() {
                 // Redirect to WhatsApp immediately
                 window.open(whatsappUrl, '_blank');
 
-                setModal({
-                    show: true,
-                    message: "Votre commande a été enregistrée et vous avez été redirigé vers WhatsApp pour la confirmation finale.",
-                    type: 'success',
-                    onClose: () => navigate(user ? '/profile' : '/')
-                });
+                setReviewModalOpen(true);
+                // setModal({
+                //     show: true,
+                //     message: "Votre commande a été enregistrée et vous avez été redirigé vers WhatsApp pour la confirmation finale.",
+                //     type: 'success',
+                //     onClose: () => navigate(user ? '/profile' : '/')
+                // });
             } else {
                 setModal({ show: true, message: "Erreur: " + data.message, type: 'error' });
             }
@@ -880,34 +881,73 @@ export default function ProductDetailPage() {
                                         <button
                                             className="download-app-btn"
                                             onClick={() => {
-                                                window.location.href = product.downloadLink;
+                                                window.open(product.downloadLink, '_blank');
                                             }}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '10px',
-                                                padding: '12px 25px',
-                                                background: 'rgb(126, 34, 206)',
-                                                border: '1px solid #e2e8f0',
+                                                padding: '8px 24px',
+                                                background: '#f97316',
+                                                border: 'none',
                                                 borderRadius: '12px',
                                                 color: '#fff',
-                                                fontSize: '14px',
-                                                fontWeight: '600',
                                                 cursor: 'pointer',
+                                                boxShadow: '0 4px 10px rgba(249, 115, 22, 0.3)',
+                                                transition: 'all 0.2s',
+                                                minHeight: '48px'
+                                            }}
+                                        >
+                                            <div style={{
+                                                background: 'rgba(255,255,255,0.2)',
+                                                borderRadius: '50%',
+                                                width: '26px',
+                                                height: '26px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: '1.1' }}>
+                                                <span style={{ fontSize: '9px', fontWeight: '600', opacity: 0.9 }}>TÉLÉCHARGER</span>
+                                                <span style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '0.5px' }}>APK</span>
+                                            </div>
+                                        </button>
+                                    )}
+
+                                    {product.googlePlayLink && (
+                                        <a
+                                            href={product.googlePlayLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                padding: '6px 20px',
+                                                background: '#fff',
+                                                border: '1px solid #cbd5e1',
+                                                borderRadius: '12px',
+                                                color: '#334155',
+                                                textDecoration: 'none',
+                                                cursor: 'pointer',
+                                                minHeight: '48px',
+                                                boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
                                                 transition: 'all 0.2s',
                                                 width: 'fit-content'
                                             }}
                                         >
-                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                                />
-                                            </svg>
-                                            <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Télécharger App</h6>
-                                        </button>
+                                            <img
+                                                src="https://upload.wikimedia.org/wikipedia/commons/d/d0/Google_Play_Arrow_logo.svg"
+                                                alt="Google Play"
+                                                style={{ width: '24px', height: '24px' }}
+                                            />
+                                            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
+                                                <span style={{ fontSize: '9px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>GET IT ON</span>
+                                                <span style={{ fontSize: '14px', fontWeight: '800', color: '#1e293b' }}>Google Play</span>
+                                            </div>
+                                        </a>
                                     )}
                                     <Link
                                         to="/guide-installation"
@@ -1092,6 +1132,7 @@ export default function ProductDetailPage() {
                                         }
                                         addToCart({
                                             ...productWithId,
+                                            price: (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price,
                                             selectedDevice: isIPTVCategory ? selectedDevice : null,
                                             receiverSerial: isSharingCategory ? receiverSerial : null,
                                             macAddress: isPlayerActivationCategory ? macAddress : null,
@@ -1215,7 +1256,7 @@ export default function ProductDetailPage() {
                                 <div className="order-summary">
                                     <div className="summary-row">
                                         <h4>Prix des produits</h4>
-                                        <h4>{product.price}</h4>
+                                        <h4>{(product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price}</h4>
                                     </div>
                                     {product.hasDelivery && product.deliveryPrice && (
                                         <div className="summary-row">
@@ -1228,7 +1269,8 @@ export default function ProductDetailPage() {
                                         <h5 style={{ margin: 0 }}>
                                             {
                                                 (() => {
-                                                    const total = (parseInt(String(product.price).replace(/[^0-9]/g, '')) * quantity) +
+                                                    const priceToUse = (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price;
+                                                    const total = (parseInt(String(priceToUse).replace(/[^0-9]/g, '')) * quantity) +
                                                         ((product.hasDelivery && product.deliveryPrice)
                                                             ? (parseInt(String(product.deliveryPrice).replace(/[^0-9]/g, '')) || 0)
                                                             : 0);
@@ -1772,7 +1814,7 @@ export default function ProductDetailPage() {
                                     </div>
                                 </div>
 
-                                <div className="form-group" style={{ marginBottom: '20px' }}>
+                                {/* <div className="form-group" style={{ marginBottom: '20px' }}>
                                     <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Commentaire</h6>
                                     <textarea
                                         className="form-input"
@@ -1781,7 +1823,7 @@ export default function ProductDetailPage() {
                                         onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
                                         required
                                     ></textarea>
-                                </div>
+                                </div> */}
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="submit" className="btn-confirm-order" disabled={isSubmittingReview} style={{ flex: 1 }}>

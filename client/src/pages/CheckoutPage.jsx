@@ -176,14 +176,15 @@ export default function CheckoutPage() {
                 window.open(whatsappUrl, '_blank');
 
                 clearCart();
-                setModal({
-                    show: true,
-                    message: "Votre commande a été enregistrée et vous avez été redirigé vers WhatsApp pour la confirmation finale.",
-                    type: 'success',
-                    onClose: () => {
-                        navigate(user ? '/profile' : '/');
-                    }
-                });
+                setReviewModalOpen(true);
+                // setModal({
+                //     show: true,
+                //     message: "Votre commande a été enregistrée et vous avez été redirigé vers WhatsApp pour la confirmation finale.",
+                //     type: 'success',
+                //     onClose: () => {
+                //         navigate(user ? '/profile' : '/');
+                //     }
+                // });
             } else {
                 setModal({ show: true, message: "Erreur: " + data.message, type: 'error' });
             }
@@ -196,6 +197,58 @@ export default function CheckoutPage() {
     const closeModal = () => {
         setModal({ ...modal, show: false });
         if (modal.onClose) modal.onClose();
+    };
+
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [reviewForm, setReviewForm] = useState({
+        username: user ? user.username : '',
+        comment: '',
+        rating: 5
+    });
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        if (isSubmittingReview) return;
+
+        setIsSubmittingReview(true);
+        // Determine productId: verify if we can send a review without productId or use the first item's ID
+        // For now, if multiple items, maybe we just review the first one, or send null if backend supports it.
+        // Assuming we pick the first item ID for the review.
+        const firstItemId = cartItems.length > 0 ? cartItems[0].id : null;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/reviews`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: firstItemId, // Attaching to first item or null
+                    username: reviewForm.username || 'Anonyme',
+                    rating: reviewForm.rating,
+                    comment: reviewForm.comment,
+                    status: 'pending'
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setModal({
+                    show: true,
+                    title: "Avis Reçu",
+                    message: "Votre avis a été envoyé avec succès !",
+                    type: 'success',
+                    onClose: () => navigate(user ? '/profile' : '/')
+                });
+                setReviewModalOpen(false);
+            } else {
+                setModal({ show: true, message: data.message || "Une erreur est survenue lors de l'envoi de l'avis.", type: 'error' });
+            }
+        } catch (error) {
+            console.error("Review error:", error);
+            setModal({ show: true, message: "Erreur de connexion au serveur.", type: 'error' });
+        } finally {
+            setIsSubmittingReview(false);
+        }
     };
 
     return (
@@ -213,10 +266,10 @@ export default function CheckoutPage() {
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                             )}
                         </div>
-                        <h3 className="checkout-modal-title">{modal.type === 'success' ? 'Commande Reçue !' : 'Attention'}</h3>
+                        <h3 className="checkout-modal-title">{modal.title || (modal.type === 'success' ? 'Commande Reçue !' : 'Attention')}</h3>
                         <p className="checkout-modal-message">{modal.message}</p>
                         <button className="checkout-modal-btn" onClick={closeModal}>
-                            {modal.type === 'success' ? (user ? 'Voir mon profil' : 'Contenu achat') : 'Fermer'}
+                            {modal.btnText || (modal.type === 'success' ? (user ? 'Voir mon profil' : 'Contenu achat') : 'Fermer')}
                         </button>
                     </div>
                 </div>
@@ -517,6 +570,66 @@ export default function CheckoutPage() {
                     )}
                 </div>
             </div>
+
+            {/* Review Modal */}
+            {reviewModalOpen && (
+                <div className="modal-overlay" style={{ zIndex: 2000, position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div className="modal-content review-modal" style={{ background: 'white', borderRadius: '24px', maxWidth: '450px', padding: '30px', width: '90%' }}>
+                        <h2 style={{ marginBottom: '20px', color: '#1e293b' }}>Laisser un avis</h2>
+                        <form onSubmit={handleReviewSubmit}>
+                            {!user && (
+                                <div className="form-group" style={{ marginBottom: '15px' }}>
+                                    <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Nom</h6>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={reviewForm.username}
+                                        onChange={(e) => setReviewForm({ ...reviewForm, username: e.target.value })}
+                                        required
+                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="form-group" style={{ marginBottom: '15px' }}>
+                                <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Note</h6>
+                                <div style={{ display: 'flex', gap: '5px', fontSize: '24px', color: '#fbbf24' }}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                            key={star}
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                        >
+                                            {star <= reviewForm.rating ? '★' : '☆'}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Hidden Comment Field */}
+                            {/* <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Commentaire</h6>
+                                <textarea
+                                    className="form-input"
+                                    style={{ height: '120px', resize: 'none', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                    value={reviewForm.comment}
+                                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                                    required
+                                ></textarea>
+                            </div> */}
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button type="submit" className="btn-confirm-order" disabled={isSubmittingReview} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: '#0f172a', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>{isSubmittingReview ? "Envoi..." : "Envoyer"}</h6>
+                                </button>
+                                <button type="button" className="btn-confirm-order" onClick={() => setReviewModalOpen(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '12px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                    <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Annuler</h6>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>

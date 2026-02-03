@@ -83,7 +83,7 @@ const ReviewCarousel = () => {
                                     <div className="review-rating">
                                         {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                                     </div>
-                                    <p className="review-text">{review.comment}</p>
+                                    {/* <p className="review-text">{review.comment}</p> */}
                                     <div className="review-author">
                                         <div className="author-avatar">{review.username.charAt(0).toUpperCase()}</div>
                                         <div className="author-info">

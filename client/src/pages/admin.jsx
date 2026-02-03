@@ -207,7 +207,9 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
     // Form Data
     const [seoData, setSeoData] = useState({
         h1: '',
-        subheadings: [] // { level: 'h2', text: '' }
+        subheadings: [], // { level: 'h2', text: '' }
+        metaTitle: '',
+        metaDescription: ''
     });
 
     // Fetch initial data
@@ -252,39 +254,48 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
         if (targetType === 'home') {
             setSeoData({
                 h1: settings.homeSeoH1 || '',
-                subheadings: settings.homeSeoSubheadings || []
+                subheadings: settings.homeSeoSubheadings || [],
+                metaTitle: settings.homeMetaTitle || '',
+                metaDescription: settings.homeMetaDescription || ''
             });
         } else if (targetType === 'contact') {
             setSeoData({
                 h1: settings.contactPageSeo?.h1 || '',
-                subheadings: settings.contactPageSeo?.subheadings || []
+                subheadings: settings.contactPageSeo?.subheadings || [],
+                metaTitle: '', metaDescription: ''
             });
         } else if (targetType === 'support') {
             setSeoData({
                 h1: settings.supportPageSeo?.h1 || '',
-                subheadings: settings.supportPageSeo?.subheadings || []
+                subheadings: settings.supportPageSeo?.subheadings || [],
+                metaTitle: '', metaDescription: ''
             });
         } else if (targetType === 'reviews') {
             setSeoData({
                 h1: settings.reviewsPageSeo?.h1 || '',
-                subheadings: settings.reviewsPageSeo?.subheadings || []
+                subheadings: settings.reviewsPageSeo?.subheadings || [],
+                metaTitle: '', metaDescription: ''
             });
         } else if (targetType === 'guides') {
             setSeoData({
                 h1: settings.guidesPageSeo?.h1 || '',
-                subheadings: settings.guidesPageSeo?.subheadings || []
+                subheadings: settings.guidesPageSeo?.subheadings || [],
+                metaTitle: '', metaDescription: ''
             });
         } else if (targetType === 'questions') {
             setSeoData({
                 h1: settings.questionsPageSeo?.h1 || '',
-                subheadings: settings.questionsPageSeo?.subheadings || []
+                subheadings: settings.questionsPageSeo?.subheadings || [],
+                metaTitle: '', metaDescription: ''
             });
         } else if (targetType === 'category' && targetId) {
             const cat = settings.categories.find(c => c.name === targetId);
             if (cat) {
                 setSeoData({
                     h1: cat.seoH1 || '',
-                    subheadings: cat.seoSubheadings || []
+                    subheadings: cat.seoSubheadings || [],
+                    metaTitle: cat.metaTitle || '',
+                    metaDescription: cat.metaDescription || ''
                 });
             }
         } else if (targetType === 'subcategory') {
@@ -303,10 +314,11 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
                     if (sub) {
                         setSeoData({
                             h1: sub.seoH1 || '',
-                            subheadings: sub.seoSubheadings || []
+                            subheadings: sub.seoSubheadings || [],
+                            metaTitle: '', metaDescription: ''
                         });
                     } else {
-                        setSeoData({ h1: '', subheadings: [] });
+                        setSeoData({ h1: '', subheadings: [], metaTitle: '', metaDescription: '' });
                     }
                 }
             }
@@ -315,12 +327,13 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
             if (prod) {
                 setSeoData({
                     h1: prod.seoH1 || '',
-                    subheadings: prod.seoSubheadings || []
+                    subheadings: prod.seoSubheadings || [],
+                    metaTitle: '', metaDescription: ''
                 });
             }
         } else {
             // Reset if no selection
-            setSeoData({ h1: '', subheadings: [] });
+            setSeoData({ h1: '', subheadings: [], metaTitle: '', metaDescription: '' });
         }
     }, [targetType, targetId, settings, products]);
 
@@ -330,7 +343,13 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
 
         try {
             if (targetType === 'home') {
-                const newSettings = { ...settings, homeSeoH1: seoData.h1, homeSeoSubheadings: seoData.subheadings };
+                const newSettings = {
+                    ...settings,
+                    homeSeoH1: seoData.h1,
+                    homeSeoSubheadings: seoData.subheadings,
+                    homeMetaTitle: seoData.metaTitle,
+                    homeMetaDescription: seoData.metaDescription
+                };
                 await fetch(`${API_BASE_URL}/api/settings`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -350,6 +369,8 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
                 if (catIndex !== -1) {
                     newSettings.categories[catIndex].seoH1 = seoData.h1;
                     newSettings.categories[catIndex].seoSubheadings = seoData.subheadings;
+                    newSettings.categories[catIndex].metaTitle = seoData.metaTitle;
+                    newSettings.categories[catIndex].metaDescription = seoData.metaDescription;
                     await fetch(`${API_BASE_URL}/api/settings`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -507,6 +528,32 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {(targetType === 'home' || targetType === 'category') && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Meta Title (Titre Navigateur)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={seoData.metaTitle}
+                                    onChange={(e) => setSeoData({ ...seoData, metaTitle: e.target.value })}
+                                    placeholder="Titre pour moteurs de recherche..."
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Meta Description</label>
+                                <textarea
+                                    className="form-input"
+                                    value={seoData.metaDescription}
+                                    onChange={(e) => setSeoData({ ...seoData, metaDescription: e.target.value })}
+                                    placeholder="Description pour moteurs de recherche..."
+                                    style={{ height: '80px', resize: 'vertical' }}
+                                />
+                            </div>
+                            <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid #e2e8f0' }} />
+                        </>
                     )}
 
                     {(targetType === 'home' || targetType === 'contact' || targetType === 'support' || targetType === 'reviews' || targetType === 'guides' || targetType === 'questions' || targetId || (targetType === 'subcategory' && subCategory)) && (
@@ -1434,9 +1481,70 @@ const ProductsManager = () => {
                                 style={{ width: '18px', height: '18px', marginRight: '10px', cursor: 'pointer' }}
                             />
                             <label htmlFor="hasTest" style={{ cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
-                                Test Gratuit (2 jours) ?
+                                Test Gratuit (24 Heures) ?
                             </label>
                         </div>
+                    </div>
+
+                    <div className="form-group" style={{ background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: formData.hasBouquets ? '15px' : '0' }}>
+                            <input
+                                type="checkbox"
+                                id="hasBouquets"
+                                checked={formData.hasBouquets}
+                                onChange={(e) => setFormData({ ...formData, hasBouquets: e.target.checked })}
+                                style={{ width: '18px', height: '18px', marginRight: '10px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="hasBouquets" style={{ cursor: 'pointer', fontWeight: '600', color: '#334155' }}>
+                                Ce produit contient des bouquets ?
+                            </label>
+                        </div>
+
+                        {formData.hasBouquets && (
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="form-label">Sélectionnez les Bouquets inclus</label>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '200px', overflowY: 'auto', padding: '5px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#fff' }}>
+                                    {settings.bouquets && settings.bouquets.length > 0 ? settings.bouquets.map(bouq => {
+                                        const isSelected = formData.selectedBouquets && formData.selectedBouquets.includes(bouq.name);
+                                        return (
+                                            <div
+                                                key={bouq.name}
+                                                onClick={() => {
+                                                    const current = formData.selectedBouquets || [];
+                                                    const newSelection = isSelected
+                                                        ? current.filter(b => b !== bouq.name)
+                                                        : [...current, bouq.name];
+                                                    setFormData({ ...formData, selectedBouquets: newSelection });
+                                                }}
+                                                style={{
+                                                    border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                                                    borderRadius: '8px',
+                                                    padding: '8px',
+                                                    cursor: 'pointer',
+                                                    background: isSelected ? '#eef2ff' : '#f8fafc',
+                                                    textAlign: 'center',
+                                                    width: '90px',
+                                                    transition: 'all 0.2s',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                {isSelected && (
+                                                    <div style={{ position: 'absolute', top: -5, right: -5, background: '#6366f1', color: 'white', borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+                                                )}
+                                                <div style={{ width: '100%', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
+                                                    {bouq.image ? (
+                                                        <img src={bouq.image} alt={bouq.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <span style={{ fontSize: '20px' }}>📦</span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#334155' }}>{bouq.name}</div>
+                                            </div>
+                                        );
+                                    }) : <p style={{ fontSize: '12px', color: '#999', padding: '10px' }}>Aucun bouquet configuré (Allez dans Détails Généraux)</p>}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {(formData.category === 'IPTV Premium' || formData.category === 'Abonnement IPTV') && (
@@ -1504,8 +1612,12 @@ const ProductsManager = () => {
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Link Telechargement (URL)</label>
+                                <label className="form-label">Link Telechargement APK (URL)</label>
                                 <input type="text" name="downloadLink" className="form-input" value={formData.downloadLink} onChange={handleInputChange} placeholder="https://..." />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Link Google Play (URL)</label>
+                                <input type="text" name="googlePlayLink" className="form-input" value={formData.googlePlayLink || ''} onChange={handleInputChange} placeholder="https://play.google.com/store/apps/details?id=..." />
                             </div>
                         </>
                     )}
@@ -3149,11 +3261,12 @@ const CategoryManager = () => {
 
 const SettingsManager = () => {
     const { fetchCategories } = useContext(ShopContext);
-    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [], resolutions: [], regions: [] });
+    const [settings, setSettings] = useState({ paymentModes: [], deviceChoices: [], categories: [], resolutions: [], regions: [], bouquets: [] });
     const [newMode, setNewMode] = useState({ name: '', logo: '' });
     const [newChoice, setNewChoice] = useState('');
     const [newResolution, setNewResolution] = useState({ name: '', image: '' });
     const [newRegion, setNewRegion] = useState({ name: '', image: '' });
+    const [newBouquet, setNewBouquet] = useState({ name: '', image: '' });
 
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
@@ -3353,6 +3466,46 @@ const SettingsManager = () => {
         }
     };
 
+    const handleAddBouquet = async (e) => {
+        e.preventDefault();
+        if (!newBouquet.name.trim()) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/settings/bouquets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newBouquet.name.trim(), image: newBouquet.image.trim() })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                setNewBouquet({ name: '', image: '' });
+                showNotification("Bouquet ajouté", "success");
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDeleteBouquet = async (name) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/settings/bouquets/${encodeURIComponent(name)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+                showNotification("Bouquet supprimé", "success");
+                closeConfirmModal();
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
     if (loading) return <div>Chargement des réglages...</div>;
 
     return (
@@ -3399,6 +3552,7 @@ const SettingsManager = () => {
                                     else if (confirmModal.type === 'deviceChoice') handleDeleteChoice(confirmModal.item);
                                     else if (confirmModal.type === 'resolution') handleDeleteResolution(confirmModal.item);
                                     else if (confirmModal.type === 'region') handleDeleteRegion(confirmModal.item);
+                                    else if (confirmModal.type === 'bouquet') handleDeleteBouquet(confirmModal.item);
                                 }}
                                 style={{
                                     flex: 1,
@@ -3647,7 +3801,100 @@ const SettingsManager = () => {
                         Mettre à jour
                     </button>
                 </div>
-            </div >
+            </div>
+
+            <div style={{ marginTop: '30px', padding: '20px', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fcd34d', marginBottom: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#b45309', marginBottom: '10px' }}>Gestion des Boutons</h3>
+                <p style={{ fontSize: '13px', color: '#d97706', marginBottom: '15px' }}>Modifiez la couleur de fond et du texte pour tous les boutons principaux du site.</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '20px', alignItems: 'end' }}>
+
+                    {/* Background Color */}
+                    <div>
+                        <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', fontWeight: '600' }}>Couleur de Fond</label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                                type="color"
+                                value={settings.buttonColor || '#fbbf24'}
+                                onChange={(e) => setSettings({ ...settings, buttonColor: e.target.value })}
+                                style={{ width: '50px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                            />
+                            <input
+                                type="text"
+                                value={settings.buttonColor || '#fbbf24'}
+                                onChange={(e) => setSettings({ ...settings, buttonColor: e.target.value })}
+                                className="form-input"
+                                style={{ width: '100px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Text Color */}
+                    <div>
+                        <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', fontWeight: '600' }}>Couleur du Texte</label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                                type="color"
+                                value={settings.buttonTextColor || '#000000'}
+                                onChange={(e) => setSettings({ ...settings, buttonTextColor: e.target.value })}
+                                style={{ width: '50px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                            />
+                            <input
+                                type="text"
+                                value={settings.buttonTextColor || '#000000'}
+                                onChange={(e) => setSettings({ ...settings, buttonTextColor: e.target.value })}
+                                className="form-input"
+                                style={{ width: '100px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        buttonColor: settings.buttonColor,
+                                        buttonTextColor: settings.buttonTextColor
+                                    })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    showNotification("Couleurs des boutons mises à jour", "success");
+                                    // Update live immediately
+                                    document.documentElement.style.setProperty('--button-bg', settings.buttonColor);
+                                    document.documentElement.style.setProperty('--button-text', settings.buttonTextColor);
+                                }
+                            } catch (err) {
+                                showNotification("Erreur", "error");
+                            }
+                        }}
+                        className="btn btn-primary"
+                        style={{ height: '42px' }}
+                    >
+                        Mettre à jour
+                    </button>
+                </div>
+
+                {/* Preview Button */}
+                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600' }}>Aperçu :</span>
+                    <button style={{
+                        backgroundColor: settings.buttonColor || '#fbbf24',
+                        color: settings.buttonTextColor || '#000000',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}>
+                        Bouton Test
+                    </button>
+                </div>
+            </div>
 
             {/* Resolutions Management */}
             < div style={{ marginTop: '30px' }}>
@@ -3744,6 +3991,58 @@ const SettingsManager = () => {
                             <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{reg.name}</span>
                             <button
                                 onClick={() => openConfirmModal(reg.name, 'region')}
+                                style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div >
+
+            {/* Bouquets Management */}
+            <div style={{ marginTop: '30px' }}>
+                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px', fontSize: '18px', color: '#334155' }}>Gestion des Bouquets</h3>
+
+                <div style={{ background: '#fff', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                    <form onSubmit={handleAddBouquet} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Nom du bouquet</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="ex: Sports, Cinéma, Kids"
+                                value={newBouquet.name}
+                                onChange={(e) => setNewBouquet({ ...newBouquet, name: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <div style={{ flex: 2 }}>
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image (Optionnel)</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="https://..."
+                                value={newBouquet.image}
+                                onChange={(e) => setNewBouquet({ ...newBouquet, image: e.target.value })}
+                                style={{ borderRadius: '8px' }}
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
+                            Ajouter
+                        </button>
+                    </form>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '15px' }}>
+                    {settings.bouquets && settings.bouquets.map((bouquet, index) => (
+                        <div key={index} style={{ background: '#fff', borderRadius: '12px', padding: '15px', border: '1px solid #e2e8f0', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#f8fafc', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {bouquet.image ? <img src={bouquet.image} alt={bouquet.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '24px' }}>📦</span>}
+                            </div>
+                            <span style={{ fontWeight: '600', fontSize: '14px', color: '#334155' }}>{bouquet.name}</span>
+                            <button
+                                onClick={() => openConfirmModal(bouquet.name, 'bouquet')}
                                 style={{ position: 'absolute', top: '8px', right: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                                 &times;

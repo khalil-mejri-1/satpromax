@@ -101,8 +101,12 @@ const GeneralSettingsSchema = new mongoose.Schema({
     contactPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
     supportPageSeo: { h1: String, subheadings: [{ level: String, text: String }] },
     supportHeroImage: { type: String, default: "/images/support-hero-bg.png" },
+    homeMetaTitle: String,
+    homeMetaDescription: String,
     homeSeoH1: String,
-    homeSeoSubheadings: [{ level: String, text: String }]
+    homeSeoSubheadings: [{ level: String, text: String }],
+    buttonColor: { type: String, default: '#fbbf24' },
+    buttonTextColor: { type: String, default: '#000000' },
 }, { timestamps: true });
 
 // Ensure only one document exists usually

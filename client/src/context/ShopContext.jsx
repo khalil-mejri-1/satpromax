@@ -35,8 +35,17 @@ export const ShopContextProvider = ({ children }) => {
         fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.data && data.data.categories) {
-                    setCategories(data.data.categories);
+                if (data.success && data.data) {
+                    if (data.data.categories) {
+                        setCategories(data.data.categories);
+                    }
+                    // Apply global styles
+                    if (data.data.buttonColor) {
+                        document.documentElement.style.setProperty('--button-bg', data.data.buttonColor);
+                    }
+                    if (data.data.buttonTextColor) {
+                        document.documentElement.style.setProperty('--button-text', data.data.buttonTextColor);
+                    }
                 }
                 setLoadingCategories(false);
             })
