@@ -439,7 +439,6 @@
     font-weight: 700;
     font-size: 12px;
     cursor: pointer;
-    text-transform: uppercase;
     transition: opacity 0.2s;
 }
 
