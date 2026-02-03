@@ -90,6 +90,10 @@ const GeneralSettingsSchema = new mongoose.Schema({
     supportIssueTypes: [{
         name: { type: String, trim: true }
     }],
+    bouquets: [{
+        name: { type: String, trim: true },
+        image: { type: String, trim: true }
+    }],
     supportFormFields: [{
         label: { type: String, required: true },
         type: { type: String, enum: ['text', 'number'], default: 'text' },

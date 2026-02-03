@@ -38,6 +38,10 @@ const productSchema = new mongoose.Schema(
         deliveryPrice: String,
         inStock: { type: Boolean, default: true },
         hasTest: { type: Boolean, default: false },
+        hasBouquets: { type: Boolean, default: false },
+        selectedBouquets: [String],
+        rating: { type: Number, default: 0 },
+        reviewCount: { type: Number, default: 0 },
         seoH1: String,
         seoSubheadings: [{ level: String, text: String }]
     },

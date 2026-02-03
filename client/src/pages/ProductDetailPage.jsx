@@ -1815,7 +1815,7 @@ export default function ProductDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <div className="form-group" style={{ marginBottom: '20px' }}>
                                     <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Commentaire</h6>
                                     <textarea
                                         className="form-input"
@@ -1824,7 +1824,7 @@ export default function ProductDetailPage() {
                                         onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
                                         required
                                     ></textarea>
-                                </div> */}
+                                </div>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="submit" className="btn-confirm-order" disabled={isSubmittingReview} style={{ flex: 1 }}>

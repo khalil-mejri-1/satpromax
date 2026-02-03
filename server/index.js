@@ -669,6 +669,171 @@ app.delete("/api/settings/categories/:category", async (req, res) => {
     }
 });
 
+// Payment Modes
+app.post("/api/settings/payment-modes", async (req, res) => {
+    try {
+        const { name, logo } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+        const settings = await getSafeSettings();
+        if (!settings.paymentModes) settings.paymentModes = [];
+        if (!settings.paymentModes.find(m => m.name === name)) {
+            settings.paymentModes.push({ name, logo });
+            settings.markModified('paymentModes');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/payment-modes/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.paymentModes) {
+            settings.paymentModes = settings.paymentModes.filter(m => m.name !== name);
+            settings.markModified('paymentModes');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Device Choices
+app.post("/api/settings/device-choices", async (req, res) => {
+    try {
+        const { choice } = req.body;
+        if (!choice) return res.status(400).json({ success: false, message: "Choix requis" });
+        const settings = await getSafeSettings();
+        if (!settings.deviceChoices) settings.deviceChoices = [];
+        if (!settings.deviceChoices.includes(choice)) {
+            settings.deviceChoices.push(choice);
+            settings.markModified('deviceChoices');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/device-choices/:choice", async (req, res) => {
+    try {
+        const { choice } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.deviceChoices) {
+            settings.deviceChoices = settings.deviceChoices.filter(c => c !== choice);
+            settings.markModified('deviceChoices');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Resolutions
+app.post("/api/settings/resolutions", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+        const settings = await getSafeSettings();
+        if (!settings.resolutions) settings.resolutions = [];
+        if (!settings.resolutions.find(r => r.name === name)) {
+            settings.resolutions.push({ name, image });
+            settings.markModified('resolutions');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/resolutions/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.resolutions) {
+            settings.resolutions = settings.resolutions.filter(r => r.name !== name);
+            settings.markModified('resolutions');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Regions
+app.post("/api/settings/regions", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+        const settings = await getSafeSettings();
+        if (!settings.regions) settings.regions = [];
+        if (!settings.regions.find(r => r.name === name)) {
+            settings.regions.push({ name, image });
+            settings.markModified('regions');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/regions/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.regions) {
+            settings.regions = settings.regions.filter(r => r.name !== name);
+            settings.markModified('regions');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Bouquets
+app.post("/api/settings/bouquets", async (req, res) => {
+    try {
+        const { name, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Nom requis" });
+        const settings = await getSafeSettings();
+        if (!settings.bouquets) settings.bouquets = [];
+        if (!settings.bouquets.find(b => b.name === name)) {
+            settings.bouquets.push({ name, image });
+            settings.markModified('bouquets');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.delete("/api/settings/bouquets/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const settings = await getSafeSettings();
+        if (settings.bouquets) {
+            settings.bouquets = settings.bouquets.filter(b => b.name !== name);
+            settings.markModified('bouquets');
+            await settings.save();
+        }
+        res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
 // Orders
 app.post("/api/orders", async (req, res) => {
     try {
@@ -762,9 +927,15 @@ app.delete("/api/orders", async (req, res) => {
 app.post("/api/reviews", async (req, res) => {
     try {
         console.log("POST /api/reviews body:", req.body);
-        const reviewData = { ...req.body };
-        if (!reviewData.productId || reviewData.productId === "" || reviewData.productId === "null") {
-            delete reviewData.productId;
+        const { username, comment, rating, productId } = req.body;
+
+        if (!username || !comment || !rating) {
+            return res.status(400).json({ success: false, message: "Nom, commentaire et note sont requis." });
+        }
+
+        const reviewData = { username, comment, rating, status: 'pending' };
+        if (productId && productId !== "" && productId !== "null" && mongoose.Types.ObjectId.isValid(productId)) {
+            reviewData.productId = productId;
         }
 
         const review = new Review(reviewData);
@@ -778,7 +949,7 @@ app.post("/api/reviews", async (req, res) => {
         res.status(201).json({ success: true, data: review });
     } catch (error) {
         console.error("Error creating review:", error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: "Erreur lors de l'enregistrement de l'avis: " + error.message });
     }
 });
 
