@@ -49,7 +49,7 @@
     font-size: 14px;
     font-weight: 700;
     color: #475569;
-    text-transform: uppercase;
+
     font-size: 12px;
 }
 
@@ -177,7 +177,7 @@
 
 .device-select-wrapper label {
     font-size: 10px;
-    text-transform: uppercase;
+
     color: #94a3b8;
     font-weight: 700;
 }
@@ -338,7 +338,7 @@
     font-size: 16px;
     border-radius: 12px;
     cursor: pointer;
-    text-transform: uppercase;
+
     letter-spacing: 1px;
     box-shadow: 0 10px 20px rgba(220, 38, 38, 0.25);
     transition: all 0.3s;

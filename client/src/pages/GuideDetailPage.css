@@ -40,7 +40,7 @@
     font-weight: 700;
     text-decoration: none;
     font-size: 14px;
-    text-transform: uppercase;
+
     margin-bottom: 10px;
     display: block;
 }
@@ -337,7 +337,7 @@
 .article-internal-link .link-label {
     font-size: 11px;
     color: #3b82f6;
-    text-transform: uppercase;
+
     font-weight: 800;
     letter-spacing: 0.1em;
     margin-bottom: 2px;

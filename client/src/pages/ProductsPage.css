@@ -262,7 +262,7 @@
     font-weight: 800;
     border-radius: 50px;
     cursor: pointer;
-    text-transform: uppercase;
+
     transition: transform 0.2s, opacity 0.2s;
     justify-content: center;
     align-items: center;
@@ -457,7 +457,7 @@
     font-weight: 600;
     font-size: 12px;
     text-decoration: none;
-    text-transform: uppercase;
+
     transition: all 0.2s;
 }
 
