@@ -230,6 +230,7 @@ export default function ProductDetailPage() {
     const [macAddress, setMacAddress] = useState('');
     const [deviceKey, setDeviceKey] = useState('');
     const [selectedSubscriptionFormat, setSelectedSubscriptionFormat] = useState('');
+    const [selectedBouquet, setSelectedBouquet] = useState('');
     const [whatsappNumber, setWhatsappNumber] = useState("21697496300");
     const [activeImage, setActiveImage] = useState(null);
     const [settings, setSettings] = useState(null);
@@ -540,6 +541,11 @@ export default function ProductDetailPage() {
             return;
         }
 
+        if (product.hasBouquets && !selectedBouquet) {
+            setModal({ show: true, message: "Veuillez choisir votre bouquet préféré.", type: 'error' });
+            return;
+        }
+
         if (!billingInfo.whatsapp || !localWhatsapp || localWhatsapp.trim().length === 0) {
             setModal({ show: true, message: "Veuillez entrer votre numéro WhatsApp.", type: 'error' });
             return;
@@ -582,7 +588,8 @@ export default function ProductDetailPage() {
                 receiverSerial: isSharingCategory ? receiverSerial : null,
                 macAddress: isPlayerActivationCategory ? macAddress : null,
                 deviceKey: isPlayerActivationCategory ? deviceKey : null,
-                subscriptionFormat: selectedSubscriptionFormat
+                subscriptionFormat: selectedSubscriptionFormat,
+                bouquet: selectedBouquet
             }],
             totalAmount: totalAmount,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -615,6 +622,7 @@ export default function ProductDetailPage() {
                     (isSharingCategory ? `S/N Récepteur: ${receiverSerial || "N/A"}\n` : "") +
                     (isPlayerActivationCategory ? `MAC: ${macAddress || "N/A"}\nKey: ${deviceKey || "N/A"}\n` : "") +
                     (selectedSubscriptionFormat ? `Format d'abonnement: ${selectedSubscriptionFormat}\n` : "") +
+                    (selectedBouquet ? `Bouquet: ${selectedBouquet}\n` : "") +
                     `\n` +
                     `---------------------------\n\n` +
                     `Merci de confirmer cette commande.`;
@@ -1071,27 +1079,39 @@ export default function ProductDetailPage() {
                                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                             {product.selectedBouquets.map((bName, idx) => {
                                                 const bInfo = settings?.bouquets?.find(s => s.name === bName);
+                                                const isSelected = selectedBouquet === bName;
                                                 return (
-                                                    <div key={idx} style={{
-                                                        border: '1px solid #e2e8f0',
-                                                        borderRadius: '8px',
-                                                        padding: '10px',
-                                                        width: '80px',
-                                                        textAlign: 'center',
-                                                        background: '#f8fafc',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}>
-                                                        <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' }}>
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => setSelectedBouquet(bName)}
+                                                        style={{
+                                                            border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                                                            borderRadius: '12px',
+                                                            padding: '12px',
+                                                            width: '100px',
+                                                            textAlign: 'center',
+                                                            background: isSelected ? '#eef2ff' : '#f8fafc',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease',
+                                                            boxShadow: isSelected ? '0 4px 12px rgba(99, 102, 241, 0.15)' : 'none',
+                                                            position: 'relative'
+                                                        }}
+                                                    >
+                                                        {isSelected && (
+                                                            <div style={{ position: 'absolute', top: -5, right: -5, background: '#6366f1', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
+                                                        )}
+                                                        <div style={{ width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
                                                             {bInfo && bInfo.image ? (
                                                                 <img src={bInfo.image} alt={bName} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                                                             ) : (
                                                                 <span style={{ fontSize: '24px' }}>📦</span>
                                                             )}
                                                         </div>
-                                                        <h6 style={{ margin: 0, fontSize: '10px', fontWeight: '700', color: '#334155', lineHeight: '1.2' }}>{bName}</h6>
+                                                        <h6 style={{ margin: 0, fontSize: '11px', fontWeight: '800', color: isSelected ? '#4338ca' : '#334155', lineHeight: '1.2' }}>{bName}</h6>
                                                     </div>
                                                 );
                                             })}
@@ -1226,6 +1246,10 @@ export default function ProductDetailPage() {
                                             setModal({ show: true, message: "Veuillez choisir un format d'abonnement.", type: 'error' });
                                             return;
                                         }
+                                        if (product.hasBouquets && !selectedBouquet) {
+                                            setModal({ show: true, message: "Veuillez choisir votre bouquet préféré.", type: 'error' });
+                                            return;
+                                        }
                                         addToCart({
                                             ...productWithId,
                                             price: (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price,
@@ -1233,7 +1257,8 @@ export default function ProductDetailPage() {
                                             receiverSerial: isSharingCategory ? receiverSerial : null,
                                             macAddress: isPlayerActivationCategory ? macAddress : null,
                                             deviceKey: isPlayerActivationCategory ? deviceKey : null,
-                                            subscriptionFormat: selectedSubscriptionFormat
+                                            subscriptionFormat: selectedSubscriptionFormat,
+                                            bouquet: selectedBouquet
                                         }, quantity);
                                     }}
                                 >

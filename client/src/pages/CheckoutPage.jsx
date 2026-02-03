@@ -127,7 +127,8 @@ export default function CheckoutPage() {
                 receiverSerial: item.receiverSerial || null,
                 macAddress: item.macAddress || null,
                 deviceKey: item.deviceKey || null,
-                subscriptionFormat: item.subscriptionFormat || null
+                subscriptionFormat: item.subscriptionFormat || null,
+                bouquet: item.bouquet || null
             })),
             totalAmount: finalTotal,
             paymentMethod: billingInfo.paymentMode || 'cod'
@@ -156,6 +157,7 @@ export default function CheckoutPage() {
                         (item.macAddress ? `   MAC: ${item.macAddress}\n` : "") +
                         (item.deviceKey ? `   Key: ${item.deviceKey}\n` : "") +
                         (item.subscriptionFormat ? `   Format: ${item.subscriptionFormat}\n` : "") +
+                        (item.bouquet ? `   Bouquet: ${item.bouquet}\n` : "") +
                         `\n`;
                 });
 
@@ -360,6 +362,13 @@ export default function CheckoutPage() {
                                                 <div className="checkout-product-device" style={{ marginTop: '5px' }}>
                                                     <span className="device-tag" style={{ background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' }}>
                                                         Format: {item.subscriptionFormat}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {item.bouquet && (
+                                                <div className="checkout-product-device" style={{ marginTop: '5px' }}>
+                                                    <span className="device-tag" style={{ background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe' }}>
+                                                        Bouquet: {item.bouquet}
                                                     </span>
                                                 </div>
                                             )}

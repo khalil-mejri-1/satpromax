@@ -21,7 +21,8 @@ const orderSchema = new mongoose.Schema({
         receiverSerial: String,
         macAddress: String,
         deviceKey: String,
-        subscriptionFormat: String
+        subscriptionFormat: String,
+        bouquet: String
     }],
     totalAmount: Number,
     status: {
