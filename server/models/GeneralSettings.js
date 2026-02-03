@@ -107,6 +107,13 @@ const GeneralSettingsSchema = new mongoose.Schema({
     homeSeoSubheadings: [{ level: String, text: String }],
     buttonColor: { type: String, default: '#fbbf24' },
     buttonTextColor: { type: String, default: '#000000' },
+    customButtons: [{
+        id: String,
+        name: String,
+        selector: String,
+        backgroundColor: String,
+        color: String
+    }]
 }, { timestamps: true });
 
 // Ensure only one document exists usually

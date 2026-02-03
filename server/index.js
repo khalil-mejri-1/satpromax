@@ -761,8 +761,15 @@ app.delete("/api/orders", async (req, res) => {
 // Reviews
 app.post("/api/reviews", async (req, res) => {
     try {
-        const review = new Review(req.body);
+        console.log("POST /api/reviews body:", req.body);
+        const reviewData = { ...req.body };
+        if (!reviewData.productId || reviewData.productId === "" || reviewData.productId === "null") {
+            delete reviewData.productId;
+        }
+
+        const review = new Review(reviewData);
         await review.save();
+
         if (review.productId) {
             const reviews = await Review.find({ productId: review.productId, status: 'approved' });
             const avgRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
@@ -770,6 +777,7 @@ app.post("/api/reviews", async (req, res) => {
         }
         res.status(201).json({ success: true, data: review });
     } catch (error) {
+        console.error("Error creating review:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

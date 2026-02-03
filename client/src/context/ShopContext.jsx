@@ -46,6 +46,26 @@ export const ShopContextProvider = ({ children }) => {
                     if (data.data.buttonTextColor) {
                         document.documentElement.style.setProperty('--button-text', data.data.buttonTextColor);
                     }
+
+                    // Inject Custom Button Styles
+                    if (data.data.customButtons && Array.isArray(data.data.customButtons)) {
+                        let css = '';
+                        data.data.customButtons.forEach(btn => {
+                            if (btn.selector && btn.backgroundColor) {
+                                css += `${btn.selector} { background-color: ${btn.backgroundColor} !important; color: ${btn.color} !important; border-color: ${btn.backgroundColor} !important; }\n`;
+                            }
+                        });
+
+                        if (css) {
+                            let styleTag = document.getElementById('dynamic-buttons-style');
+                            if (!styleTag) {
+                                styleTag = document.createElement('style');
+                                styleTag.id = 'dynamic-buttons-style';
+                                document.head.appendChild(styleTag);
+                            }
+                            styleTag.innerHTML = css;
+                        }
+                    }
                 }
                 setLoadingCategories(false);
             })

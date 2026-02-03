@@ -50,6 +50,8 @@ export default function Admin() {
                 return <SubCategoryManager openGlobalSeo={(parentId, subId) => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'subcategory', id: parentId + '|' + subId }); }} />;
             case 'reviews':
                 return <ReviewsManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'reviews' }); }} />;
+            case 'buttons':
+                return <ButtonManager />;
             case 'details':
                 return <SettingsManager />;
             case 'guides':
@@ -151,6 +153,12 @@ export default function Admin() {
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         Détails Généraux
                     </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'buttons' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('buttons')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>🔘</span> gestion de button
+                    </button>
                 </nav>
             </aside>
 
@@ -168,6 +176,7 @@ export default function Admin() {
                         {activeTab === 'inquiries' && 'Questions sur les Articles'}
                         {activeTab === 'messages' && 'Messages de Contact'}
                         {activeTab === 'support' && 'Gestion de Support'}
+                        {activeTab === 'buttons' && 'Gestion de Boutons'}
                         {activeTab === 'details' && 'Détails Généraux'}
                     </div>
                     <div className="admin-user-info">
@@ -3803,98 +3812,7 @@ const SettingsManager = () => {
                 </div>
             </div>
 
-            <div style={{ marginTop: '30px', padding: '20px', background: '#fffbeb', borderRadius: '12px', border: '1px solid #fcd34d', marginBottom: '30px' }}>
-                <h3 style={{ fontSize: '18px', color: '#b45309', marginBottom: '10px' }}>Gestion des Boutons</h3>
-                <p style={{ fontSize: '13px', color: '#d97706', marginBottom: '15px' }}>Modifiez la couleur de fond et du texte pour tous les boutons principaux du site.</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '20px', alignItems: 'end' }}>
-
-                    {/* Background Color */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', fontWeight: '600' }}>Couleur de Fond</label>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <input
-                                type="color"
-                                value={settings.buttonColor || '#fbbf24'}
-                                onChange={(e) => setSettings({ ...settings, buttonColor: e.target.value })}
-                                style={{ width: '50px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-                            />
-                            <input
-                                type="text"
-                                value={settings.buttonColor || '#fbbf24'}
-                                onChange={(e) => setSettings({ ...settings, buttonColor: e.target.value })}
-                                className="form-input"
-                                style={{ width: '100px' }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Text Color */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '13px', marginBottom: '5px', fontWeight: '600' }}>Couleur du Texte</label>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <input
-                                type="color"
-                                value={settings.buttonTextColor || '#000000'}
-                                onChange={(e) => setSettings({ ...settings, buttonTextColor: e.target.value })}
-                                style={{ width: '50px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-                            />
-                            <input
-                                type="text"
-                                value={settings.buttonTextColor || '#000000'}
-                                onChange={(e) => setSettings({ ...settings, buttonTextColor: e.target.value })}
-                                className="form-input"
-                                style={{ width: '100px' }}
-                            />
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={async () => {
-                            try {
-                                const res = await fetch(`${API_BASE_URL}/api/settings`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        buttonColor: settings.buttonColor,
-                                        buttonTextColor: settings.buttonTextColor
-                                    })
-                                });
-                                const data = await res.json();
-                                if (data.success) {
-                                    showNotification("Couleurs des boutons mises à jour", "success");
-                                    // Update live immediately
-                                    document.documentElement.style.setProperty('--button-bg', settings.buttonColor);
-                                    document.documentElement.style.setProperty('--button-text', settings.buttonTextColor);
-                                }
-                            } catch (err) {
-                                showNotification("Erreur", "error");
-                            }
-                        }}
-                        className="btn btn-primary"
-                        style={{ height: '42px' }}
-                    >
-                        Mettre à jour
-                    </button>
-                </div>
-
-                {/* Preview Button */}
-                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '600' }}>Aperçu :</span>
-                    <button style={{
-                        backgroundColor: settings.buttonColor || '#fbbf24',
-                        color: settings.buttonTextColor || '#000000',
-                        padding: '10px 20px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}>
-                        Bouton Test
-                    </button>
-                </div>
-            </div>
 
             {/* Resolutions Management */}
             < div style={{ marginTop: '30px' }}>
@@ -6556,6 +6474,239 @@ const SupportManager = ({ openGlobalSeo }) => {
 
                 </div>
             )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------
+//                           BUTTON MANAGER
+// ---------------------------------------------------------------------
+const ButtonManager = () => {
+    const [settings, setSettings] = useState(null);
+    const [localButtons, setLocalButtons] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [notification, setNotification] = useState(null);
+
+    // Define known buttons that exist in the site with their specific frontend classes
+    const KNOWN_BUTTONS = [
+        { id: 'btn-main-action', name: 'Bouton Principal (Défaut)', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.btn-primary' },
+        { id: 'btn-secondary', name: 'Bouton Secondaire', defaultBg: '#f1f5f9', defaultColor: '#1e293b', selector: '.btn-secondary' },
+        { id: 'btn-add-cart', name: 'Ajouter au Panier', defaultBg: '#fbbf24', defaultColor: '#000000', selector: '.add-to-cart-btn' },
+        { id: 'btn-checkout', name: 'Commander (Checkout)', defaultBg: '#10b981', defaultColor: '#ffffff', selector: '.checkout-btn' },
+        { id: 'btn-buy-now', name: 'Acheter Maintenant', defaultBg: '#ef4444', defaultColor: '#ffffff', selector: '.buy-now-btn' },
+        { id: 'btn-auth', name: 'Boutons Auth (Login/Register)', defaultBg: '#3b82f6', defaultColor: '#ffffff', selector: '.auth-btn' }
+    ];
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
+
+    const fetchSettings = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/settings`);
+            const data = await res.json();
+            if (data.success) {
+                setSettings(data.data);
+
+                // Merge known buttons with saved custom buttons
+                const savedButtons = data.data.customButtons || [];
+                const mergedButtons = KNOWN_BUTTONS.map(kb => {
+                    const saved = savedButtons.find(sb => sb.id === kb.id);
+                    return {
+                        ...kb,
+                        backgroundColor: saved ? saved.backgroundColor : kb.defaultBg,
+                        color: saved ? saved.color : kb.defaultColor
+                    };
+                });
+                setLocalButtons(mergedButtons);
+            }
+        } catch (error) {
+            console.error("Error fetching settings:", error);
+            showNotification("Erreur de chargement", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const handleColorChange = (id, field, value) => {
+        setLocalButtons(prev => prev.map(btn =>
+            btn.id === id ? { ...btn, [field]: value } : btn
+        ));
+    };
+
+    const saveButtons = async () => {
+        setLoading(true);
+        try {
+            // Transform localButtons to format for DB
+            const buttonsToSave = localButtons.map(btn => ({
+                id: btn.id,
+                name: btn.name,
+                selector: btn.selector,
+                backgroundColor: btn.backgroundColor,
+                color: btn.color
+            }));
+
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customButtons: buttonsToSave })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showNotification("Boutons mis à jour avec succès !", "success");
+                setSettings(data.data);
+
+                // Update CSS Variables locally for immediate effect (if variables are used)
+                // Or inform user to refresh.
+                // For direct class overrides, we rely on StoreContext to regenerate the style tag.
+            } else {
+                showNotification("Erreur lors de la sauvegarde", "error");
+            }
+        } catch (error) {
+            console.error("Save error:", error);
+            showNotification("Erreur serveur", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ padding: '0 20px 40px', maxWidth: '1200px', margin: '0 auto', animation: 'fadeIn 0.3s ease' }}>
+            {notification && (
+                <div style={{
+                    position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
+                    padding: '15px 25px', borderRadius: '8px',
+                    background: notification.type === 'success' ? '#10b981' : '#ef4444',
+                    color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px'
+                }}>
+                    <span>{notification.type === 'success' ? '✅' : '⚠️'}</span>
+                    {notification.message}
+                </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', marginBottom: '8px', letterSpacing: '-0.5px' }}>Gestion des Boutons</h2>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Personnalisez l'apparence de chaque bouton sur votre site.</p>
+                </div>
+                <button
+                    onClick={saveButtons}
+                    disabled={loading}
+                    className="btn btn-primary"
+                    style={{
+                        padding: '12px 24px',
+                        fontSize: '15px',
+                        fontWeight: '700',
+                        boxShadow: '0 4px 6px -1px rgba(251, 191, 36, 0.4)'
+                    }}
+                >
+                    {loading ? 'Sauvegarde...' : 'Sauvegarder les Changements'}
+                </button>
+            </div>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gap: '25px'
+            }}>
+                {localButtons.map(btn => (
+                    <div key={btn.id} style={{
+                        background: 'white',
+                        padding: '24px',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
+                        border: '1px solid #f1f5f9',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.01)'; }}
+                    >
+                        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{btn.name}</h3>
+                                <code style={{ fontSize: '11px', background: '#f1f5f9', padding: '4px 6px', borderRadius: '4px', color: '#64748b' }}>{btn.selector}</code>
+                            </div>
+                        </div>
+
+                        {/* Preview Area */}
+                        <div style={{
+                            background: '#f8fafc',
+                            height: '100px',
+                            borderRadius: '12px',
+                            marginBottom: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '2px dashed #e2e8f0'
+                        }}>
+                            <button style={{
+                                backgroundColor: btn.backgroundColor,
+                                color: btn.color,
+                                padding: '12px 28px',
+                                borderRadius: '10px',
+                                fontWeight: '600',
+                                border: 'none',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                cursor: 'default',
+                                fontSize: '14px',
+                                transition: 'all 0.3s ease'
+                            }}>
+                                {btn.name}
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '15px' }}>
+                            {/* Background Picker */}
+                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px' }}>Couleur de Fond</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                        type="color"
+                                        value={btn.backgroundColor}
+                                        onChange={(e) => handleColorChange(btn.id, 'backgroundColor', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={btn.backgroundColor}
+                                        onChange={(e) => handleColorChange(btn.id, 'backgroundColor', e.target.value)}
+                                        className="form-input"
+                                        style={{ fontSize: '13px', flex: 1, letterSpacing: '1px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Text Color Picker */}
+                            <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px' }}>Couleur du Texte</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                        type="color"
+                                        value={btn.color}
+                                        onChange={(e) => handleColorChange(btn.id, 'color', e.target.value)}
+                                        style={{ width: '40px', height: '40px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'none' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={btn.color}
+                                        onChange={(e) => handleColorChange(btn.id, 'color', e.target.value)}
+                                        className="form-input"
+                                        style={{ fontSize: '13px', flex: 1, letterSpacing: '1px' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
