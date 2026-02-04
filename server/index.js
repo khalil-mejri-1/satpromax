@@ -399,6 +399,8 @@ app.post("/api/login", async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
 
+        console.log(`[LOGIN] User ${user.email} (ID: ${user._id}) - 2FA Enabled in DB: ${user.twoFactorEnabled}`);
+
         if (user.twoFactorEnabled) {
             return res.status(200).json({
                 success: true,
@@ -411,7 +413,7 @@ app.post("/api/login", async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Connexion réussie",
-            user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: false }
+            user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: user.twoFactorEnabled }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -602,12 +604,16 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
 
         if (verified) {
             user.twoFactorEnabled = true;
-            await user.save();
+            user.markModified('twoFactorEnabled');
+            const savedUser = await user.save();
+            console.log(`[2FA] Enabled for user ${userId} (${user.email || 'admin'}). DB Value: ${savedUser.twoFactorEnabled}`);
             res.json({ success: true, message: "2FA Enabled successfully" });
         } else {
+            console.log(`[2FA] Verification failed for user ${userId}`);
             res.status(400).json({ success: false, message: "Invalid token" });
         }
     } catch (error) {
+        console.error("[2FA] Verify Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
@@ -615,6 +621,7 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
 app.post("/api/auth/2fa/disable", async (req, res) => {
     try {
         const { userId } = req.body;
+        console.log(`[2FA] Disable request for ${userId}`);
         let user;
         if (userId === 'admin') {
             user = await getSafeSettings();
@@ -627,8 +634,10 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
         user.twoFactorEnabled = false;
         user.twoFactorSecret = undefined;
         await user.save();
+        console.log(`[2FA] Disabled for user ${userId}`);
         res.json({ success: true, message: "2FA Disabled" });
     } catch (error) {
+        console.error("[2FA] Disable Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
@@ -636,6 +645,7 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
 app.post("/api/auth/2fa/login", async (req, res) => {
     try {
         const { userId, token } = req.body;
+        console.log(`[2FA] Login attempt for ${userId}`);
         let user;
         let isGeneralAdmin = false;
         if (userId === 'admin') {
