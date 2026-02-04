@@ -3,6 +3,7 @@ import './Admin.css';
 import { ShopContext } from '../context/ShopContext';
 
 import { API_BASE_URL } from '../config';
+import TwoFactorSetup from '../components/TwoFactorSetup';
 
 // SVG Icons (Simple placeholders)
 const IconProduct = () => <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>;
@@ -62,6 +63,8 @@ export default function Admin() {
                 return <ContactMessagesManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'contact' }); }} />;
             case 'support':
                 return <SupportManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'support' }); }} />;
+            case '2fa':
+                return <TwoFactorManager />;
             default:
                 return <ProductsManager />;
         }
@@ -159,6 +162,12 @@ export default function Admin() {
                     >
                         <span style={{ marginRight: '8px', fontSize: '18px' }}>🔘</span> gestion de button
                     </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === '2fa' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('2fa')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>🔐</span> gestion 2FA
+                    </button>
                 </nav>
             </aside>
 
@@ -178,6 +187,7 @@ export default function Admin() {
                         {activeTab === 'support' && 'Gestion de Support'}
                         {activeTab === 'buttons' && 'Gestion de Boutons'}
                         {activeTab === 'details' && 'Détails Généraux'}
+                        {activeTab === '2fa' && 'Gestion Authentification 2FA'}
                     </div>
                     <div className="admin-user-info">
                         <button
@@ -6988,6 +6998,70 @@ const ButtonManager = () => {
                         </div>
                     </div>
                 ))}
+            </div>
+        </div>
+    );
+};
+
+const TwoFactorManager = () => {
+    const [isSetupOpen, setIsSetupOpen] = useState(false);
+    const [status, setStatus] = useState(null); // 'enabled' | 'disabled'
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Check current status
+        fetch(`${API_BASE_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setStatus(data.data.twoFactorEnabled ? 'enabled' : 'disabled');
+                }
+                setLoading(false);
+            });
+    }, []);
+
+    return (
+        <div className="admin-card">
+            <div className="admin-card-header">
+                <h3>Gestion Authentification 2FA (Admin)</h3>
+            </div>
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+                <div style={{ marginBottom: '30px' }}>
+                    <div style={{ fontSize: '18px', marginBottom: '10px' }}>Statut de la double authentification :</div>
+                    <div style={{
+                        display: 'inline-block',
+                        padding: '10px 20px',
+                        borderRadius: '30px',
+                        background: status === 'enabled' ? '#dcfce7' : '#fee2e2',
+                        color: status === 'enabled' ? '#166534' : '#991b1b',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        border: `1px solid ${status === 'enabled' ? '#86efac' : '#fca5a5'}`
+                    }}>
+                        {loading ? 'Chargement...' : (status === 'enabled' ? '✅ ACTIVÉE' : '❌ DÉSACTIVÉE')}
+                    </div>
+                </div>
+
+                <p style={{ maxWidth: '600px', margin: '0 auto 30px auto', color: '#64748b', lineHeight: '1.6' }}>
+                    La validation en deux étapes ajoute une couche de sécurité supplémentaire à votre compte administrateur.
+                    Une fois activée, vous devrez saisir un code unique généré par votre application mobile à chaque connexion.
+                </p>
+
+                <button
+                    className="btn btn-primary"
+                    onClick={() => setIsSetupOpen(true)}
+                    style={{ fontSize: '16px', padding: '12px 30px', height: 'auto' }}
+                >
+                    {status === 'enabled' ? 'Gérer / Désactiver 2FA' : 'Activer la 2FA Maintenant'}
+                </button>
+
+                {isSetupOpen && (
+                    <TwoFactorSetup
+                        user={{ id: 'admin', twoFactorEnabled: status === 'enabled' }}
+                        onClose={() => setIsSetupOpen(false)}
+                        onUpdateUser={(u) => setStatus(u.twoFactorEnabled ? 'enabled' : 'disabled')}
+                    />
+                )}
             </div>
         </div>
     );

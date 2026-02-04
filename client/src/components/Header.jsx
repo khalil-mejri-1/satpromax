@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import { API_BASE_URL } from '../config';
+import TwoFactorSetup from './TwoFactorSetup';
 import './Header.css';
 
 // Simple SVG Icons
@@ -130,6 +131,12 @@ export default function Header() {
     const [searchResults, setSearchResults] = useState({ categories: [], products: [] });
     const [isSearching, setIsSearching] = useState(false);
     const [expandedSidebarCat, setExpandedSidebarCat] = useState(null);
+    const [is2FASetupOpen, setIs2FASetupOpen] = useState(false);
+
+    const handleUserUpdate = (updatedUser) => {
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
 
     useEffect(() => {
         const timeoutId = setTimeout(async () => {
@@ -426,6 +433,19 @@ export default function Header() {
                                             </Link>
                                         )}
 
+                                        <div className="dropdown-item" onClick={(e) => {
+                                            e.preventDefault();
+                                            setIs2FASetupOpen(true);
+                                        }} style={{ cursor: 'pointer' }}>
+                                            <div style={{ width: '50px', height: '50px', background: '#ecfdf5', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                            </div>
+                                            <div className="item-info">
+                                                <div className="item-name" style={{ color: '#10b981' }}>Sécurité 2FA</div>
+                                                <div className="item-meta">{user.twoFactorEnabled ? 'Gérer / Désactiver' : 'Activer 2FA'}</div>
+                                            </div>
+                                        </div>
+
                                         <div className="dropdown-item"
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -705,6 +725,13 @@ export default function Header() {
                             >
                                 ➜ Déconnexion
                             </button>
+                            <button
+                                className="sidebar-login-link"
+                                onClick={() => { setIs2FASetupOpen(true); }}
+                                style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', textAlign: 'left', padding: 0, marginTop: '8px', display: 'block', fontSize: '14px' }}
+                            >
+                                {user.twoFactorEnabled ? '🔐 Gérer 2FA' : '🔐 Activer 2FA'}
+                            </button>
                         </>
                     ) : (
                         <>
@@ -816,6 +843,9 @@ export default function Header() {
                     </Link>
                 </div>
             </div>
+            {is2FASetupOpen && user && (
+                <TwoFactorSetup user={user} onClose={() => setIs2FASetupOpen(false)} onUpdateUser={handleUserUpdate} />
+            )}
         </header >
     )
 }

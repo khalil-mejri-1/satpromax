@@ -23,12 +23,11 @@ export default function LoginPage() {
     const [forgotMessage, setForgotMessage] = useState(null);
     const [isForgotLoading, setIsForgotLoading] = useState(false);
 
-    // 2FA Modal State
-    const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
-    const [twoFactorCode, setTwoFactorCode] = useState('');
-    const [tempUser, setTempUser] = useState(null);
-    const [is2FALoading, setIs2FALoading] = useState(false);
-    const [twoFAMessage, setTwoFAMessage] = useState(null);
+    // 2FA State
+    const [require2FA, setRequire2FA] = useState(false);
+    const [userIdFor2FA, setUserIdFor2FA] = useState(null);
+    const [token2FA, setToken2FA] = useState('');
+    const [loading2FA, setLoading2FA] = useState(false);
 
     const handleForgotClick = (e) => {
         e.preventDefault();
@@ -154,7 +153,6 @@ export default function LoginPage() {
         setMessage(null);
 
         try {
-
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -162,18 +160,20 @@ export default function LoginPage() {
             });
             const data = await response.json();
 
+
             if (data.success) {
-                // Check if 2FA is required
-                if (data.requiresTwoFactor) {
-                    // Open 2FA modal
-                    setTempUser(data.user);
-                    setIs2FAModalOpen(true);
-                } else {
-                    // No 2FA, proceed with login
-                    setMessage({ type: 'success', text: `Bienvenue, ${data.user.username} !` });
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    setTimeout(() => navigate('/'), 1500);
+                if (data.require2FA) {
+                    setRequire2FA(true);
+                    setUserIdFor2FA(data.userId);
+                    setMessage({ type: 'success', text: 'Validation 2FA requise' });
+                    return;
                 }
+
+                setMessage({ type: 'success', text: `Bienvenue, ${data.user.username} !` });
+                // Save user info if needed (e.g. localStorage)
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                setTimeout(() => navigate('/'), 1500);
             } else {
                 setMessage({ type: 'error', text: data.message || 'Email ou mot de passe incorrect' });
             }
@@ -182,46 +182,29 @@ export default function LoginPage() {
         }
     };
 
-    const handle2FAVerification = async (e) => {
+    const handle2FASubmit = async (e) => {
         e.preventDefault();
-        setIs2FALoading(true);
-        setTwoFAMessage(null);
-
+        setLoading2FA(true);
+        setMessage(null);
         try {
-            const endpoint = tempUser.role === 'admin' ? '/api/2fa/admin/verify' : '/api/2fa/verify';
-            const body = tempUser.role === 'admin'
-                ? { token: twoFactorCode }
-                : { userId: tempUser.id, token: twoFactorCode };
-
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            const res = await fetch(`${API_BASE_URL}/api/auth/2fa/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({ userId: userIdFor2FA, token: token2FA })
             });
-            const data = await response.json();
-
+            const data = await res.json();
             if (data.success) {
-                // 2FA successful, login user
-                setTwoFAMessage({ type: 'success', text: 'Vérification réussie !' });
+                setMessage({ type: 'success', text: `Bienvenue, ${data.user.username} !` });
                 localStorage.setItem('user', JSON.stringify(data.user));
-                setTimeout(() => {
-                    setIs2FAModalOpen(false);
-                    navigate('/');
-                }, 1000);
+                setRequire2FA(false);
+                setTimeout(() => navigate('/'), 1500);
             } else {
-                setTwoFAMessage({ type: 'error', text: data.message || 'Code invalide' });
+                setMessage({ type: 'error', text: data.message });
             }
-        } catch (error) {
-            setTwoFAMessage({ type: 'error', text: 'Erreur de vérification' });
+        } catch (err) {
+            setMessage({ type: 'error', text: "Erreur serveur" });
         }
-        setIs2FALoading(false);
-    };
-
-    const close2FAModal = () => {
-        setIs2FAModalOpen(false);
-        setTwoFactorCode('');
-        setTempUser(null);
-        setTwoFAMessage(null);
+        setLoading2FA(false);
     };
 
     return (
@@ -412,46 +395,40 @@ export default function LoginPage() {
                 </div>
             )}
 
-            {/* 2FA Verification Modal */}
-            {is2FAModalOpen && (
-                <div className="auth-modal-overlay" onClick={close2FAModal}>
-                    <div className="auth-modal-content" onClick={e => e.stopPropagation()}>
-                        <button className="auth-modal-close" onClick={close2FAModal}>×</button>
-
-                        <div className="auth-modal-header">
-                            <h3>🔐 Vérification en deux étapes</h3>
-                        </div>
-
-                        {twoFAMessage && (
-                            <div className={`auth-message ${twoFAMessage.type}`}>
-                                {twoFAMessage.text}
-                            </div>
+            {/* 2FA Login Modal */}
+            {require2FA && (
+                <div className="auth-modal-overlay">
+                    <div className="auth-modal-content" style={{ maxWidth: '400px' }}>
+                        <h3>Validation 2FA</h3>
+                        {message && message.type === 'error' && (
+                            <div className="auth-message error">{message.text}</div>
                         )}
-
-                        <form onSubmit={handle2FAVerification} className="login-form">
-                            <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '20px' }}>
+                        <form onSubmit={handle2FASubmit} className="login-form">
+                            <p style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b' }}>
                                 Entrez le code à 6 chiffres de votre application d'authentification.
                             </p>
                             <div className="form-group">
-                                <label>Code d'authentification</label>
                                 <input
                                     type="text"
-                                    required
-                                    value={twoFactorCode}
-                                    onChange={e => setTwoFactorCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                                    value={token2FA}
+                                    onChange={e => setToken2FA(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                                     placeholder="000000"
-                                    maxLength={6}
-                                    style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold' }}
+                                    style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '24px', fontWeight: 'bold' }}
                                     autoFocus
+                                    maxLength={6}
                                 />
                             </div>
-                            <button type="submit" className="btn-login" disabled={is2FALoading || twoFactorCode.length !== 6}>
-                                {is2FALoading ? 'Vérification...' : 'Vérifier'}
+                            <button type="submit" className="btn-login" disabled={loading2FA}>
+                                {loading2FA ? 'Vérification...' : 'Valider la connexion'}
+                            </button>
+                            <button type="button" onClick={() => setRequire2FA(false)} style={{ background: 'none', border: 'none', width: '100%', marginTop: '10px', cursor: 'pointer', color: '#64748b' }}>
+                                Annuler
                             </button>
                         </form>
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

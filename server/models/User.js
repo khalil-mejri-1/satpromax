@@ -7,10 +7,8 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: 'client', enum: ['client', 'admin'] },
     resetCode: String,
     resetCodeExpires: Date,
-    // 2FA fields
-    twoFactorSecret: { type: String, default: null },
-    twoFactorEnabled: { type: Boolean, default: false },
-    twoFactorTempSecret: { type: String, default: null }
+    twoFactorSecret: { type: String },
+    twoFactorEnabled: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

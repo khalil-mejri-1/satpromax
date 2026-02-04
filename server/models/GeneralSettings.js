@@ -72,9 +72,6 @@ const GeneralSettingsSchema = new mongoose.Schema({
     productTitleColor: { type: String, default: '#ffffff' },
     adminEmail: { type: String, default: 'ferid123@admin.test' },
     adminPassword: { type: String, default: '123456' },
-    admin2FAEnabled: { type: Boolean, default: false },
-    admin2FASecret: { type: String, default: null },
-    admin2FATempSecret: { type: String, default: null },
     senderEmail: { type: String, default: 'kmejri57@gmail.com' },
     senderPassword: { type: String, default: 'msncmujsbjqnszxp' },
     notificationSenderEmail: { type: String, default: 'kmejri57@gmail.com' },
@@ -82,6 +79,8 @@ const GeneralSettingsSchema = new mongoose.Schema({
     notificationReceiverEmail: { type: String, default: 'mejrik1888@gmail.com' },
     resetCode: String,
     resetCodeExpires: Date,
+    twoFactorSecret: { type: String },
+    twoFactorEnabled: { type: Boolean, default: false },
     resolutions: [{
         name: { type: String, trim: true },
         image: { type: String, trim: true }
