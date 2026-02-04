@@ -434,48 +434,6 @@ export default function LoginPage() {
                             <div className="auth-message error">{message.text}</div>
                         )}
 
-                        {/* 2FA Prompt Modal */}
-                        {show2FAPrompt && (
-                            <div className="auth-modal-overlay">
-                                <div className="auth-modal-content" style={{ maxWidth: '450px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '50px', marginBottom: '15px' }}>🛡️</div>
-                                    <h3 style={{ marginBottom: '10px' }}>Sécurisez votre compte</h3>
-                                    <p style={{ color: '#64748b', marginBottom: '25px', lineHeight: '1.6' }}>
-                                        Nous vous recommandons d'activer l'authentification à deux facteurs (2FA) pour protéger votre compte contre les accès non autorisés.
-                                    </p>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        <button
-                                            className="btn-login"
-                                            onClick={() => { setShow2FAPrompt(false); setIsSetupOpen(true); }}
-                                            style={{ background: '#3b82f6', border: 'none' }}
-                                        >
-                                            Activer la sécurité 2FA
-                                        </button>
-                                        <button
-                                            className="btn-login"
-                                            onClick={() => { setShow2FAPrompt(false); setTimeout(() => navigate('/'), 500); }}
-                                            style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#64748b' }}
-                                        >
-                                            Plus tard
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 2FA Setup Modal */}
-                        {isSetupOpen && setupUser && (
-                            <TwoFactorSetup
-                                user={setupUser}
-                                onClose={() => {
-                                    setIsSetupOpen(false);
-                                    setTimeout(() => navigate('/'), 500);
-                                }}
-                                onUpdateUser={(updatedUser) => {
-                                    localStorage.setItem('user', JSON.stringify(updatedUser)); // Update stored user
-                                }}
-                            />
-                        )}
                         <form onSubmit={handle2FASubmit} className="login-form">
                             <p style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b' }}>
                                 Entrez le code à 6 chiffres de votre application d'authentification.
@@ -500,6 +458,49 @@ export default function LoginPage() {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* 2FA Prompt Modal */}
+            {show2FAPrompt && (
+                <div className="auth-modal-overlay">
+                    <div className="auth-modal-content" style={{ maxWidth: '450px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>🛡️</div>
+                        <h3 style={{ marginBottom: '10px' }}>Sécurisez votre compte</h3>
+                        <p style={{ color: '#64748b', marginBottom: '25px', lineHeight: '1.6' }}>
+                            Nous vous recommandons d'activer l'authentification à deux facteurs (2FA) pour protéger votre compte contre les accès non autorisés.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <button
+                                className="btn-login"
+                                onClick={() => { setShow2FAPrompt(false); setIsSetupOpen(true); }}
+                                style={{ background: '#3b82f6', border: 'none' }}
+                            >
+                                Activer la sécurité 2FA
+                            </button>
+                            <button
+                                className="btn-login"
+                                onClick={() => { setShow2FAPrompt(false); setTimeout(() => navigate('/'), 500); }}
+                                style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#64748b' }}
+                            >
+                                Plus tard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 2FA Setup Modal */}
+            {isSetupOpen && setupUser && (
+                <TwoFactorSetup
+                    user={setupUser}
+                    onClose={() => {
+                        setIsSetupOpen(false);
+                        setTimeout(() => navigate('/'), 500);
+                    }}
+                    onUpdateUser={(updatedUser) => {
+                        localStorage.setItem('user', JSON.stringify(updatedUser)); // Update stored user
+                    }}
+                />
             )}
 
         </div>
