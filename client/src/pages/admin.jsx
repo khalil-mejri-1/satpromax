@@ -5071,8 +5071,8 @@ const ReviewsManager = ({ openGlobalSeo }) => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
-                method: 'PUT',
+            const response = await fetch(`${API_BASE_URL}/api/reviews/${id}/status`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
