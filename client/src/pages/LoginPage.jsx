@@ -23,6 +23,13 @@ export default function LoginPage() {
     const [forgotMessage, setForgotMessage] = useState(null);
     const [isForgotLoading, setIsForgotLoading] = useState(false);
 
+    // 2FA Modal State
+    const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
+    const [twoFactorCode, setTwoFactorCode] = useState('');
+    const [tempUser, setTempUser] = useState(null);
+    const [is2FALoading, setIs2FALoading] = useState(false);
+    const [twoFAMessage, setTwoFAMessage] = useState(null);
+
     const handleForgotClick = (e) => {
         e.preventDefault();
         setIsForgotModalOpen(true);
@@ -147,6 +154,7 @@ export default function LoginPage() {
         setMessage(null);
 
         try {
+
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -155,17 +163,65 @@ export default function LoginPage() {
             const data = await response.json();
 
             if (data.success) {
-                setMessage({ type: 'success', text: `Bienvenue, ${data.user.username} !` });
-                // Save user info if needed (e.g. localStorage)
-                localStorage.setItem('user', JSON.stringify(data.user));
-
-                setTimeout(() => navigate('/'), 1500);
+                // Check if 2FA is required
+                if (data.requiresTwoFactor) {
+                    // Open 2FA modal
+                    setTempUser(data.user);
+                    setIs2FAModalOpen(true);
+                } else {
+                    // No 2FA, proceed with login
+                    setMessage({ type: 'success', text: `Bienvenue, ${data.user.username} !` });
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    setTimeout(() => navigate('/'), 1500);
+                }
             } else {
                 setMessage({ type: 'error', text: data.message || 'Email ou mot de passe incorrect' });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Erreur de connexion au serveur' });
         }
+    };
+
+    const handle2FAVerification = async (e) => {
+        e.preventDefault();
+        setIs2FALoading(true);
+        setTwoFAMessage(null);
+
+        try {
+            const endpoint = tempUser.role === 'admin' ? '/api/2fa/admin/verify' : '/api/2fa/verify';
+            const body = tempUser.role === 'admin'
+                ? { token: twoFactorCode }
+                : { userId: tempUser.id, token: twoFactorCode };
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // 2FA successful, login user
+                setTwoFAMessage({ type: 'success', text: 'Vérification réussie !' });
+                localStorage.setItem('user', JSON.stringify(data.user));
+                setTimeout(() => {
+                    setIs2FAModalOpen(false);
+                    navigate('/');
+                }, 1000);
+            } else {
+                setTwoFAMessage({ type: 'error', text: data.message || 'Code invalide' });
+            }
+        } catch (error) {
+            setTwoFAMessage({ type: 'error', text: 'Erreur de vérification' });
+        }
+        setIs2FALoading(false);
+    };
+
+    const close2FAModal = () => {
+        setIs2FAModalOpen(false);
+        setTwoFactorCode('');
+        setTempUser(null);
+        setTwoFAMessage(null);
     };
 
     return (
@@ -352,6 +408,47 @@ export default function LoginPage() {
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* 2FA Verification Modal */}
+            {is2FAModalOpen && (
+                <div className="auth-modal-overlay" onClick={close2FAModal}>
+                    <div className="auth-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="auth-modal-close" onClick={close2FAModal}>×</button>
+
+                        <div className="auth-modal-header">
+                            <h3>🔐 Vérification en deux étapes</h3>
+                        </div>
+
+                        {twoFAMessage && (
+                            <div className={`auth-message ${twoFAMessage.type}`}>
+                                {twoFAMessage.text}
+                            </div>
+                        )}
+
+                        <form onSubmit={handle2FAVerification} className="login-form">
+                            <p style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', marginBottom: '20px' }}>
+                                Entrez le code à 6 chiffres de votre application d'authentification.
+                            </p>
+                            <div className="form-group">
+                                <label>Code d'authentification</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={twoFactorCode}
+                                    onChange={e => setTwoFactorCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                                    placeholder="000000"
+                                    maxLength={6}
+                                    style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold' }}
+                                    autoFocus
+                                />
+                            </div>
+                            <button type="submit" className="btn-login" disabled={is2FALoading || twoFactorCode.length !== 6}>
+                                {is2FALoading ? 'Vérification...' : 'Vérifier'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}

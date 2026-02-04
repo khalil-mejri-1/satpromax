@@ -6,6 +6,8 @@ const nodemailer = require("nodemailer");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 const app = express();
 const PORT = 3000;
@@ -376,22 +378,45 @@ app.post("/api/login", async (req, res) => {
         const adminEmail = settings?.adminEmail || 'ferid123@admin.test';
         const adminPassword = settings?.adminPassword || '123456';
 
+        // Check if it's admin login
         if (email === adminEmail && password === adminPassword) {
+            // For admin, check if they have 2FA enabled in settings
+            const admin2FAEnabled = settings?.admin2FAEnabled || false;
+            const admin2FASecret = settings?.admin2FASecret || null;
+
             return res.status(200).json({
                 success: true,
                 message: "Connexion réussie (Admin)",
-                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin' }
+                requiresTwoFactor: admin2FAEnabled,
+                user: {
+                    id: "admin",
+                    username: "Administrator",
+                    email: adminEmail,
+                    role: 'admin',
+                    twoFactorEnabled: admin2FAEnabled
+                }
             });
         }
 
+        // Regular user login
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
 
+        // Check if user has 2FA enabled
+        const requiresTwoFactor = user.twoFactorEnabled || false;
+
         res.status(200).json({
             success: true,
             message: "Connexion réussie",
-            user: { id: user._id, username: user.username, email: user.email, role: user.role }
+            requiresTwoFactor: requiresTwoFactor,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                twoFactorEnabled: requiresTwoFactor
+            }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -531,6 +556,341 @@ app.post("/api/google-login", async (req, res) => {
         res.status(500).json({ success: false, message: "Échec authentification Google" });
     }
 });
+
+// ===== 2FA ENDPOINTS =====
+
+// Setup 2FA - Generate QR code
+app.post("/api/2fa/setup", async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        // Generate secret
+        const secret = speakeasy.generateSecret({
+            name: `TechnoPlus (${user.email})`,
+            length: 32
+        });
+
+        // Store temporary secret (not activated yet)
+        user.twoFactorTempSecret = secret.base32;
+        await user.save();
+
+        // Generate QR code
+        const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+        res.status(200).json({
+            success: true,
+            secret: secret.base32,
+            qrCode: qrCodeUrl
+        });
+    } catch (error) {
+        console.error("2FA setup error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la configuration 2FA" });
+    }
+});
+
+// Verify and enable 2FA
+app.post("/api/2fa/verify-enable", async (req, res) => {
+    try {
+        const { userId, token } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        if (!user.twoFactorTempSecret) {
+            return res.status(400).json({ success: false, message: "Aucune configuration 2FA en attente" });
+        }
+
+        // Verify the token
+        const verified = speakeasy.totp.verify({
+            secret: user.twoFactorTempSecret,
+            encoding: 'base32',
+            token: token,
+            window: 2
+        });
+
+        if (verified) {
+            user.twoFactorSecret = user.twoFactorTempSecret;
+            user.twoFactorEnabled = true;
+            user.twoFactorTempSecret = null;
+            await user.save();
+
+            res.status(200).json({
+                success: true,
+                message: "2FA activé avec succès",
+                twoFactorEnabled: true
+            });
+        } else {
+            res.status(400).json({ success: false, message: "Code invalide" });
+        }
+    } catch (error) {
+        console.error("2FA verification error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la vérification" });
+    }
+});
+
+// Verify 2FA token during login
+app.post("/api/2fa/verify", async (req, res) => {
+    try {
+        const { userId, token } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+            return res.status(400).json({ success: false, message: "2FA non activé" });
+        }
+
+        const verified = speakeasy.totp.verify({
+            secret: user.twoFactorSecret,
+            encoding: 'base32',
+            token: token,
+            window: 2
+        });
+
+        if (verified) {
+            res.status(200).json({
+                success: true,
+                message: "Vérification 2FA réussie",
+                user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: user.twoFactorEnabled }
+            });
+        } else {
+            res.status(400).json({ success: false, message: "Code 2FA invalide" });
+        }
+    } catch (error) {
+        console.error("2FA verification error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la vérification" });
+    }
+});
+
+// Disable 2FA
+app.post("/api/2fa/disable", async (req, res) => {
+    try {
+        const { userId, password } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        // Verify password before disabling
+        if (user.password !== password) {
+            return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
+        }
+
+        user.twoFactorEnabled = false;
+        user.twoFactorSecret = null;
+        user.twoFactorTempSecret = null;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "2FA désactivé avec succès",
+            twoFactorEnabled: false
+        });
+    } catch (error) {
+        console.error("2FA disable error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la désactivation" });
+    }
+});
+
+// Check 2FA status
+app.get("/api/2fa/status/:userId", async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        res.status(200).json({
+            success: true,
+            twoFactorEnabled: user.twoFactorEnabled || false
+        });
+    } catch (error) {
+        console.error("2FA status error:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Admin: Get all users 2FA status
+app.get("/api/2fa/admin/all-users", async (req, res) => {
+    try {
+        const users = await User.find().select('username email twoFactorEnabled role createdAt');
+        res.status(200).json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        console.error("Admin 2FA status error:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// Admin: Force disable 2FA for a user
+app.post("/api/2fa/admin/force-disable", async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        user.twoFactorEnabled = false;
+        user.twoFactorSecret = null;
+        user.twoFactorTempSecret = null;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "2FA désactivé pour l'utilisateur",
+            user: { id: user._id, username: user.username, email: user.email, twoFactorEnabled: false }
+        });
+    } catch (error) {
+        console.error("Admin force disable 2FA error:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+// ===== ADMIN ACCOUNT 2FA ENDPOINTS =====
+
+// Admin: Setup 2FA for admin account
+app.post("/api/2fa/admin/setup", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+
+        // Generate secret for admin
+        const secret = speakeasy.generateSecret({
+            name: `TechnoPlus Admin (${settings.adminEmail})`,
+            length: 32
+        });
+
+        // Store temporary secret
+        settings.admin2FATempSecret = secret.base32;
+        await settings.save();
+
+        // Generate QR code
+        const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+        res.status(200).json({
+            success: true,
+            secret: secret.base32,
+            qrCode: qrCodeUrl
+        });
+    } catch (error) {
+        console.error("Admin 2FA setup error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la configuration 2FA" });
+    }
+});
+
+// Admin: Verify and enable 2FA for admin account
+app.post("/api/2fa/admin/verify-enable", async (req, res) => {
+    try {
+        const { token } = req.body;
+        const settings = await getSafeSettings();
+
+        if (!settings.admin2FATempSecret) {
+            return res.status(400).json({ success: false, message: "Aucune configuration 2FA en attente" });
+        }
+
+        // Verify the token
+        const verified = speakeasy.totp.verify({
+            secret: settings.admin2FATempSecret,
+            encoding: 'base32',
+            token: token,
+            window: 2
+        });
+
+        if (verified) {
+            settings.admin2FASecret = settings.admin2FATempSecret;
+            settings.admin2FAEnabled = true;
+            settings.admin2FATempSecret = null;
+            await settings.save();
+
+            res.status(200).json({
+                success: true,
+                message: "2FA activé avec succès pour l'admin",
+                twoFactorEnabled: true
+            });
+        } else {
+            res.status(400).json({ success: false, message: "Code invalide" });
+        }
+    } catch (error) {
+        console.error("Admin 2FA verification error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la vérification" });
+    }
+});
+
+// Admin: Verify 2FA token during admin login
+app.post("/api/2fa/admin/verify", async (req, res) => {
+    try {
+        const { token } = req.body;
+        const settings = await getSafeSettings();
+
+        if (!settings.admin2FAEnabled || !settings.admin2FASecret) {
+            return res.status(400).json({ success: false, message: "2FA non activé pour l'admin" });
+        }
+
+        const verified = speakeasy.totp.verify({
+            secret: settings.admin2FASecret,
+            encoding: 'base32',
+            token: token,
+            window: 2
+        });
+
+        if (verified) {
+            res.status(200).json({
+                success: true,
+                message: "Vérification 2FA réussie",
+                user: {
+                    id: "admin",
+                    username: "Administrator",
+                    email: settings.adminEmail,
+                    role: 'admin',
+                    twoFactorEnabled: true
+                }
+            });
+        } else {
+            res.status(400).json({ success: false, message: "Code 2FA invalide" });
+        }
+    } catch (error) {
+        console.error("Admin 2FA verification error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la vérification" });
+    }
+});
+
+// Admin: Disable 2FA for admin account
+app.post("/api/2fa/admin/disable", async (req, res) => {
+    try {
+        const { password } = req.body;
+        const settings = await getSafeSettings();
+
+        // Verify password before disabling
+        if (settings.adminPassword !== password) {
+            return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
+        }
+
+        settings.admin2FAEnabled = false;
+        settings.admin2FASecret = null;
+        settings.admin2FATempSecret = null;
+        await settings.save();
+
+        res.status(200).json({
+            success: true,
+            message: "2FA désactivé avec succès",
+            twoFactorEnabled: false
+        });
+    } catch (error) {
+        console.error("Admin 2FA disable error:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la désactivation" });
+    }
+});
+
+// Admin: Check admin 2FA status
+app.get("/api/2fa/admin/status", async (req, res) => {
+    try {
+        const settings = await getSafeSettings();
+        res.status(200).json({
+            success: true,
+            twoFactorEnabled: settings.admin2FAEnabled || false
+        });
+    } catch (error) {
+        console.error("Admin 2FA status error:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
 
 // Users
 app.get("/api/users", async (req, res) => {
