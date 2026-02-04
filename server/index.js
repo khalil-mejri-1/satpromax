@@ -546,7 +546,16 @@ app.post("/api/google-login", async (req, res) => {
             await user.save();
         }
 
-        res.status(200).json({ success: true, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
+        if (user.twoFactorEnabled) {
+            return res.status(200).json({
+                success: true,
+                require2FA: true,
+                userId: user._id,
+                message: "2FA Required"
+            });
+        }
+
+        res.status(200).json({ success: true, user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: false } });
     } catch (error) {
         res.status(500).json({ success: false, message: "Échec authentification Google" });
     }

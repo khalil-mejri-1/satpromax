@@ -131,7 +131,15 @@ const TwoFactorSetup = ({ user, onClose, onUpdateUser }) => {
                                 <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '15px' }}>
                                     Scannez ce QR Code avec Google Authenticator ou Authy.
                                 </p>
-                                {qrCode && <img src={qrCode} alt="QR Code" style={{ width: '200px', borderRadius: '10px', marginBottom: '20px', border: '2px solid #f1f5f9' }} />}
+                                {qrCode && (
+                                    <>
+                                        <img src={qrCode} alt="QR Code" style={{ width: '200px', borderRadius: '10px', marginBottom: '15px', border: '2px solid #f1f5f9' }} />
+                                        <div style={{ marginBottom: '20px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                                            <p style={{ margin: 0, fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Clé de configuration</p>
+                                            <p style={{ margin: '5px 0 0 0', fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold', color: '#334155' }}>{secret}</p>
+                                        </div>
+                                    </>
+                                )}
 
                                 <form onSubmit={handleVerify}>
                                     <div className="form-group" style={{ marginBottom: '15px', textAlign: 'left' }}>
