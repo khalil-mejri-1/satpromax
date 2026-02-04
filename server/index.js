@@ -391,7 +391,7 @@ app.post("/api/login", async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "Connexion réussie (Admin)",
-                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin', twoFactorEnabled: !!settings.twoFactorEnabled }
+                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin', twoFactorEnabled: false }
             });
         }
 
@@ -399,11 +399,9 @@ app.post("/api/login", async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
 
-        // Force convert to boolean to be sure
-        const is2FAEnabled = user.twoFactorEnabled === true;
-        console.log(`[LOGIN] ${user.email} - 2FA Enabled: ${is2FAEnabled}`);
+        console.log(`[LOGIN] User ${user.email} (ID: ${user._id}) - 2FA Enabled in DB: ${user.twoFactorEnabled}`);
 
-        if (is2FAEnabled) {
+        if (user.twoFactorEnabled) {
             return res.status(200).json({
                 success: true,
                 require2FA: true,
@@ -415,13 +413,7 @@ app.post("/api/login", async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Connexion réussie",
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
-                twoFactorEnabled: is2FAEnabled
-            }
+            user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: user.twoFactorEnabled }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -556,25 +548,7 @@ app.post("/api/google-login", async (req, res) => {
             await user.save();
         }
 
-        if (user.twoFactorEnabled) {
-            return res.status(200).json({
-                success: true,
-                require2FA: true,
-                userId: user._id,
-                message: "2FA Required"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
-                twoFactorEnabled: user.twoFactorEnabled
-            }
-        });
+        res.status(200).json({ success: true, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
     } catch (error) {
         res.status(500).json({ success: false, message: "Échec authentification Google" });
     }
@@ -629,16 +603,10 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
         });
 
         if (verified) {
-            if (userId === 'admin') {
-                const settings = await GeneralSettings.findOne();
-                settings.twoFactorEnabled = true;
-                settings.markModified('twoFactorEnabled');
-                await settings.save();
-                console.log(`[2FA] Admin 2FA enabled`);
-            } else {
-                await User.findByIdAndUpdate(userId, { $set: { twoFactorEnabled: true } });
-                console.log(`[2FA] User ${userId} 2FA enabled`);
-            }
+            user.twoFactorEnabled = true;
+            user.markModified('twoFactorEnabled');
+            const savedUser = await user.save();
+            console.log(`[2FA] Enabled for user ${userId} (${user.email || 'admin'}). DB Value: ${savedUser.twoFactorEnabled}`);
             res.json({ success: true, message: "2FA Enabled successfully" });
         } else {
             console.log(`[2FA] Verification failed for user ${userId}`);
