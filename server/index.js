@@ -391,7 +391,7 @@ app.post("/api/login", async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "Connexion réussie (Admin)",
-                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin', twoFactorEnabled: false }
+                user: { id: "admin", username: "Administrator", email: adminEmail, role: 'admin', twoFactorEnabled: !!settings.twoFactorEnabled }
             });
         }
 
@@ -399,9 +399,11 @@ app.post("/api/login", async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
 
-        console.log(`[LOGIN] User ${user.email} (ID: ${user._id}) - 2FA Enabled in DB: ${user.twoFactorEnabled}`);
+        // Force convert to boolean to be sure
+        const is2FAEnabled = user.twoFactorEnabled === true;
+        console.log(`[LOGIN] ${user.email} - 2FA Enabled: ${is2FAEnabled}`);
 
-        if (user.twoFactorEnabled) {
+        if (is2FAEnabled) {
             return res.status(200).json({
                 success: true,
                 require2FA: true,
@@ -413,7 +415,13 @@ app.post("/api/login", async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Connexion réussie",
-            user: { id: user._id, username: user.username, email: user.email, role: user.role, twoFactorEnabled: user.twoFactorEnabled }
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                twoFactorEnabled: is2FAEnabled
+            }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -548,7 +556,25 @@ app.post("/api/google-login", async (req, res) => {
             await user.save();
         }
 
-        res.status(200).json({ success: true, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
+        if (user.twoFactorEnabled) {
+            return res.status(200).json({
+                success: true,
+                require2FA: true,
+                userId: user._id,
+                message: "2FA Required"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                twoFactorEnabled: user.twoFactorEnabled
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: "Échec authentification Google" });
     }
@@ -570,22 +596,16 @@ app.post("/api/auth/2fa/generate", async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const secret = speakeasy.generateSecret({ name: `Satpromax (${isGeneralAdmin ? 'Admin' : user.email})` });
+        const secret = speakeasy.generateSecret({ name: `TechnoPlus (${isGeneralAdmin ? 'Admin' : user.email})` });
 
-        if (userId === 'admin') {
-            user.twoFactorSecret = secret.base32;
-            await user.save();
-        } else {
-            // Force update
-            await User.updateOne({ _id: userId }, { $set: { twoFactorSecret: secret.base32 } });
-        }
+        user.twoFactorSecret = secret.base32;
+        await user.save();
 
         QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
             if (err) return res.status(500).json({ success: false, message: "Error generating QR Code" });
             res.json({ success: true, secret: secret.base32, qrCode: data_url });
         });
     } catch (error) {
-        console.error("2FA Generate Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
@@ -610,14 +630,15 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
 
         if (verified) {
             if (userId === 'admin') {
-                user.twoFactorEnabled = true;
-                await user.save();
+                const settings = await GeneralSettings.findOne();
+                settings.twoFactorEnabled = true;
+                settings.markModified('twoFactorEnabled');
+                await settings.save();
+                console.log(`[2FA] Admin 2FA enabled`);
             } else {
-                // Force update using mongoose model directly to avoid document instance issues
-                await User.updateOne({ _id: userId }, { $set: { twoFactorEnabled: true } });
+                await User.findByIdAndUpdate(userId, { $set: { twoFactorEnabled: true } });
+                console.log(`[2FA] User ${userId} 2FA enabled`);
             }
-
-            console.log(`[2FA] Enabled for user ${userId} (FORCE UPDATE)`);
             res.json({ success: true, message: "2FA Enabled successfully" });
         } else {
             console.log(`[2FA] Verification failed for user ${userId}`);
@@ -640,14 +661,11 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
             user = await User.findById(userId);
         }
 
-        if (userId === 'admin') {
-            user.twoFactorEnabled = false;
-            user.twoFactorSecret = undefined;
-            await user.save();
-        } else {
-            await User.updateOne({ _id: userId }, { $set: { twoFactorEnabled: false }, $unset: { twoFactorSecret: "" } });
-        }
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
+        user.twoFactorEnabled = false;
+        user.twoFactorSecret = undefined;
+        await user.save();
         console.log(`[2FA] Disabled for user ${userId}`);
         res.json({ success: true, message: "2FA Disabled" });
     } catch (error) {
