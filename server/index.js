@@ -570,16 +570,22 @@ app.post("/api/auth/2fa/generate", async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const secret = speakeasy.generateSecret({ name: `TechnoPlus (${isGeneralAdmin ? 'Admin' : user.email})` });
+        const secret = speakeasy.generateSecret({ name: `Satpromax (${isGeneralAdmin ? 'Admin' : user.email})` });
 
-        user.twoFactorSecret = secret.base32;
-        await user.save();
+        if (userId === 'admin') {
+            user.twoFactorSecret = secret.base32;
+            await user.save();
+        } else {
+            // Force update
+            await User.updateOne({ _id: userId }, { $set: { twoFactorSecret: secret.base32 } });
+        }
 
         QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
             if (err) return res.status(500).json({ success: false, message: "Error generating QR Code" });
             res.json({ success: true, secret: secret.base32, qrCode: data_url });
         });
     } catch (error) {
+        console.error("2FA Generate Error:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
@@ -603,10 +609,15 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
         });
 
         if (verified) {
-            user.twoFactorEnabled = true;
-            user.markModified('twoFactorEnabled');
-            const savedUser = await user.save();
-            console.log(`[2FA] Enabled for user ${userId} (${user.email || 'admin'}). DB Value: ${savedUser.twoFactorEnabled}`);
+            if (userId === 'admin') {
+                user.twoFactorEnabled = true;
+                await user.save();
+            } else {
+                // Force update using mongoose model directly to avoid document instance issues
+                await User.updateOne({ _id: userId }, { $set: { twoFactorEnabled: true } });
+            }
+
+            console.log(`[2FA] Enabled for user ${userId} (FORCE UPDATE)`);
             res.json({ success: true, message: "2FA Enabled successfully" });
         } else {
             console.log(`[2FA] Verification failed for user ${userId}`);
@@ -629,11 +640,14 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
             user = await User.findById(userId);
         }
 
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+        if (userId === 'admin') {
+            user.twoFactorEnabled = false;
+            user.twoFactorSecret = undefined;
+            await user.save();
+        } else {
+            await User.updateOne({ _id: userId }, { $set: { twoFactorEnabled: false }, $unset: { twoFactorSecret: "" } });
+        }
 
-        user.twoFactorEnabled = false;
-        user.twoFactorSecret = undefined;
-        await user.save();
         console.log(`[2FA] Disabled for user ${userId}`);
         res.json({ success: true, message: "2FA Disabled" });
     } catch (error) {
