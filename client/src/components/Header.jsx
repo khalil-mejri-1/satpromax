@@ -713,25 +713,27 @@ export default function Header() {
                                 <div className="guest-name" style={{ textTransform: 'capitalize' }}>{user.username}</div>
                                 <div className="guest-email">{user.email}</div>
                             </div>
-                            <button
-                                className="sidebar-login-link"
-                                onClick={() => {
-                                    localStorage.removeItem('user');
-                                    setUser(null);
-                                    setIsSidebarOpen(false);
-                                    window.location.reload();
-                                }}
-                                style={{ background: 'none', border: 'none', color: '#fcd34d', cursor: 'pointer', textAlign: 'left', padding: 0 }}
-                            >
-                                ➜ Déconnexion
-                            </button>
-                            <button
-                                className="sidebar-login-link"
-                                onClick={() => { setIs2FASetupOpen(true); }}
-                                style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', textAlign: 'left', padding: 0, marginTop: '8px', display: 'block', fontSize: '14px' }}
-                            >
-                                {user.twoFactorEnabled ? '🔐 Gérer 2FA' : '🔐 Activer 2FA'}
-                            </button>
+                            <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                                <button
+                                    className="sidebar-login-link"
+                                    onClick={() => {
+                                        localStorage.removeItem('user');
+                                        setUser(null);
+                                        setIsSidebarOpen(false);
+                                        window.location.reload();
+                                    }}
+                                    style={{ position: 'static', background: 'none', border: 'none', color: '#fcd34d', cursor: 'pointer', textAlign: 'right', padding: 0 }}
+                                >
+                                    ➜ Déconnexion
+                                </button>
+                                <button
+                                    className="sidebar-login-link"
+                                    onClick={() => { setIs2FASetupOpen(true); }}
+                                    style={{ position: 'static', background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', textAlign: 'right', padding: 0, fontSize: '12px', fontWeight: 'bold' }}
+                                >
+                                    {user.twoFactorEnabled ? '🔐 Gérer 2FA' : '🔐 Activer 2FA'}
+                                </button>
+                            </div>
                         </>
                     ) : (
                         <>
@@ -843,9 +845,11 @@ export default function Header() {
                     </Link>
                 </div>
             </div>
-            {is2FASetupOpen && user && (
-                <TwoFactorSetup user={user} onClose={() => setIs2FASetupOpen(false)} onUpdateUser={handleUserUpdate} />
-            )}
+            {
+                is2FASetupOpen && user && (
+                    <TwoFactorSetup user={user} onClose={() => setIs2FASetupOpen(false)} onUpdateUser={handleUserUpdate} />
+                )
+            }
         </header >
     )
 }
