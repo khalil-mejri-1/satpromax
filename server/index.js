@@ -577,7 +577,7 @@ app.post("/api/auth/2fa/generate", async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const secret = speakeasy.generateSecret({ name: `TechnoPlus (${isGeneralAdmin ? 'Admin' : user.email})` });
+        const secret = speakeasy.generateSecret({ name: `Satpromax (${isGeneralAdmin ? 'Admin' : user.email})` });
 
         user.twoFactorSecret = secret.base32;
         await user.save();
