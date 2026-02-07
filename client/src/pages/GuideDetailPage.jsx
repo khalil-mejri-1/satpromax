@@ -68,7 +68,7 @@ const GuideDetailPage = () => {
             <div className="guide-hero" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${heroImage})` }}>
                 <div className="hero-content">
                     <div className="hero-badge">Blog & Article</div>
-                    <h1>{guide.title}</h1>
+                    <h1 style={{ fontSize: guide.titleFontSize || 'inherit' }}>{guide.title}</h1>
                     <p className="hero-subtitle">Installation & Guide</p>
                 </div>
             </div>
@@ -89,12 +89,31 @@ const GuideDetailPage = () => {
                 </div>
 
                 <div className="guide-body-content">
-                    {guide.content && <div className="guide-intro" dangerouslySetInnerHTML={{ __html: guide.content.replace(/\n/g, '<br/>') }} />}
+                    {guide.content && (
+                        <div
+                            className="guide-intro"
+                            style={{ fontSize: guide.contentFontSize || 'inherit' }}
+                            dangerouslySetInnerHTML={{ __html: guide.content.replace(/\n/g, '<br/>') }}
+                        />
+                    )}
 
                     {guide.sections && guide.sections.map((section, idx) => (
                         <div key={idx} className="guide-section">
-                            {section.title && <h3 className="section-title">{section.title}</h3>}
-                            {section.content && <p className="section-text" dangerouslySetInnerHTML={{ __html: section.content.replace(/\n/g, '<br/>') }} />}
+                            {section.title && (
+                                <h3
+                                    className="section-title"
+                                    style={{ fontSize: section.titleFontSize || 'inherit' }}
+                                >
+                                    {section.title}
+                                </h3>
+                            )}
+                            {section.content && (
+                                <p
+                                    className="section-text"
+                                    style={{ fontSize: section.contentFontSize || 'inherit' }}
+                                    dangerouslySetInnerHTML={{ __html: section.content.replace(/\n/g, '<br/>') }}
+                                />
+                            )}
                             {section.image && (
                                 <div className="section-image">
                                     <img src={section.image} alt={section.title || guide.title} />

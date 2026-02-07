@@ -4361,7 +4361,9 @@ const GuidesManager = ({ openGlobalSeo }) => {
         sections: [],
         metaTitle: '',
         metaDescription: '',
-        keywords: ''
+        keywords: '',
+        titleFontSize: '2.2rem',
+        contentFontSize: '1.1rem'
     });
     const [pageSettings, setPageSettings] = useState({
         guideHeroImage: '',
@@ -4456,7 +4458,12 @@ const GuidesManager = ({ openGlobalSeo }) => {
                 showNotification(editingGuide ? "Article mis à jour" : "Article créé", "success");
                 setIsModalOpen(false);
                 setEditingGuide(null);
-                setNewGuide({ title: '', content: '', excerpt: '', image: '', category: "Guides d'installation", sections: [], metaTitle: '', metaDescription: '', keywords: '' });
+                setNewGuide({
+                    title: '', content: '', excerpt: '', image: '',
+                    category: "Guides d'installation", sections: [],
+                    metaTitle: '', metaDescription: '', keywords: '',
+                    titleFontSize: '2.2rem', contentFontSize: '1.1rem'
+                });
                 fetchGuides();
             } else {
                 showNotification(data.message, "error");
@@ -4483,7 +4490,7 @@ const GuidesManager = ({ openGlobalSeo }) => {
     const addSection = () => {
         setNewGuide({
             ...newGuide,
-            sections: [...newGuide.sections, { title: '', content: '', image: '' }]
+            sections: [...newGuide.sections, { title: '', content: '', image: '', titleFontSize: '1.5rem', contentFontSize: '1.1rem' }]
         });
     };
 
@@ -4509,7 +4516,9 @@ const GuidesManager = ({ openGlobalSeo }) => {
             sections: guide.sections || [],
             metaTitle: guide.metaTitle || '',
             metaDescription: guide.metaDescription || '',
-            keywords: guide.keywords || ''
+            keywords: guide.keywords || '',
+            titleFontSize: guide.titleFontSize || '2.2rem',
+            contentFontSize: guide.contentFontSize || '1.1rem'
         });
         setIsModalOpen(true);
     };
@@ -4800,20 +4809,44 @@ const GuidesManager = ({ openGlobalSeo }) => {
                         <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '32px' }}>
                             {/* Main Content Area */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label" style={{ fontWeight: '700' }}>Titre de l'article *</label>
-                                    <input
-                                        className="form-input"
-                                        value={newGuide.title}
-                                        onChange={e => setNewGuide({ ...newGuide, title: e.target.value })}
-                                        placeholder="Ex: Guide d'installation IPTV sur Android"
-                                        required
-                                        style={{ height: '50px', fontSize: '16px', borderRadius: '12px' }}
-                                    />
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label className="form-label" style={{ fontWeight: '700' }}>Titre de l'article *</label>
+                                        <input
+                                            className="form-input"
+                                            value={newGuide.title}
+                                            onChange={e => setNewGuide({ ...newGuide, title: e.target.value })}
+                                            placeholder="Ex: Guide d'installation IPTV sur Android"
+                                            required
+                                            style={{ height: '50px', fontSize: '16px', borderRadius: '12px' }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '120px' }}>
+                                        <label className="form-label" style={{ fontWeight: '700', fontSize: '11px' }}>TAILLE TITRE</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={newGuide.titleFontSize}
+                                            onChange={e => setNewGuide({ ...newGuide, titleFontSize: e.target.value })}
+                                            placeholder="2.2rem"
+                                            style={{ height: '50px', borderRadius: '12px', textAlign: 'center' }}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label" style={{ fontWeight: '700' }}>Introduction (Format texte brut)</label>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <label className="form-label" style={{ fontWeight: '700' }}>Introduction (Format texte brut)</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b' }}>TAILLE:</span>
+                                            <input
+                                                type="text"
+                                                value={newGuide.contentFontSize}
+                                                onChange={e => setNewGuide({ ...newGuide, contentFontSize: e.target.value })}
+                                                style={{ width: '70px', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', textAlign: 'center' }}
+                                            />
+                                        </div>
+                                    </div>
                                     <textarea
                                         className="form-input"
                                         style={{ height: '120px', borderRadius: '12px', padding: '15px' }}
@@ -4884,21 +4917,43 @@ const GuidesManager = ({ openGlobalSeo }) => {
                                                 </button>
 
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                                    <input
-                                                        type="text"
-                                                        className="form-input"
-                                                        style={{ fontWeight: '700', marginBottom: 0, border: 'none', background: '#f1f5f9', borderRadius: '8px' }}
-                                                        value={section.title}
-                                                        onChange={e => updateSection(index, 'title', e.target.value)}
-                                                        placeholder="Titre de cette étape (ex: Étape 1 : Connexion)"
-                                                    />
-                                                    <textarea
-                                                        className="form-input"
-                                                        style={{ height: '100px', marginBottom: 0, borderRadius: '8px' }}
-                                                        value={section.content}
-                                                        onChange={e => updateSection(index, 'content', e.target.value)}
-                                                        placeholder="Explication détaillée..."
-                                                    />
+                                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                                        <input
+                                                            type="text"
+                                                            className="form-input"
+                                                            style={{ fontWeight: '700', marginBottom: 0, border: 'none', background: '#f1f5f9', borderRadius: '8px', flex: 1 }}
+                                                            value={section.title}
+                                                            onChange={e => updateSection(index, 'title', e.target.value)}
+                                                            placeholder="Titre de cette étape"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={section.titleFontSize}
+                                                            onChange={e => updateSection(index, 'titleFontSize', e.target.value)}
+                                                            placeholder="1.5rem"
+                                                            style={{ width: '70px', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', textAlign: 'center' }}
+                                                            title="Taille titre section"
+                                                        />
+                                                    </div>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <textarea
+                                                            className="form-input"
+                                                            style={{ height: '100px', marginBottom: 0, borderRadius: '8px' }}
+                                                            value={section.content}
+                                                            onChange={e => updateSection(index, 'content', e.target.value)}
+                                                            placeholder="Explication détaillée..."
+                                                        />
+                                                        <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
+                                                            <input
+                                                                type="text"
+                                                                value={section.contentFontSize}
+                                                                onChange={e => updateSection(index, 'contentFontSize', e.target.value)}
+                                                                placeholder="1.1rem"
+                                                                style={{ width: '60px', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '11px', textAlign: 'center', background: '#fff' }}
+                                                                title="Taille texte section"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                     <div style={{ position: 'relative' }}>
                                                         <input
                                                             type="text"
