@@ -2589,7 +2589,8 @@ const HomeManager = () => {
         heroCardSoftImage: '',
         heroCardSoftTitle: '',
         heroCardSoftLink: '',
-        promoCards: []
+        promoCards: [],
+        siteLogo: ''
     });
 
     // Footer Data
@@ -2633,7 +2634,8 @@ const HomeManager = () => {
                         heroCardSoftImage: data.data.heroCardSoftImage || '',
                         heroCardSoftTitle: data.data.heroCardSoftTitle || '',
                         heroCardSoftLink: data.data.heroCardSoftLink || '',
-                        promoCards: data.data.promoCards || []
+                        promoCards: data.data.promoCards || [],
+                        siteLogo: data.data.siteLogo || ''
                     });
                     setFooterData({
                         footerDescription: data.data.footerDescription || '',
@@ -2765,6 +2767,25 @@ const HomeManager = () => {
                 <div className="form-group">
                     <label className="form-label">Message Promo (Droite)</label>
                     <input type="text" className="form-input" value={topStripMessage} onChange={(e) => setTopStripMessage(e.target.value)} />
+                </div>
+            </div>
+
+            <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Logo du Site</h3>
+                <div className="form-group">
+                    <label className="form-label">URL du Logo (S'affiche dans le header)</label>
+                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <input
+                            type="text"
+                            className="form-input"
+                            placeholder="https://... + Entrée"
+                            value={heroData.siteLogo}
+                            onChange={(e) => setHeroData({ ...heroData, siteLogo: e.target.value })}
+                        />
+                        <div style={{ width: '100px', height: '50px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                            {heroData.siteLogo ? <img src={heroData.siteLogo} alt="Preview Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '10px', color: '#94a3b8' }}>Sans Logo</span>}
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -175,6 +175,7 @@ export default function Header() {
 
     const [topStripText, setTopStripText] = useState('WhatsApp : 97 490 300'); // Default
     const [topStripMessage, setTopStripMessage] = useState('Bienvenue sur Satpromax !'); // Default
+    const [siteLogo, setSiteLogo] = useState('https://i.ibb.co/kRsrFC3/Untitled-design-6-pixian-ai.png'); // Default
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -189,6 +190,7 @@ export default function Header() {
                 if (data.success && data.data) {
                     if (data.data.topStripText) setTopStripText(data.data.topStripText);
                     if (data.data.topStripMessage) setTopStripMessage(data.data.topStripMessage);
+                    if (data.data.siteLogo) setSiteLogo(data.data.siteLogo);
                 }
             })
             .catch(err => {
@@ -252,7 +254,7 @@ export default function Header() {
                     <div className="logo">
                         <Link to="/">
                             {/* <span className="yellow">satpro</span><span className="white">max</span> */}
-                            <img src="https://i.ibb.co/kRsrFC3/Untitled-design-6-pixian-ai.png" alt="" srcset="" className='logo-img' />
+                            <img src={siteLogo} alt="Satpromax Logo" className='logo-img' />
                         </Link>
                     </div>
 
