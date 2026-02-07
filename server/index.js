@@ -88,6 +88,23 @@ const generateUniqueSlug = async (name, currentId = null) => {
 };
 
 // --- API ROUTES (MUST COME FIRST) ---
+const verifyTurnstile = async (token) => {
+    if (!token) return false;
+    try {
+        const secretKey = "0x4AAAAAACY_TdZ-q5OvHkw1e4xVcjiwJ_U";
+        const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ secret: secretKey, response: token })
+        });
+        const data = await res.json();
+        return data.success;
+    } catch (err) {
+        console.error("Turnstile verification error:", err);
+        return false;
+    }
+};
+
 app.use("/api", (req, res, next) => {
     console.log(`[API LOG] ${req.method} ${req.originalUrl}`);
     if (req.method === 'POST') {
@@ -360,7 +377,13 @@ app.put("/api/products/:id/seo", async (req, res) => {
 // Auth
 app.post("/api/register", async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, captchaToken } = req.body;
+
+        const isCaptchaValid = await verifyTurnstile(captchaToken);
+        if (!isCaptchaValid) {
+            return res.status(400).json({ success: false, message: "Captcha invalide ou expiré" });
+        }
+
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ success: false, message: "Utilisateur déjà existant" });
         const newUser = new User({ username, email, password });
@@ -373,7 +396,13 @@ app.post("/api/register", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, captchaToken } = req.body;
+
+        const isCaptchaValid = await verifyTurnstile(captchaToken);
+        if (!isCaptchaValid) {
+            return res.status(400).json({ success: false, message: "Captcha invalide ou expiré" });
+        }
+
         const settings = await GeneralSettings.findOne();
         const adminEmail = settings?.adminEmail || 'ferid123@admin.test';
         const adminPassword = settings?.adminPassword || '123456';

@@ -11,6 +11,7 @@ import TwoFactorSetup from '../components/TwoFactorSetup';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [captchaToken, setCaptchaToken] = useState(null);
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
@@ -34,6 +35,32 @@ export default function LoginPage() {
     const [userIdFor2FA, setUserIdFor2FA] = useState(null);
     const [token2FA, setToken2FA] = useState('');
     const [loading2FA, setLoading2FA] = useState(false);
+    const widgetRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const renderTurnstile = () => {
+            if (window.turnstile && widgetRef.current) {
+                window.turnstile.render(widgetRef.current, {
+                    sitekey: '0x4AAAAAACY_TRkoirfO1kT5',
+                    callback: (token) => setCaptchaToken(token),
+                    'error-callback': () => setCaptchaToken(null),
+                    'expired-callback': () => setCaptchaToken(null),
+                });
+            }
+        };
+
+        if (window.turnstile) {
+            renderTurnstile();
+        } else {
+            const checkTurnstile = setInterval(() => {
+                if (window.turnstile) {
+                    renderTurnstile();
+                    clearInterval(checkTurnstile);
+                }
+            }, 100);
+            return () => clearInterval(checkTurnstile);
+        }
+    }, []);
 
     const handleForgotClick = (e) => {
         e.preventDefault();
@@ -178,7 +205,7 @@ export default function LoginPage() {
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password, captchaToken })
             });
             const data = await response.json();
 
@@ -297,7 +324,11 @@ export default function LoginPage() {
                             </button>
                         </div>
 
-                        <button type="submit" className="btn-login">Se connecter</button>
+                        <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
+                            <div ref={widgetRef}></div>
+                        </div>
+
+                        <button type="submit" className="btn-login" disabled={!captchaToken}>Se connecter</button>
 
                         <div className="divider">
                             <span>OU</span>
