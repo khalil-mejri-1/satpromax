@@ -1238,6 +1238,60 @@ app.get("/api/guides/slug/:slug", async (req, res) => {
     }
 });
 
+const generateUniqueGuideSlug = async (title, currentId = null) => {
+    let baseSlug = slugify(title);
+    let slug = baseSlug;
+    let counter = 1;
+    while (true) {
+        const existing = await Guide.findOne({ slug, _id: { $ne: currentId } });
+        if (!existing) break;
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+    }
+    return slug;
+};
+
+app.post("/api/guides", async (req, res) => {
+    try {
+        const guideData = req.body;
+        if (guideData.title) {
+            guideData.slug = await generateUniqueGuideSlug(guideData.title);
+        }
+        const guide = new Guide(guideData);
+        await guide.save();
+        res.status(201).json({ success: true, data: guide });
+    } catch (error) {
+        console.error("Error creating guide:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.put("/api/guides/:id", async (req, res) => {
+    try {
+        const guideData = req.body;
+        if (guideData.title) {
+            guideData.slug = await generateUniqueGuideSlug(guideData.title, req.params.id);
+        }
+        const guide = await Guide.findByIdAndUpdate(req.params.id, guideData, { new: true });
+        if (!guide) return res.status(404).json({ success: false, message: "Guide not found" });
+        res.status(200).json({ success: true, data: guide });
+    } catch (error) {
+        console.error("Error updating guide:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.delete("/api/guides/:id", async (req, res) => {
+    try {
+        const guide = await Guide.findByIdAndDelete(req.params.id);
+        if (!guide) return res.status(404).json({ success: false, message: "Guide not found" });
+        res.status(200).json({ success: true, message: "Guide deleted" });
+    } catch (error) {
+        console.error("Error deleting guide:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.post("/api/guide-inquiries", async (req, res) => {
     try {
         const inquiry = new GuideInquiry(req.body);
@@ -1252,6 +1306,26 @@ app.get("/api/guide-inquiries", async (req, res) => {
     try {
         const inquiries = await GuideInquiry.find().sort({ createdAt: -1 });
         res.status(200).json({ success: true, data: inquiries });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.put("/api/guide-inquiries/:id", async (req, res) => {
+    try {
+        const inquiry = await GuideInquiry.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!inquiry) return res.status(404).json({ success: false });
+        res.status(200).json({ success: true, data: inquiry });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.delete("/api/guide-inquiries/:id", async (req, res) => {
+    try {
+        const inquiry = await GuideInquiry.findByIdAndDelete(req.params.id);
+        if (!inquiry) return res.status(404).json({ success: false });
+        res.status(200).json({ success: true });
     } catch (error) {
         res.status(500).json({ success: false });
     }
