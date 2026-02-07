@@ -32,6 +32,7 @@ const Guide = require("./models/Guide");
 const GuideInquiry = require("./models/GuideInquiry");
 const ContactMessage = require("./models/ContactMessage");
 const SupportTicket = require("./models/SupportTicket");
+const Application = require("./models/Application");
 
 // --- SETTINGS UTILS ---
 const getSafeSettings = async () => {
@@ -1354,6 +1355,46 @@ app.delete("/api/guide-inquiries/:id", async (req, res) => {
     try {
         const inquiry = await GuideInquiry.findByIdAndDelete(req.params.id);
         if (!inquiry) return res.status(404).json({ success: false });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// Applications
+app.get("/api/applications", async (req, res) => {
+    try {
+        const apps = await Application.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: apps });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post("/api/applications", async (req, res) => {
+    try {
+        const app = new Application(req.body);
+        await app.save();
+        res.status(201).json({ success: true, data: app });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.put("/api/applications/:id", async (req, res) => {
+    try {
+        const app = await Application.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!app) return res.status(404).json({ success: false });
+        res.status(200).json({ success: true, data: app });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.delete("/api/applications/:id", async (req, res) => {
+    try {
+        const app = await Application.findByIdAndDelete(req.params.id);
+        if (!app) return res.status(404).json({ success: false });
         res.status(200).json({ success: true });
     } catch (error) {
         res.status(500).json({ success: false });

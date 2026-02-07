@@ -4,579 +4,88 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
 
 <url>
   <loc>https://satpromax.com/</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
   <priority>1.00</priority>
 </url>
+
+<!-- MAIN CATEGORIES (PRIORITY FOR SITELINKS) -->
 <url>
   <loc>https://satpromax.com/streaming</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/abonnement-iptv</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/box-android-recepteurs-tv</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/gaming-et-cles-digitales</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/TOD%20%E2%80%93%20Plateforme%20de%20streaming%20sport,%20films%20&amp;%20s%C3%A9ries%20en%20ligne</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/player-activation</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/sharing</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
   <loc>https://satpromax.com/bein-sports-officiel</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
 </url>
 <url>
-  <loc>https://satpromax.com/contact</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
+  <loc>https://satpromax.com/abonnement-tod</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://satpromax.com/cartes-gaming</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
+  <priority>0.90</priority>
+</url>
+<url>
+  <loc>https://satpromax.com/applications</loc>
+  <lastmod>2026-02-08T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
+</url>
+
+<!-- OTHER PAGES -->
+<url>
+  <loc>https://satpromax.com/contact</loc>
+  <priority>0.70</priority>
 </url>
 <url>
   <loc>https://satpromax.com/support</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/administrator-f-fgbdf</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/fox-iptv-abonnement-12-mois-hd-full-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/lydex-iptv-abonnement-12-mois-haut-de-gamme</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/starsat-sr-ps56-rcepteur-full-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/carte-disney-3-mois-dabonnement-standard</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/iron-pro-max-iptv-abonnement-12-mois-hd-full-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/avatar-iptv-sans-diwen-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/box-android-sambox-km26-4k-2go-16go</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/esiptv-sans-diwen-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/orca-promax-iptv-sans-diwen-abonnement-12-mois-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/sonic-iptv-abonnement-12-mois-sans-diwen</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/about</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
+  <priority>0.70</priority>
 </url>
 <url>
   <loc>https://satpromax.com/guide-installation</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/terms</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/privacy</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/crunchyroll-premium-abonnement-1-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/crunchyroll-premium-abonnement-12-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/crunchyroll-premium-abonnement-3-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/netflix-gift-card-15-</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/netflix-gift-card-20-</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/netflix-gift-card-25-</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/netflix-gift-card-50-</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/shahid-premium-abonnement-3-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/streaming/shahid-premium-abonnement-12-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/-orca-promax-iptv-avec-diwen-abonnement-12-mois-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/zoom-iptv-abonnement-12-mois-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/yakin-iptv-abonnement-12-mois-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/wama-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/waka-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/sstv-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/smartgo-tv-abonnement-iptv-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/sam-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/rio-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/prince-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/ott-plus-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/nova-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/mytv-4all-abonnement-iptv-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/mmtv-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/matador-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/global-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/galaxy-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/esiptv-avec-diwen-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/enhan-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/challenge-pro-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/best-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/avatar-iptv-avec-diwen-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/aronium-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/abonnement-iptv/alpha-acs-iptv-abonnement-12-mois-hd-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/box-android-alphastick-certified-gd1</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/alphadongle-android-tv-certified</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/box-android-alpha-infinity-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/alpha-ultimate-abonnement-iptv-premium</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/alpha-ultimate-4-box-android-4k-ultra-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/box-android-sambox-km26-4k-2go-16go</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-recepteurs-tv/starsat-sr-ps56-rcepteur-full-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/arc-raiders-cl-pc-steam</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/yakuza-0-directors-cut-pc-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/ea-sports-fc-26-ps5-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/elden-ring-shadow-of-the-erdtree-ps5</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/call-of-duty-black-ops-6-ps5-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cles-digitales/ea-sports-fc-26-pc-ea-app-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/iboplayer-iboapps-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/abeplayertv-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/bob-player-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/virginia-player-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/allplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/hushplay-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/ktnplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/familyplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/iboplayer-pro-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/king4kplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/ibostb-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/iboxxplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/duplex-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/ibosolplayer-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/flixnet-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/player-activation/hot-player-activation-lifetime-vie</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-vip-abonnement-3-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-vip-abonnement-6-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-vip-abonnement-12-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-gshare-abonnement-12-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-funcam-abonnement-12-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/sharing/sharing-forever-abonnement-12-mois-dcodeurs-compatibles</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-premium-abonnement-3-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-premium-abonnement-6-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-ultimate-abonnement-6-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-ultimate-abonnement-12-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-ultimate-abonnement-3-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/bein-sports-officiel/bein-sports-premium-abonnement-12-mois</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/box-android-alphastick-certified-gd1</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/alphadongle-android-tv-certified</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/box-android-alpha-infinity-4k</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/alpha-ultimate-abonnement-iptv-premium</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-rcepteurs-tv/alpha-ultimate-4-box-android-4k-ultra-hd</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/box-android-r%C3%A9cepteurs-tv</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/yakuza-0-directors-cut-pc-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/ea-sports-fc-26-ps5-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/elden-ring-shadow-of-the-erdtree-ps5</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/call-of-duty-black-ops-6-ps5-europe-uk-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/ea-sports-fc-26-pc-ea-app-cl</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
-</url>
-<url>
-  <loc>https://satpromax.com/gaming-et-cls-digitales/arc-raiders-cl-pc-steam</loc>
-  <lastmod>2026-02-01T23:23:33+00:00</lastmod>
-  <priority>0.51</priority>
+  <priority>0.70</priority>
 </url>
 
+<!-- PRODUCTS (LOWER PRIORITY FOR SITELINKS) -->
+<url>
+  <loc>https://satpromax.com/abonnement-iptv/strong-8k-iptv</loc>
+  <priority>0.50</priority>
+</url>
+<url>
+  <loc>https://satpromax.com/abonnement-iptv/promax-iptv</loc>
+  <priority>0.50</priority>
+</url>
+<!-- ... more products ... -->
 
 </urlset>

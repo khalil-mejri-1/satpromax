@@ -63,6 +63,8 @@ export default function Admin() {
                 return <ContactMessagesManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'contact' }); }} />;
             case 'support':
                 return <SupportManager openGlobalSeo={() => { setGlobalSeoOpen(true); setPreSelectedSeo({ type: 'support' }); }} />;
+            case 'applications':
+                return <ApplicationsManager />;
             case '2fa':
                 return <TwoFactorManager />;
             default:
@@ -161,6 +163,12 @@ export default function Admin() {
                         onClick={() => setActiveTab('buttons')}
                     >
                         <span style={{ marginRight: '8px', fontSize: '18px' }}>🔘</span> gestion de button
+                    </button>
+                    <button
+                        className={`admin-nav-item ${activeTab === 'applications' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('applications')}
+                    >
+                        <span style={{ marginRight: '8px', fontSize: '18px' }}>📱</span> Gestion Applications
                     </button>
                     <button
                         className={`admin-nav-item ${activeTab === '2fa' ? 'active' : ''}`}
@@ -7066,3 +7074,184 @@ const TwoFactorManager = () => {
         </div>
     );
 };
+
+const ApplicationsManager = () => {
+    const [apps, setApps] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingApp, setEditingApp] = useState(null);
+    const [newApp, setNewApp] = useState({
+        name: '',
+        icon: '',
+        downloadLink: '',
+        description: '',
+        os: 'Android'
+    });
+
+    const showNotification = (message, type) => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
+
+    const fetchApps = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/applications`);
+            const data = await res.json();
+            if (data.success) setApps(data.data);
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchApps();
+    }, []);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const method = editingApp ? 'PUT' : 'POST';
+        const url = editingApp
+            ? `${API_BASE_URL}/api/applications/${editingApp._id}`
+            : `${API_BASE_URL}/api/applications`;
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newApp)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNotification(editingApp ? "Application mise à jour" : "Application ajoutée", "success");
+                setIsModalOpen(false);
+                setEditingApp(null);
+                setNewApp({ name: '', icon: '', downloadLink: '', description: '', os: 'Android' });
+                fetchApps();
+            } else {
+                showNotification(data.message, "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Supprimer cette application ?")) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/applications/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showNotification("Application supprimée", "success");
+                fetchApps();
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        }
+    };
+
+    const handleEdit = (app) => {
+        setEditingApp(app);
+        setNewApp({
+            name: app.name,
+            icon: app.icon,
+            downloadLink: app.downloadLink,
+            description: app.description || '',
+            os: app.os || 'Android'
+        });
+        setIsModalOpen(true);
+    };
+
+    if (loading) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+            <div className="admin-spinner"></div>
+        </div>
+    );
+
+    return (
+        <div className="admin-view-container">
+            {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', margin: 0 }}>Gestion des Applications</h2>
+                    <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>Liste des applications disponibles au téléchargement</p>
+                </div>
+                <button
+                    className="btn btn-primary"
+                    onClick={() => { setEditingApp(null); setNewApp({ name: '', icon: '', downloadLink: '', description: '', os: 'Android' }); setIsModalOpen(true); }}
+                    style={{ borderRadius: '12px', padding: '12px 24px', fontWeight: '700', background: '#1e293b', border: 'none' }}
+                >
+                    + Ajouter une App
+                </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                {apps.map(app => (
+                    <div key={app._id} style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #f1f5f9', position: 'relative' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                            <img src={app.icon} alt="" style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', background: '#f8fafc' }} />
+                            <div>
+                                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', margin: 0 }}>{app.name}</h3>
+                                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                    <span style={{ padding: '2px 6px', background: '#eff6ff', color: '#2563eb', borderRadius: '4px', fontWeight: '600' }}>{app.os}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p style={{ fontSize: '13px', color: '#64748b', minHeight: '40px', margin: '0 0 15px 0' }}>{app.description || 'Aucune description.'}</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => handleEdit(app)} className="btn btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '13px' }}>Modifier</button>
+                            <button onClick={() => handleDelete(app._id)} className="btn" style={{ padding: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '8px' }}>🗑️</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {isModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '450px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                            <h3 style={{ margin: 0 }}>{editingApp ? 'Modifier Application' : 'Nouvelle Application'}</h3>
+                            <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+                        </div>
+                        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div className="form-group">
+                                <label className="form-label">Nom de l'application</label>
+                                <input className="form-input" value={newApp.name} onChange={e => setNewApp({ ...newApp, name: e.target.value })} required />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Système d'exploitation</label>
+                                <select className="form-input" value={newApp.os} onChange={e => setNewApp({ ...newApp, os: e.target.value })}>
+                                    <option value="Android">Android</option>
+                                    <option value="Windows">Windows</option>
+                                    <option value="iOS">iOS</option>
+                                    <option value="Other">Autre</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">URL de l'icône</label>
+                                <input className="form-input" value={newApp.icon} onChange={e => setNewApp({ ...newApp, icon: e.target.value })} placeholder="https://..." required />
+                                {newApp.icon && <img src={newApp.icon} alt="Preview" style={{ width: '40px', height: '40px', marginTop: '10px', borderRadius: '8px' }} />}
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Lien de téléchargement</label>
+                                <input className="form-input" value={newApp.downloadLink} onChange={e => setNewApp({ ...newApp, downloadLink: e.target.value })} placeholder="https://..." required />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Description (Optionnelle)</label>
+                                <textarea className="form-input" value={newApp.description} onChange={e => setNewApp({ ...newApp, description: e.target.value })} style={{ height: '80px' }}></textarea>
+                            </div>
+                            <button type="submit" className="btn btn-primary" style={{ height: '45px', borderRadius: '10px' }}>
+                                {editingApp ? 'Enregistrer les modifications' : 'Ajouter l\'application'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+

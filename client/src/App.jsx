@@ -3,6 +3,7 @@ import Home from "./pages/home.jsx";
 import ProductsPage from "./pages/ProductsPage.jsx";
 import Admin from "./pages/admin.jsx";
 import Schema from "./components/SEO/Schema";
+import NavigationSchema from "./components/SEO/NavigationSchema";
 
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -14,6 +15,7 @@ import GuideDetailPage from "./pages/GuideDetailPage.jsx";
 
 import ContactUs from "./pages/ContactUs.jsx";
 import SupportPage from "./pages/SupportPage.jsx";
+import ApplicationsPage from "./pages/ApplicationsPage.jsx";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 
 import { ShopContextProvider } from "./context/ShopContext.jsx";
@@ -61,6 +63,7 @@ function App() {
       <ShopContextProvider>
         <BrowserRouter>
           <Schema schema={organizationSchema} />
+          <NavigationSchema />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/checkout" element={<CheckoutPage />} />
@@ -71,6 +74,7 @@ function App() {
             <Route path="/guide-installation/:slug" element={<GuideDetailPage />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/support" element={<SupportPage />} />
+            <Route path="/applications" element={<ApplicationsPage />} />
 
             <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
 
