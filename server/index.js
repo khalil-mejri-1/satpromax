@@ -8,6 +8,7 @@ const fs = require("fs");
 const cors = require("cors");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
+const multer = require("multer");
 
 const app = express();
 const PORT = 3000;
@@ -1462,9 +1463,43 @@ app.delete("/api/contact-messages/:id", async (req, res) => {
     }
 });
 
+// --- FILE UPLOAD (MULTER) ---
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+app.post("/api/upload", upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
+        const imageUrl = `/uploads/${req.file.filename}`;
+        res.status(200).json({ success: true, imageUrl });
+    } catch (error) {
+        console.error("Upload Error:", error);
+        res.status(500).json({ success: false, message: "Upload failed" });
+    }
+});
+
 // --- STATIC FILES (MIDDLEWARE) ---
 // Must come after API routes but before catch-all
 app.use(express.static(CLIENT_DIST, { index: false }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- SEO INJECTION HELPERS ---
 const injectSEO = (html, data) => {

@@ -1065,6 +1065,7 @@ const ProductsManager = () => {
         descriptionGlobal: '', extraSections: [], hasDelivery: false, deliveryPrice: '', hasTest: false
     });
     const [notification, setNotification] = useState(null);
+    const [uploading, setUploading] = useState(false);
     const [linkGenerator, setLinkGenerator] = useState({ customTitle: '', customUrl: '' });
 
     const showNotification = (message, type) => {
@@ -1108,6 +1109,40 @@ const ProductsManager = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleFileUpload = async (e, targetField, galleryIndex = null) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        uploadData.append('image', file);
+
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: uploadData
+            });
+            const data = await response.json();
+            if (data.success) {
+                if (targetField === 'image') {
+                    setFormData(prev => ({ ...prev, image: data.imageUrl }));
+                } else if (targetField === 'gallery') {
+                    const newList = [...formData.galleryList];
+                    newList[galleryIndex] = data.imageUrl;
+                    setFormData(prev => ({ ...prev, galleryList: newList }));
+                }
+                showNotification("Image téléchargée avec succès !", "success");
+            } else {
+                showNotification(data.message || "Erreur lors du téléchargement", "error");
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification("Erreur de connexion lors du téléchargement", "error");
+        } finally {
+            setUploading(false);
+        }
     };
 
     // Handlers for MultiInput
@@ -1739,13 +1774,36 @@ const ProductsManager = () => {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Image URL Principale</label>
-                        <input type="text" name="image" className="form-input" value={formData.image} onChange={handleInputChange} required />
+                        <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Image Principale</span>
+                            {uploading && <span style={{ fontSize: '12px', color: '#6366f1' }}>Téléchargement...</span>}
+                        </label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                name="image"
+                                className="form-input"
+                                value={formData.image}
+                                onChange={handleInputChange}
+                                placeholder="URL de l'image ou téléchargez ->"
+                                required
+                                style={{ flex: 1 }}
+                            />
+                            <label className="btn btn-secondary" style={{ whiteSpace: 'nowrap', cursor: 'pointer', margin: 0, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <span style={{ fontSize: '16px' }}>📁</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => handleFileUpload(e, 'image')}
+                                />
+                            </label>
+                        </div>
 
-                        <div style={{ marginTop: '10px' }}>
+                        <div style={{ marginTop: '15px' }}>
                             <label className="form-label" style={{ fontSize: '13px', color: '#64748b' }}>Galerie d'images (Sub-images)</label>
                             {formData.galleryList.map((url, index) => (
-                                <div key={index} style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
+                                <div key={index} style={{ display: 'flex', gap: '5px', marginBottom: '8px', alignItems: 'center' }}>
                                     <input
                                         type="text"
                                         className="form-input"
@@ -1756,14 +1814,24 @@ const ProductsManager = () => {
                                             setFormData({ ...formData, galleryList: newList });
                                         }}
                                         placeholder="URL Image secondaire"
+                                        style={{ flex: 1 }}
                                     />
+                                    <label className="btn btn-secondary" style={{ padding: '8px 10px', cursor: 'pointer', margin: 0 }}>
+                                        📁
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={(e) => handleFileUpload(e, 'gallery', index)}
+                                        />
+                                    </label>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             const newList = formData.galleryList.filter((_, i) => i !== index);
                                             setFormData({ ...formData, galleryList: newList });
                                         }}
-                                        style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', padding: '0 10px', cursor: 'pointer' }}
+                                        style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                                     >
                                         ×
                                     </button>
