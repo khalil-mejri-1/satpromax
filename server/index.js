@@ -1474,10 +1474,13 @@ const injectSEO = (html, data) => {
     const replacements = {
         title: [/<title>.*?<\/title>/i, `<title>${data.title}</title>`],
         description: [/<meta\s+[^>]*name=["']description["'][^>]*>/i, `<meta name="description" content="${data.description}" />`],
+        keywords: [/<meta\s+[^>]*name=["']keywords["'][^>]*>/i, `<meta name="keywords" content="${data.keywords || ''}" />`],
         ogTitle: [/<meta\s+[^>]*property=["']og:title["'][^>]*>/i, `<meta property="og:title" content="${data.title}" />`],
         ogDescription: [/<meta\s+[^>]*property=["']og:description["'][^>]*>/i, `<meta property="og:description" content="${data.description}" />`],
         ogImage: [/<meta\s+[^>]*property=["']og:image["'][^>]*>/i, `<meta property="og:image" content="${data.image}" />`],
         ogUrl: [/<meta\s+[^>]*property=["']og:url["'][^>]*>/i, `<meta property="og:url" content="${data.url}" />`],
+        ogType: [/<meta\s+[^>]*property=["']og:type["'][^>]*>/i, `<meta property="og:type" content="${data.type || 'website'}" />`],
+        ogSiteName: [/<meta\s+[^>]*property=["']og:site_name["'][^>]*>/i, `<meta property="og:site_name" content="Satpromax" />`],
         twitterTitle: [/<meta\s+[^>]*property=["']twitter:title["'][^>]*>/i, `<meta property="twitter:title" content="${data.title}" />`],
         twitterDescription: [/<meta\s+[^>]*property=["']twitter:description["'][^>]*>/i, `<meta property="twitter:description" content="${data.description}" />`],
         twitterImage: [/<meta\s+[^>]*property=["']twitter:image["'][^>]*>/i, `<meta property="twitter:image" content="${data.image}" />`],
@@ -1486,7 +1489,6 @@ const injectSEO = (html, data) => {
 
     for (const [key, [regex, replacement]] of Object.entries(replacements)) {
         if (injected.match(regex)) {
-            // Using function for replace to avoid special character issues ($)
             injected = injected.replace(regex, () => replacement);
         } else if (key !== 'canonical' || data.url) {
             injected = injected.replace('</head>', () => `${replacement}</head>`);
@@ -1751,11 +1753,21 @@ app.get(/.*/, async (req, res, next) => {
                 const bodyContent = generateServerProductHTML(product, similarProducts, categories);
                 htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
 
+                // Ensure image is absolute for Facebook
+                let absoluteImage = product.image;
+                if (absoluteImage && !absoluteImage.startsWith('http')) {
+                    absoluteImage = `https://Satpromax.com${absoluteImage.startsWith('/') ? '' : '/'}${absoluteImage}`;
+                }
+
+                const displayPrice = product.price.toLowerCase().includes('dt') ? product.price : `${product.price} DT`;
+
                 htmlContent = injectSEO(htmlContent, {
-                    title: `${product.name} | Satpromax`,
-                    description: cleanDescription,
-                    image: product.image,
+                    title: product.metaTitle || `${product.name} - ${displayPrice} | Satpromax`,
+                    description: product.metaDescription || cleanDescription,
+                    keywords: product.tags,
+                    image: absoluteImage,
                     url: fullUrl,
+                    type: "product",
                     schema: [productSchema, breadcrumbSchema]
                 });
             } else {
