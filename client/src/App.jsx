@@ -46,21 +46,35 @@ const organizationSchema = {
 
 
 
+import { useContext } from "react";
+import { ShopContext } from "./context/ShopContext.jsx";
+
+const GlobalGuard = () => {
+  const { settings } = useContext(ShopContext);
+
+  useEffect(() => {
+    const handleContextMenu = (e) => {
+      if (settings?.disableRightClick) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, [settings?.disableRightClick]);
+
+  return null;
+};
+
 function App() {
-  // useEffect(() => {
-  //   const handleContextMenu = (e) => {
-  //     e.preventDefault();
-  //   };
-  //   document.addEventListener("contextmenu", handleContextMenu);
-  //   return () => {
-  //     document.removeEventListener("contextmenu", handleContextMenu);
-  //   };
-  // }, []);
 
 
   return (
     <>
       <ShopContextProvider>
+        <GlobalGuard />
         <BrowserRouter>
           <Schema schema={organizationSchema} />
           <NavigationSchema />

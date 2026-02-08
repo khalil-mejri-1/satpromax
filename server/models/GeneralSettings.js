@@ -128,7 +128,8 @@ const GeneralSettingsSchema = new mongoose.Schema({
         gradientColor2: String,
         gradientAngle: { type: Number, default: 45 }
     }],
-    siteLogo: { type: String, default: "https://i.ibb.co/kRsrFC3/Untitled-design-6-pixian-ai.png" }
+    siteLogo: { type: String, default: "https://i.ibb.co/kRsrFC3/Untitled-design-6-pixian-ai.png" },
+    disableRightClick: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Ensure only one document exists usually

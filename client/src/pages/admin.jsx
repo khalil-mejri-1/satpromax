@@ -4409,6 +4409,61 @@ const SettingsManager = () => {
                     )}
                 </div>
             </div>
+
+            {/* Anti Clic-Droit Setting */}
+            <div style={{ marginTop: '50px', padding: '25px', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h3 style={{ fontSize: '18px', color: '#1e293b', marginBottom: '8px' }}>Sécurité : Anti Clic-Droit</h3>
+                        <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Désactiver le menu contextuel (clic droit) sur tout le site pour protéger votre contenu.</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <div
+                            onClick={async () => {
+                                try {
+                                    const newValue = !settings.disableRightClick;
+                                    setSettings({ ...settings, disableRightClick: newValue });
+                                    const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ disableRightClick: newValue })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                        showNotification(`Anti Clic-Droit ${newValue ? 'activé' : 'désactivé'}`, "success");
+                                    }
+                                } catch (err) {
+                                    showNotification("Erreur lors de la mise à jour", "error");
+                                }
+                            }}
+                            style={{
+                                width: '50px',
+                                height: '26px',
+                                background: settings.disableRightClick ? '#10b981' : '#cbd5e1',
+                                borderRadius: '13px',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'background 0.3s ease'
+                            }}
+                        >
+                            <div style={{
+                                width: '20px',
+                                height: '20px',
+                                background: '#fff',
+                                borderRadius: '50%',
+                                position: 'absolute',
+                                top: '3px',
+                                left: settings.disableRightClick ? '27px' : '3px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }} />
+                        </div>
+                        <span style={{ fontWeight: 'bold', color: settings.disableRightClick ? '#10b981' : '#64748b', fontSize: '14px', minWidth: '80px' }}>
+                            {settings.disableRightClick ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div >
     );
 };

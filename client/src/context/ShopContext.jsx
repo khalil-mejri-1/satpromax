@@ -29,6 +29,7 @@ export const ShopContextProvider = ({ children }) => {
     // Categories State
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
+    const [settings, setSettings] = useState(null);
     const [customButtons, setCustomButtons] = useState([]);
 
     const getButtonText = (btnId, defaultText) => {
@@ -43,6 +44,7 @@ export const ShopContextProvider = ({ children }) => {
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data) {
+                    setSettings(data.data);
                     if (data.data.categories) {
                         setCategories(data.data.categories);
                     }
@@ -220,6 +222,7 @@ export const ShopContextProvider = ({ children }) => {
         cartItems,
         wishlistItems,
         categories,
+        settings,
         loadingCategories,
         fetchCategories,
         addToCart,
