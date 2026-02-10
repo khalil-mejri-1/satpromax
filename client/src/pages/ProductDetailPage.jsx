@@ -1852,9 +1852,10 @@ export default function ProductDetailPage() {
                                         padding: '10px 0 30px 0',
                                         scrollSnapType: 'x mandatory',
                                         msOverflowStyle: 'none',
-                                        scrollbarWidth: 'none',
                                         width: '100%',
-                                        position: 'relative'
+                                        position: 'relative',
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: '#cbd5e1 transparent'
                                     }}
                                 >
                                     {similarProducts.map(item => (
@@ -1892,12 +1893,6 @@ export default function ProductDetailPage() {
                                 </button>
                             </div>
                         </div>
-
-                        <style>{`
-                        .similar-products-carousel::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}</style>
                     </section>
                 )
             }

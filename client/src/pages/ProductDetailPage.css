@@ -68,14 +68,29 @@
     margin-top: 20px;
     padding: 10px 5px;
     overflow-x: auto;
-    scrollbar-width: none;
     min-height: 100px;
     border-top: 1px solid #f1f5f9;
+    /* Visible scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 .product-gallery-thumbnails::-webkit-scrollbar {
-    display: none;
-    /* Chrome/Safari */
+    height: 6px;
+    display: block;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 
 .thumbnail-item {
@@ -436,6 +451,7 @@
 
 .qty-input input {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .btn-add-cart {
@@ -838,6 +854,25 @@
     height: 100%;
     object-fit: contain;
     display: block;
+}
+
+/* Similar Products Scrollbar */
+.similar-products-carousel::-webkit-scrollbar {
+    height: 6px;
+    display: block;
+}
+
+.similar-products-carousel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.similar-products-carousel::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+}
+
+.similar-products-carousel::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 
 /* Review Modal Styles */
