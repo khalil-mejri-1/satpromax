@@ -859,7 +859,7 @@ export default function Header() {
                         <span className="sidebar-text" style={{ color: '#1e40af', fontWeight: '700' }}>Support</span>
                         <span className="sidebar-arrow">›</span>
                     </Link>
-                    <Link to="/applications" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)} style={{ marginTop: '10px', background: '#f5f3ff', marginBottom: '30px' }}>
+                    <Link to="/applications" className="sidebar-nav-item" onClick={() => setIsSidebarOpen(false)} style={{ marginTop: '10px', background: '#f5f3ff', marginBottom: '60px' }}>
                         <span className="sidebar-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                         </span>
