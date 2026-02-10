@@ -13,6 +13,8 @@
     position: relative;
     min-width: 0;
     /* Prevents grid blowout */
+    width: 100%;
+    /* Ensure it doesn't exceed 100% */
 }
 
 .detail-image-wrapper {
@@ -76,7 +78,11 @@
     /* Visible scrollbar styling */
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
+    width: 100%;
+    /* Force width to match parent */
     max-width: 100%;
+    box-sizing: border-box;
+    /* Ensure padding doesn't add to width */
     /* Keep on one line */
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
@@ -119,11 +125,18 @@
 }
 
 @media (max-width: 768px) {
+    .detail-image-wrapper {
+        padding: 15px;
+        /* Reduce padding on mobile */
+        border-radius: 16px;
+    }
+
     .product-gallery-thumbnails {
         gap: 8px;
         min-height: 80px;
         padding: 10px 0 15px 0;
         /* Removing horizontal padding to maximize space but keeping bottom padding for scrollbar */
+        margin-top: 15px;
     }
 
     .thumbnail-item {
