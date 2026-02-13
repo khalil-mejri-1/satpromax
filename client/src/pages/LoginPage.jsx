@@ -174,7 +174,7 @@ export default function LoginPage() {
                     return;
                 }
 
-                if (!data.user.twoFactorEnabled) {
+                if (!data.user.twoFactorEnabled && data.user.role !== 'admin') {
                     setSetupUser(data.user);
                     setShow2FAPrompt(true);
                     // Store temporarily
@@ -218,7 +218,7 @@ export default function LoginPage() {
                     return;
                 }
 
-                if (!data.user.twoFactorEnabled) {
+                if (!data.user.twoFactorEnabled && data.user.role !== 'admin') {
                     setSetupUser(data.user);
                     setShow2FAPrompt(true);
                     // Store temporarily
