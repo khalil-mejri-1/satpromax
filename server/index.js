@@ -411,6 +411,14 @@ app.post("/api/login", async (req, res) => {
 
 
         if (email === adminEmail && password === adminPassword) {
+            if (settings.twoFactorEnabled) {
+                return res.status(200).json({
+                    success: true,
+                    require2FA: true,
+                    userId: 'admin',
+                    message: "2FA Required"
+                });
+            }
             return res.status(200).json({
                 success: true,
                 message: "Connexion réussie (Admin)",
@@ -422,7 +430,7 @@ app.post("/api/login", async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
         if (user.password !== password) return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
 
-        if (user.twoFactorEnabled && user.role !== 'admin') {
+        if (user.twoFactorEnabled) {
             return res.status(200).json({
                 success: true,
                 require2FA: true,
@@ -569,7 +577,7 @@ app.post("/api/google-login", async (req, res) => {
             await user.save();
         }
 
-        if (user.twoFactorEnabled && user.role !== 'admin') {
+        if (user.twoFactorEnabled) {
             return res.status(200).json({
                 success: true,
                 require2FA: true,
