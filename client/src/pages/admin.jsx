@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './Admin.css';
 import { ShopContext } from '../context/ShopContext';
 
@@ -710,7 +710,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 };
 
 // Helper Component for Multiple Inputs (Tags/SKU)
-const MultiInput = ({ items, onAdd, onRemove, placeholder }) => {
+const MultiInput = ({ items, onAdd, onRemove, placeholder, onFileUpload, uploading }) => {
     const [inputValue, setInputValue] = useState('');
 
     const handleAdd = () => {
@@ -738,6 +738,40 @@ const MultiInput = ({ items, onAdd, onRemove, placeholder }) => {
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
                 />
+                {onFileUpload && (
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            type="file"
+                            onChange={(e) => onFileUpload(e)}
+                            style={{ display: 'none' }}
+                            id={`multi-file-${placeholder.replace(/\s+/g, '')}`}
+                            accept="image/*"
+                            disabled={uploading}
+                        />
+                        <label
+                            htmlFor={`multi-file-${placeholder.replace(/\s+/g, '')}`}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '42px',
+                                height: '42px',
+                                background: '#f1f5f9',
+                                borderRadius: '8px',
+                                cursor: uploading ? 'not-allowed' : 'pointer',
+                                border: '1px solid #e2e8f0',
+                                fontSize: '18px',
+                                color: '#64748b',
+                                transition: 'all 0.2s'
+                            }}
+                            title="Télécharger une image"
+                        >
+                            {uploading ? (
+                                <div className="admin-spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }}></div>
+                            ) : '📁'}
+                        </label>
+                    </div>
+                )}
                 <button
                     type="button"
                     onClick={handleAdd}
@@ -768,6 +802,9 @@ const MultiInput = ({ items, onAdd, onRemove, placeholder }) => {
                         gap: '6px',
                         border: '1px solid #e2e8f0'
                     }}>
+                        {onFileUpload && (item.startsWith('http') || item.startsWith('/')) ? (
+                            <img src={item} alt="" style={{ width: '16px', height: '16px', borderRadius: '3px', objectFit: 'cover' }} />
+                        ) : null}
                         {item}
                         <button
                             type="button"
@@ -2674,10 +2711,61 @@ const HomeManager = () => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [notification, setNotification] = useState(null);
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
+
+    const handleFileUpload = async (e, type, index = null) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                if (type === 'siteLogo') {
+                    setHeroData(prev => ({ ...prev, siteLogo: data.imageUrl }));
+                } else if (type === 'heroMainImages') {
+                    setHeroData(prev => ({ ...prev, heroMainImages: [...prev.heroMainImages, data.imageUrl] }));
+                } else if (type === 'heroCardBoxImage') {
+                    setHeroData(prev => ({ ...prev, heroCardBoxImage: data.imageUrl }));
+                } else if (type === 'heroCardNetflixImage') {
+                    setHeroData(prev => ({ ...prev, heroCardNetflixImage: data.imageUrl }));
+                } else if (type === 'heroCardGiftImage') {
+                    setHeroData(prev => ({ ...prev, heroCardGiftImage: data.imageUrl }));
+                } else if (type === 'heroCardSoftImage') {
+                    setHeroData(prev => ({ ...prev, heroCardSoftImage: data.imageUrl }));
+                } else if (type === 'promoCard') {
+                    const newCards = [...heroData.promoCards];
+                    newCards[index].image = data.imageUrl;
+                    setHeroData(prev => ({ ...prev, promoCards: newCards }));
+                } else if (type === 'socialIcon') {
+                    const newLinks = [...footerData.socialLinks];
+                    newLinks[index].icon = data.imageUrl;
+                    setFooterData(prev => ({ ...prev, socialLinks: newLinks }));
+                }
+                showNotification("Image téléchargée !", "success");
+            } else {
+                showNotification(data.message || "Erreur de téléchargement", "error");
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification("Erreur de connexion", "error");
+        } finally {
+            setUploading(false);
+        }
     };
 
     useEffect(() => {
@@ -2843,13 +2931,31 @@ const HomeManager = () => {
                 <div className="form-group">
                     <label className="form-label">URL du Logo (S'affiche dans le header)</label>
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="https://... + Entrée"
-                            value={heroData.siteLogo}
-                            onChange={(e) => setHeroData({ ...heroData, siteLogo: e.target.value })}
-                        />
+                        <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="https://..."
+                                value={heroData.siteLogo}
+                                onChange={(e) => setHeroData({ ...heroData, siteLogo: e.target.value })}
+                            />
+                            <input
+                                type="file"
+                                id="logo-upload"
+                                style={{ display: 'none' }}
+                                onChange={(e) => handleFileUpload(e, 'siteLogo')}
+                                accept="image/*"
+                                disabled={uploading}
+                            />
+                            <label
+                                htmlFor="logo-upload"
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}
+                                title="Télécharger un logo"
+                            >
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
                         <div style={{ width: '100px', height: '50px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                             {heroData.siteLogo ? <img src={heroData.siteLogo} alt="Preview Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '10px', color: '#94a3b8' }}>Sans Logo</span>}
                         </div>
@@ -2860,12 +2966,14 @@ const HomeManager = () => {
             <div className="form-section" style={{ marginBottom: '30px', padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '16px', marginBottom: '15px', color: '#1e293b' }}>Bannière Principale (Slider)</h3>
                 <div className="form-group">
-                    <label className="form-label">Images du Slider Principal (Ajoutez plusieurs URLs)</label>
+                    <label className="form-label">Images du Slider Principal (Ajoutez plusieurs URLs ou téléchargez)</label>
                     <MultiInput
                         items={heroData.heroMainImages}
                         onAdd={(val) => addImage('heroMainImages', val)}
                         onRemove={(idx) => removeImage('heroMainImages', idx)}
-                        placeholder="https://... + Entrée"
+                        placeholder="URL de l'image"
+                        onFileUpload={(e) => handleFileUpload(e, 'heroMainImages')}
+                        uploading={uploading}
                     />
                 </div>
             </div>
@@ -2876,56 +2984,84 @@ const HomeManager = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <label className="form-label">Carte 1 (ex: Box Android)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="URL Image"
-                            value={heroData.heroCardBoxImage}
-                            onChange={(e) => setHeroData({ ...heroData, heroCardBoxImage: e.target.value })}
-                            style={{ marginBottom: '10px' }}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="URL Image"
+                                value={heroData.heroCardBoxImage}
+                                onChange={(e) => setHeroData({ ...heroData, heroCardBoxImage: e.target.value })}
+                                style={{ flex: 1 }}
+                            />
+                            <input type="file" id="upload-card-1" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'heroCardBoxImage')} accept="image/*" />
+                            <label htmlFor="upload-card-1" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
+                        {heroData.heroCardBoxImage && <img src={heroData.heroCardBoxImage} alt="" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />}
                         <textarea className="form-input" placeholder="Titre" value={heroData.heroCardBoxTitle} onChange={e => setHeroData({ ...heroData, heroCardBoxTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
                         <input className="form-input" placeholder="Lien" value={heroData.heroCardBoxLink} onChange={e => setHeroData({ ...heroData, heroCardBoxLink: e.target.value })} />
                     </div>
 
                     <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <label className="form-label">Carte 2 (ex: Netflix)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="URL Image"
-                            value={heroData.heroCardNetflixImage}
-                            onChange={(e) => setHeroData({ ...heroData, heroCardNetflixImage: e.target.value })}
-                            style={{ marginBottom: '10px' }}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="URL Image"
+                                value={heroData.heroCardNetflixImage}
+                                onChange={(e) => setHeroData({ ...heroData, heroCardNetflixImage: e.target.value })}
+                                style={{ flex: 1 }}
+                            />
+                            <input type="file" id="upload-card-2" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'heroCardNetflixImage')} accept="image/*" />
+                            <label htmlFor="upload-card-2" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
+                        {heroData.heroCardNetflixImage && <img src={heroData.heroCardNetflixImage} alt="" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />}
                         <textarea className="form-input" placeholder="Titre" value={heroData.heroCardNetflixTitle} onChange={e => setHeroData({ ...heroData, heroCardNetflixTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
                         <input className="form-input" placeholder="Lien" value={heroData.heroCardNetflixLink} onChange={e => setHeroData({ ...heroData, heroCardNetflixLink: e.target.value })} />
                     </div>
 
                     <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <label className="form-label">Carte 3 (ex: Gift Cards)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="URL Image"
-                            value={heroData.heroCardGiftImage}
-                            onChange={(e) => setHeroData({ ...heroData, heroCardGiftImage: e.target.value })}
-                            style={{ marginBottom: '10px' }}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="URL Image"
+                                value={heroData.heroCardGiftImage}
+                                onChange={(e) => setHeroData({ ...heroData, heroCardGiftImage: e.target.value })}
+                                style={{ flex: 1 }}
+                            />
+                            <input type="file" id="upload-card-3" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'heroCardGiftImage')} accept="image/*" />
+                            <label htmlFor="upload-card-3" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
+                        {heroData.heroCardGiftImage && <img src={heroData.heroCardGiftImage} alt="" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />}
                         <textarea className="form-input" placeholder="Titre" value={heroData.heroCardGiftTitle} onChange={e => setHeroData({ ...heroData, heroCardGiftTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
                         <input className="form-input" placeholder="Lien" value={heroData.heroCardGiftLink} onChange={e => setHeroData({ ...heroData, heroCardGiftLink: e.target.value })} />
                     </div>
 
                     <div style={{ padding: '15px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <label className="form-label">Carte 4 (ex: Software)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="URL Image"
-                            value={heroData.heroCardSoftImage}
-                            onChange={(e) => setHeroData({ ...heroData, heroCardSoftImage: e.target.value })}
-                            style={{ marginBottom: '10px' }}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="URL Image"
+                                value={heroData.heroCardSoftImage}
+                                onChange={(e) => setHeroData({ ...heroData, heroCardSoftImage: e.target.value })}
+                                style={{ flex: 1 }}
+                            />
+                            <input type="file" id="upload-card-4" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'heroCardSoftImage')} accept="image/*" />
+                            <label htmlFor="upload-card-4" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
+                        {heroData.heroCardSoftImage && <img src={heroData.heroCardSoftImage} alt="" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />}
                         <textarea className="form-input" placeholder="Titre" value={heroData.heroCardSoftTitle} onChange={e => setHeroData({ ...heroData, heroCardSoftTitle: e.target.value })} style={{ marginBottom: '10px', height: '45px', resize: 'none' }} />
                         <input className="form-input" placeholder="Lien" value={heroData.heroCardSoftLink} onChange={e => setHeroData({ ...heroData, heroCardSoftLink: e.target.value })} />
                     </div>
@@ -2955,12 +3091,20 @@ const HomeManager = () => {
                             </div>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label">Image URL</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={card.image || ''}
-                                    onChange={(e) => updatePromoCard(index, 'image', e.target.value)}
-                                />
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={card.image || ''}
+                                        onChange={(e) => updatePromoCard(index, 'image', e.target.value)}
+                                        style={{ flex: 1 }}
+                                    />
+                                    <input type="file" id={`upload-promo-${index}`} style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'promoCard', index)} accept="image/*" />
+                                    <label htmlFor={`upload-promo-${index}`} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                        {uploading ? '⌛' : '📁'}
+                                    </label>
+                                </div>
+                                {card.image && <img src={card.image} alt="" style={{ width: '100%', height: '60px', objectFit: 'contain', marginTop: '10px', background: '#fff', borderRadius: '4px' }} />}
                             </div>
                         </div>
                     </div>
@@ -3029,13 +3173,21 @@ const HomeManager = () => {
                                 value={link.name}
                                 onChange={(e) => updateSocialLink(idx, 'name', e.target.value)}
                             />
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="URL Icône"
-                                value={link.icon}
-                                onChange={(e) => updateSocialLink(idx, 'icon', e.target.value)}
-                            />
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="URL Icône"
+                                    value={link.icon}
+                                    onChange={(e) => updateSocialLink(idx, 'icon', e.target.value)}
+                                    style={{ flex: 1 }}
+                                />
+                                <input type="file" id={`upload-social-${idx}`} style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'socialIcon', idx)} accept="image/*" />
+                                <label htmlFor={`upload-social-${idx}`} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                                {link.icon && <img src={link.icon} alt="" style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#fff' }} />}
+                            </div>
                             <input
                                 type="text"
                                 className="form-input"
@@ -3154,12 +3306,42 @@ const CategoryManager = () => {
         newSubcategories: []
     });
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [notification, setNotification] = useState(null);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, item: null });
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
+    };
+
+    const handleFileUpload = async (e, mode) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                if (mode === 'edit') {
+                    setEditCategoryModal(prev => ({ ...prev, newIcon: data.imageUrl }));
+                } else {
+                    setNewCategory(prev => ({ ...prev, icon: data.imageUrl }));
+                }
+                showNotification("Image téléchargée !", "success");
+            } else {
+                showNotification(data.message || "Erreur de téléchargement", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        } finally {
+            setUploading(false);
+        }
     };
 
     const fetchSettings = () => {
@@ -3300,7 +3482,13 @@ const CategoryManager = () => {
                         <div className="form-group">
                             <label className="form-label">Icône (Emoji أو URL صورة)</label>
                             <div style={{ display: 'flex', gap: '10px' }}>
-                                <input className="form-input" value={editCategoryModal.newIcon} onChange={e => setEditCategoryModal({ ...editCategoryModal, newIcon: e.target.value })} placeholder="🔥 أو https://..." />
+                                <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                                    <input className="form-input" value={editCategoryModal.newIcon} onChange={e => setEditCategoryModal({ ...editCategoryModal, newIcon: e.target.value })} placeholder="🔥 أو https://..." />
+                                    <input type="file" id="edit-cat-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'edit')} accept="image/*" />
+                                    <label htmlFor="edit-cat-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                        {uploading ? '⌛' : '📁'}
+                                    </label>
+                                </div>
                                 <div style={{ width: '42px', height: '42px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                                     {editCategoryModal.newIcon && (editCategoryModal.newIcon.startsWith('http') || editCategoryModal.newIcon.startsWith('/') || editCategoryModal.newIcon.includes('.')) ? (
                                         <img src={editCategoryModal.newIcon} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
@@ -3374,7 +3562,13 @@ const CategoryManager = () => {
                         onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
                     />
                     <div style={{ display: 'flex', gap: '8px' }}>
-                        <input className="form-input" placeholder="Icône (Emoji/URL)" value={newCategory.icon} onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })} />
+                        <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                            <input className="form-input" placeholder="Icône (Emoji/URL)" value={newCategory.icon} onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })} />
+                            <input type="file" id="new-cat-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'new')} accept="image/*" />
+                            <label htmlFor="new-cat-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                {uploading ? '⌛' : '📁'}
+                            </label>
+                        </div>
                         <div style={{ width: '42px', height: '42px', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                             {newCategory.icon && (newCategory.icon.startsWith('http') || newCategory.icon.startsWith('/') || newCategory.icon.includes('.')) ? (
                                 <img src={newCategory.icon} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
@@ -3464,8 +3658,40 @@ const SettingsManager = () => {
     const [newSubscriptionFormat, setNewSubscriptionFormat] = useState({ name: '', image: '' });
 
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [notification, setNotification] = useState(null);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, item: null, type: '' });
+
+    const handleFileUpload = async (e, mode) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                switch (mode) {
+                    case 'payment': setNewMode(prev => ({ ...prev, logo: data.imageUrl })); break;
+                    case 'resolution': setNewResolution(prev => ({ ...prev, image: data.imageUrl })); break;
+                    case 'region': setNewRegion(prev => ({ ...prev, image: data.imageUrl })); break;
+                    case 'bouquet': setNewBouquet(prev => ({ ...prev, image: data.imageUrl })); break;
+                    case 'format': setNewSubscriptionFormat(prev => ({ ...prev, image: data.imageUrl })); break;
+                }
+                showNotification("Image téléchargée !", "success");
+            } else {
+                showNotification(data.message || "Erreur", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const openConfirmModal = (item, type) => {
         setConfirmModal({ isOpen: true, item, type });
@@ -4059,15 +4285,21 @@ const SettingsManager = () => {
                             />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="https://..."
-                                value={newResolution.image}
-                                onChange={(e) => setNewResolution({ ...newResolution, image: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                            />
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Icône/Image</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="URL ou téléchargez"
+                                    value={newResolution.image}
+                                    onChange={(e) => setNewResolution({ ...newResolution, image: e.target.value })}
+                                    style={{ borderRadius: '8px', flex: 1 }}
+                                />
+                                <input type="file" id="res-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'resolution')} accept="image/*" />
+                                <label htmlFor="res-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
                             Ajouter
@@ -4111,15 +4343,21 @@ const SettingsManager = () => {
                             />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="https://..."
-                                value={newRegion.image}
-                                onChange={(e) => setNewRegion({ ...newRegion, image: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                            />
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Icône/Image</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="URL ou téléchargez"
+                                    value={newRegion.image}
+                                    onChange={(e) => setNewRegion({ ...newRegion, image: e.target.value })}
+                                    style={{ borderRadius: '8px', flex: 1 }}
+                                />
+                                <input type="file" id="region-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'region')} accept="image/*" />
+                                <label htmlFor="region-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
                             Ajouter
@@ -4163,15 +4401,21 @@ const SettingsManager = () => {
                             />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image (Optionnel)</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="https://..."
-                                value={newBouquet.image}
-                                onChange={(e) => setNewBouquet({ ...newBouquet, image: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                            />
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Icône/Image</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="URL ou téléchargez"
+                                    value={newBouquet.image}
+                                    onChange={(e) => setNewBouquet({ ...newBouquet, image: e.target.value })}
+                                    style={{ borderRadius: '8px', flex: 1 }}
+                                />
+                                <input type="file" id="bouquet-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'bouquet')} accept="image/*" />
+                                <label htmlFor="bouquet-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
                             Ajouter
@@ -4215,15 +4459,21 @@ const SettingsManager = () => {
                             />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>URL de l'image (Optionnel)</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                placeholder="https://..."
-                                value={newSubscriptionFormat.image}
-                                onChange={(e) => setNewSubscriptionFormat({ ...newSubscriptionFormat, image: e.target.value })}
-                                style={{ borderRadius: '8px' }}
-                            />
+                            <label className="form-label" style={{ fontWeight: '600', marginBottom: '8px' }}>Icône/Image</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="URL ou téléchargez"
+                                    value={newSubscriptionFormat.image}
+                                    onChange={(e) => setNewSubscriptionFormat({ ...newSubscriptionFormat, image: e.target.value })}
+                                    style={{ borderRadius: '8px', flex: 1 }}
+                                />
+                                <input type="file" id="format-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'format')} accept="image/*" />
+                                <label htmlFor="format-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ height: '42px', borderRadius: '8px', padding: '0 20px' }}>
                             Ajouter
@@ -4267,15 +4517,21 @@ const SettingsManager = () => {
                             />
                         </div>
                         <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label" style={{ fontSize: '12px' }}>URL du Logo (Lien Image)</label>
-                            <input
-                                type="text"
-                                value={newMode.logo}
-                                onChange={(e) => setNewMode({ ...newMode, logo: e.target.value })}
-                                placeholder="https://image-link.com/logo.png"
-                                className="form-input"
-                                style={{ height: '45px' }}
-                            />
+                            <label className="form-label" style={{ fontSize: '12px' }}>Logo / Télécharger</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    value={newMode.logo}
+                                    onChange={(e) => setNewMode({ ...newMode, logo: e.target.value })}
+                                    placeholder="URL ou téléchargez"
+                                    className="form-input"
+                                    style={{ height: '45px', flex: 1 }}
+                                />
+                                <input type="file" id="payment-upload" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'payment')} accept="image/*" />
+                                <label htmlFor="payment-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer', height: '45px' }}>
+                                    {uploading ? '⌛' : '📁'}
+                                </label>
+                            </div>
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ height: '45px', padding: '0 25px', fontWeight: '700' }}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -6298,7 +6554,33 @@ const SupportManager = ({ openGlobalSeo }) => {
     const [currentHeroImage, setCurrentHeroImage] = useState('');
 
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [notification, setNotification] = useState(null);
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                setHeroImage(data.imageUrl);
+                showNotification("Image téléchargée !", "success");
+            } else {
+                showNotification(data.message || "Erreur", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        } finally {
+            setUploading(false);
+        }
+    };
     const [confirmModal, setConfirmModal] = useState({ show: false, message: '', onConfirm: null });
 
     const showNotification = (message, type) => {
@@ -6737,19 +7019,25 @@ const SupportManager = ({ openGlobalSeo }) => {
                                 </div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>Nouvelle Image (URL)</label>
-                                <textarea
-                                    className="form-input"
-                                    placeholder="Collez le nouveau lien ici..."
-                                    value={heroImage}
-                                    onChange={(e) => setHeroImage(e.target.value)}
-                                    style={{ width: '100%', height: '100px', resize: 'none', marginBottom: '10px' }}
-                                />
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>Nouvelle Image (URL / Télécharger)</label>
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                    <textarea
+                                        className="form-input"
+                                        placeholder="Collez le nouveau lien ici..."
+                                        value={heroImage}
+                                        onChange={(e) => setHeroImage(e.target.value)}
+                                        style={{ width: '100%', height: '42px', resize: 'none' }}
+                                    />
+                                    <input type="file" id="support-hero-upload" style={{ display: 'none' }} onChange={handleFileUpload} accept="image/*" />
+                                    <label htmlFor="support-hero-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer', height: '42px' }}>
+                                        {uploading ? '⌛' : '📁'}
+                                    </label>
+                                </div>
                                 <button
                                     onClick={saveHeroImage}
                                     className="btn btn-primary"
                                     style={{ width: '100%', padding: '12px', fontWeight: '800' }}
-                                    disabled={heroImage === currentHeroImage}
+                                    disabled={heroImage === currentHeroImage || uploading}
                                 >
                                     Appliquer les changements
                                 </button>
@@ -7277,6 +7565,7 @@ const TwoFactorManager = () => {
 const ApplicationsManager = () => {
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
     const [notification, setNotification] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingApp, setEditingApp] = useState(null);
@@ -7291,6 +7580,31 @@ const ApplicationsManager = () => {
     const showNotification = (message, type) => {
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        setUploading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNewApp(prev => ({ ...prev, icon: data.imageUrl }));
+                showNotification("Icône téléchargée !", "success");
+            } else {
+                showNotification(data.message || "Erreur de téléchargement", "error");
+            }
+        } catch (error) {
+            showNotification("Erreur serveur", "error");
+        } finally {
+            setUploading(false);
+        }
     };
 
     const fetchApps = async () => {
@@ -7431,9 +7745,15 @@ const ApplicationsManager = () => {
                                 </select>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">URL de l'icône</label>
-                                <input className="form-input" value={newApp.icon} onChange={e => setNewApp({ ...newApp, icon: e.target.value })} placeholder="https://..." required />
-                                {newApp.icon && <img src={newApp.icon} alt="Preview" style={{ width: '40px', height: '40px', marginTop: '10px', borderRadius: '8px' }} />}
+                                <label className="form-label">Icône de l'application</label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input className="form-input" value={newApp.icon} onChange={e => setNewApp({ ...newApp, icon: e.target.value })} placeholder="URL ou téléchargez" required />
+                                    <input type="file" id="app-icon-upload" style={{ display: 'none' }} onChange={handleFileUpload} accept="image/*" />
+                                    <label htmlFor="app-icon-upload" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '42px', cursor: 'pointer' }}>
+                                        {uploading ? '⌛' : '📁'}
+                                    </label>
+                                </div>
+                                {newApp.icon && <img src={newApp.icon} alt="Preview" style={{ width: '40px', height: '40px', marginTop: '10px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} />}
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Lien de téléchargement</label>
