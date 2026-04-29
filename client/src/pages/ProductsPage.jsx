@@ -81,14 +81,14 @@ const CATEGORY_DB_MAP = {
 const SkeletonCard = () => {
     return (
         <div className="skeleton-card">
-            <div className="skeleton-image"></div>
+            <div className="skeleton-image skeleton"></div>
             <div className="skeleton-content">
-                <div className="skeleton-title"></div>
-                <div className="skeleton-title" style={{ width: '60%' }}></div>
-                <div className="skeleton-price"></div>
+                <div className="skeleton-title skeleton"></div>
+                <div className="skeleton-title skeleton" style={{ width: '60%' }}></div>
+                <div className="skeleton-price skeleton"></div>
                 <div className="skeleton-actions">
-                    <div className="skeleton-btn"></div>
-                    <div className="skeleton-btn"></div>
+                    <div className="skeleton-btn skeleton"></div>
+                    <div className="skeleton-btn skeleton"></div>
                 </div>
             </div>
         </div>

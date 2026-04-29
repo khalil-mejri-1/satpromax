@@ -148,7 +148,9 @@
     position: relative !important;
     transition: var(--transition-smooth);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-    overflow: visible !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
 }
 
 .slider-card:hover {
@@ -182,10 +184,10 @@
 
 .card-badge.promo {
     position: absolute !important;
-    top: -12px !important;
-    right: -12px !important;
-    width: 90px !important;
-    height: 90px !important;
+    top: 5px !important;
+    right: 5px !important;
+    width: 70px !important;
+    height: 70px !important;
     z-index: 100 !important;
     pointer-events: none;
     background: transparent !important;
@@ -205,15 +207,15 @@
     padding: 10px;
     text-align: left;
     transition: box-shadow 0.2s;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 
 .category-product-card .card-badge_2.promo_2 {
     position: absolute !important;
-    top: -10px !important;
-    right: -10px !important;
-    width: 80px !important;
-    height: 80px !important;
+    top: 5px !important;
+    right: 5px !important;
+    width: 60px !important;
+    height: 60px !important;
     z-index: 100 !important;
     pointer-events: none;
     background: transparent !important;
@@ -446,63 +448,124 @@
     }
 }
 
-/* Skeleton Premium */
+/* Skeleton Premium Redesign */
 .skeleton-card {
     flex: 0 0 calc((100% - (30px * 4)) / 5);
     background: #fff;
     padding: 24px;
     border-radius: var(--card-radius);
     border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
 }
 
 .skeleton-image {
     height: 220px;
     background: #f1f5f9;
     border-radius: calc(var(--card-radius) - 8px);
-    margin-bottom: 25px;
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
 }
 
-.skeleton-text {
-    height: 18px;
+.skeleton-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skeleton-tag {
+    height: 12px;
+    width: 30%;
     background: #f1f5f9;
-    margin-bottom: 12px;
-    border-radius: 5px;
+    border-radius: 4px;
     position: relative;
     overflow: hidden;
 }
 
-.skeleton-text.short {
-    width: 40%;
+.skeleton-title {
+    height: 18px;
+    width: 100%;
+    background: #f1f5f9;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-title.short {
+    width: 70%;
 }
 
 .skeleton-price {
-    height: 28px;
-    width: 60%;
+    height: 24px;
+    width: 40%;
     background: #f1f5f9;
-    border-radius: 5px;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.skeleton-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.skeleton-button {
+    flex: 1;
+    height: 40px;
+    background: #f1f5f9;
+    border-radius: 50px;
     position: relative;
     overflow: hidden;
 }
 
+/* Enhanced Shimmer Effect */
 .skeleton-image::after,
-.skeleton-text::after,
-.skeleton-price::after {
+.skeleton-tag::after,
+.skeleton-title::after,
+.skeleton-price::after,
+.skeleton-button::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    background: linear-gradient(
+        90deg,
+        rgba(241, 245, 249, 0) 0%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(241, 245, 249, 0) 100%
+    );
     transform: translateX(-100%);
-    animation: shimmer-premium 2s infinite ease-in-out;
+    animation: shimmer-premium 1.5s infinite linear;
 }
 
 @keyframes shimmer-premium {
     0% {
         transform: translateX(-100%);
     }
-
     100% {
         transform: translateX(100%);
+    }
+}
+
+/* Adaptability for responsive */
+@media (max-width: 1200px) {
+    .skeleton-card {
+        flex: 0 0 calc((100% - (30px * 2)) / 3);
+    }
+}
+
+@media (max-width: 768px) {
+    .skeleton-card {
+        flex: 0 0 calc((100% - 30px) / 2);
+    }
+}
+
+@media (max-width: 480px) {
+    .skeleton-card {
+        flex: 0 0 100%;
     }
 }

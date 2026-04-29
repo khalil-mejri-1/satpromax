@@ -33,6 +33,7 @@
     position: relative;
     border: 1px solid #f1f5f9;
     transition: transform 0.3s ease;
+    overflow: hidden;
 }
 
 .review-card-inner:hover {

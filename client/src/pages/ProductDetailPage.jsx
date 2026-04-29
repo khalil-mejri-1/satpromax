@@ -490,7 +490,49 @@ export default function ProductDetailPage() {
     };
 
     if (loading) {
-        return <div className="page-wrapper"><Header /><main className="main-content" style={{ minHeight: '50vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Chargement...</main><Footer /></div>;
+        return (
+            <div className="page-wrapper">
+                <Header />
+                <main className="main-content">
+                    <div className="container">
+                        <div className="breadcrumb-skeleton skeleton"></div>
+                        <div className="product-detail-grid">
+                            {/* Left: Image Skeleton */}
+                            <div className="product-image-section">
+                                <div className="detail-image-wrapper skeleton" style={{ height: '400px' }}></div>
+                                <div className="product-gallery-thumbnails">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="thumbnail-item skeleton"></div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Right: Info Skeleton */}
+                            <div className="product-info-section">
+                                <div className="skeleton skeleton-title" style={{ height: '40px', width: '80%', marginBottom: '20px' }}></div>
+                                <div className="skeleton skeleton-rating" style={{ height: '20px', width: '150px', marginBottom: '25px' }}></div>
+                                <div className="skeleton skeleton-price" style={{ height: '35px', width: '120px', marginBottom: '30px' }}></div>
+                                <div className="skeleton skeleton-stock" style={{ height: '30px', width: '100px', borderRadius: '20px', marginBottom: '35px' }}></div>
+                                
+                                <div className="skeleton skeleton-desc" style={{ height: '100px', width: '100%', marginBottom: '40px', borderRadius: '12px' }}></div>
+
+                                <div className="add-to-cart-section">
+                                    <div className="qty-input skeleton" style={{ border: 'none' }}></div>
+                                    <div className="btn-add-cart skeleton" style={{ border: 'none' }}></div>
+                                </div>
+
+                                <div className="order-form-container" style={{ border: 'none', background: 'transparent', padding: 0 }}>
+                                    <div className="skeleton" style={{ height: '50px', width: '100%', marginBottom: '15px', borderRadius: '8px' }}></div>
+                                    <div className="skeleton" style={{ height: '50px', width: '100%', marginBottom: '25px', borderRadius: '8px' }}></div>
+                                    <div className="skeleton" style={{ height: '55px', width: '100%', borderRadius: '8px' }}></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
     }
 
     if (!product) {

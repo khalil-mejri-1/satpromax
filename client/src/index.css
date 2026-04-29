@@ -290,6 +290,33 @@ ul {
   }
 }
 
-.tp-widget-wrapper {
-  border: red solid;
+/* Global Skeleton Styles */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #f1f5f9;
+  border-radius: 8px;
 }
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(241, 245, 249, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(241, 245, 249, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-global 1.5s infinite linear;
+}
+
+@keyframes shimmer-global {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

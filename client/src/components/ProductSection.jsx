@@ -83,9 +83,16 @@ export default function ProductSection({ title, products = [], loading = false, 
                         Array.from({ length: 5 }).map((_, index) => (
                             <div key={index} className="skeleton-card">
                                 <div className="skeleton-image"></div>
-                                <div className="skeleton-text"></div>
-                                <div className="skeleton-text short"></div>
-                                <div className="skeleton-price"></div>
+                                <div className="skeleton-info">
+                                    <div className="skeleton-tag"></div>
+                                    <div className="skeleton-title"></div>
+                                    <div className="skeleton-title short"></div>
+                                    <div className="skeleton-price"></div>
+                                </div>
+                                <div className="skeleton-footer">
+                                    <div className="skeleton-button"></div>
+                                    <div className="skeleton-button"></div>
+                                </div>
                             </div>
                         ))
                     ) : (

@@ -67,40 +67,48 @@ export default function Home() {
       <Header />
       <Hero />
 
-      {categories.map((category, index) => {
-        // Try exact match first, then partial if needed, but exact is better for DB driven categories
-        // actually, let's allow partial match if exact fails or just be loose?
-        // The user manually filtered 'Box' for 'Box Android'. 
-        // If DB category is 'Box Android' and product is 'Box Android', exact works.
-        // Let's stick to a robust check: include check is safer for slight variations.
-        const categoryProducts = products.filter(p =>
-          p.category && (
-            p.category.toLowerCase() === category.name.toLowerCase() ||
-            p.category.toLowerCase().includes(category.name.toLowerCase()) ||
-            category.name.toLowerCase().includes(p.category.toLowerCase())
-          )
-        );
-
-        // Don't show empty sections if not loading (optional, but cleaner)
-        // actually user might want to see empty sections to know they exist? 
-        // Standard is usually hide if empty. But let's show all for now as requested "display categories".
-
-        return (
+      {loading ? (
+        /* Render 2-3 Skeleton Sections while loading */
+        [1, 2].map((_, index) => (
           <ProductSection
             key={index}
-            title={category.name}
-            products={categoryProducts}
-            loading={loading}
-            categoryLink={`/${slugify(category.name)}`}
+            title="Chargement..."
+            products={[]}
+            loading={true}
           />
-        );
-      })}
+        ))
+      ) : (
+        categories.map((category, index) => {
+          const categoryProducts = products.filter(p =>
+            p.category && (
+              p.category.toLowerCase() === category.name.toLowerCase() ||
+              p.category.toLowerCase().includes(category.name.toLowerCase()) ||
+              category.name.toLowerCase().includes(p.category.toLowerCase())
+            )
+          );
+
+          return (
+            <ProductSection
+              key={index}
+              title={category.name}
+              products={categoryProducts}
+              loading={loading}
+              categoryLink={`/${slugify(category.name)}`}
+            />
+          );
+        })
+      )}
 
       <ReviewCarousel />
 
       {/* Promo Banner Section (Dynamic) */}
       <section className="promo-banners container mt-10" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-        {promoCards && promoCards.length > 0 ? (
+        {loading ? (
+          /* Render 3 Skeleton Banners */
+          Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className="promo-banner-card skeleton" style={{ height: '200px', background: '#f1f5f9' }}></div>
+          ))
+        ) : promoCards && promoCards.length > 0 ? (
           promoCards.map((card, idx) => (
             <div
               key={idx}
