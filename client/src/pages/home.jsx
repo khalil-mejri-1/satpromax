@@ -8,6 +8,7 @@ import Footer from '../components/Footer';
 import ReviewCarousel from '../components/ReviewCarousel';
 
 import { slugify } from '../utils/slugify';
+import TrendingMovies from '../components/TrendingMovies';
 
 import SEO from '../components/SEO/SEO';
 
@@ -66,6 +67,7 @@ export default function Home() {
       />
       <Header />
       <Hero />
+      <TrendingMovies />
 
       {loading ? (
         /* Render 2-3 Skeleton Sections while loading */
