@@ -1565,3 +1565,75 @@
 .see-all-results a:hover {
     color: #3b82f6;
 }
+
+/* --- Extra Desktop Actions (Aide, Support, Apps) --- */
+.desktop-extra-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding-left: 25px;
+    margin-left: 5px;
+}
+
+@media (max-width: 1024px) {
+    .desktop-extra-actions {
+        display: none !important;
+    }
+}
+
+.header-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-action-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.header-action-btn.aide-btn {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.header-action-btn.aide-btn:hover {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde047;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.header-action-btn.support-btn {
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.header-action-btn.support-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #bfdbfe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.header-action-btn.apps-btn {
+    background: rgba(139, 92, 246, 0.1);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.header-action-btn.apps-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #ddd6fe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}

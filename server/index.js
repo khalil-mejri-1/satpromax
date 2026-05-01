@@ -292,14 +292,50 @@ app.delete("/api/support/tickets/:id", async (req, res) => {
 // Products
 app.get("/api/products", async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category, limit, page, random, sort } = req.query;
         let query = {};
+
         if (category) {
             const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            query.category = { $regex: new RegExp(`^${escapedCategory}$`, 'i') };
+            // Use partial match instead of strict exact match for better category grouping
+            query.category = { $regex: new RegExp(escapedCategory, 'i') };
         }
-        const products = await Product.find(query);
-        res.status(200).json({ success: true, count: products.length, data: products });
+
+        const parsedLimit = parseInt(limit);
+        const parsedPage = parseInt(page) || 1;
+
+        if (random === 'true' && parsedLimit) {
+            // Use aggregation to get random products efficiently
+            const randomProducts = await Product.aggregate([
+                { $match: query },
+                { $sample: { size: parsedLimit } }
+            ]);
+            return res.status(200).json({ success: true, count: randomProducts.length, data: randomProducts });
+        }
+
+        let productQuery = Product.find(query);
+
+        if (sort === 'newest') {
+            productQuery = productQuery.sort({ createdAt: -1 });
+        } else if (sort === 'priceAsc') {
+            productQuery = productQuery.sort({ price: 1 });
+        } else if (sort === 'priceDesc') {
+            productQuery = productQuery.sort({ price: -1 });
+        }
+
+        if (parsedLimit) {
+            productQuery = productQuery.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
+        }
+
+        const products = await productQuery;
+
+        // We only want the total count if we are paginating
+        let totalCount = products.length;
+        if (parsedLimit && page) {
+            totalCount = await Product.countDocuments(query);
+        }
+
+        res.status(200).json({ success: true, count: totalCount, data: products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

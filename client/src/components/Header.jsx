@@ -579,6 +579,7 @@ export default function Header() {
                             </div>
                         )}
 
+
                         <div className="action-item dropdown-parent">
                             <Link to="/checkout" className="action-link-wrapper">
                                 <div className="icon-badge-wrapper">
@@ -624,6 +625,22 @@ export default function Header() {
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Desktop extra actions (Aide, Support, Apps) placed after Cart */}
+                        <div className="desktop-extra-actions">
+                            <Link to="/guide-installation" className="header-action-btn aide-btn" title="Aide">
+                                <GuideIcon /> Aide
+                            </Link>
+
+                            <Link to="/support" className="header-action-btn support-btn" title="Support">
+                                <SupportIcon /> Support
+                            </Link>
+
+                            <Link to="/applications" className="header-action-btn apps-btn" title="Applications">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                                Apps
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -677,42 +694,6 @@ export default function Header() {
                             <Link to="/software" className="nav-link"><span className="icon"><SoftwareIcon /></span> Logiciels</Link>
                         </>
                     )}
-                    <Link to="/guide-installation" className="nav-link guide-btn-nav" style={{
-                        background: 'rgb(255, 214, 0)',
-                        color: '#000000ff',
-                        borderRadius: '12px',
-                        padding: '8px 16px',
-                        border: '1px solid #fde68a'
-                    }}>
-                        <span className="icon"><GuideIcon /></span>
-                        Aide
-                    </Link>
-
-                    <Link to="/support" className="nav-link support-btn-nav" style={{
-                        background: '#eff6ff',
-                        color: '#1e40af',
-                        borderRadius: '12px',
-                        padding: '8px 16px',
-                        border: '1px solid #bfdbfe',
-                        marginLeft: '10px'
-                    }}>
-                        <span className="icon"><SupportIcon /></span>
-                        Support
-                    </Link>
-
-                    <Link to="/applications" className="nav-link apps-btn-nav" style={{
-                        background: '#f5f3ff',
-                        color: '#5b21b6',
-                        borderRadius: '12px',
-                        padding: '8px 16px',
-                        border: '1px solid #ddd6fe',
-                        marginLeft: '10px'
-                    }}>
-                        <span className="icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                        </span>
-                        Applications
-                    </Link>
                 </div>
             </div>
 
