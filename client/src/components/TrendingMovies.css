@@ -152,8 +152,12 @@
 
 @media (max-width: 768px) {
     .carousel-nav-btn { display: none; }
-    .trending-movies-section { padding: 0 10px; }
+    .trending-movies-section { padding: 0 20px; }
     .trending-header h2 { font-size: 18px; }
+    .movies-carousel-wrapper { margin: 0; }
+    .movie-card-item {
+        padding: 0 40px; /* More space on sides to make image smaller */
+    }
 }
 
 .movie-card-item.skeleton {

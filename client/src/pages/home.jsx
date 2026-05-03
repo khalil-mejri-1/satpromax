@@ -58,7 +58,7 @@ export default function Home() {
         ))
       ) : (
         categories.map((category, index) => (
-          <LazyCategorySection key={index} category={category} />
+          <LazyCategorySection key={index} category={category} index={index} />
         ))
       )}
 

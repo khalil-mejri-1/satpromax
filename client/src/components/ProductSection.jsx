@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import './ProductSection.css';
 import { slugify } from '../utils/slugify';
 
-export default function ProductSection({ title, products = [], loading = false, categoryLink }) {
+export default function ProductSection({ title, products = [], loading = false, categoryLink, bgVariant = 0 }) {
     const scrollContainerRef = useRef(null);
     const { addToCart } = useContext(ShopContext);
 
@@ -60,16 +60,9 @@ export default function ProductSection({ title, products = [], loading = false, 
     };
 
     return (
-        <section className="product-section container">
+        <section className={`product-section container bg-${bgVariant}`}>
             <div className="section-header">
                 <h2 className="section-title">{title}</h2>
-                {categoryLink ? (
-                    <Link to={categoryLink} className="see-all">
-                        <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Voir Tout</h6>
-                    </Link>
-                ) : (
-                    <h6 className="see-all disabled" style={{ margin: 0 }}>Voir Tout</h6>
-                )}
             </div>
 
             <div className="slider-container">
@@ -78,8 +71,8 @@ export default function ProductSection({ title, products = [], loading = false, 
                 </button>
 
                 <div className="products-slider" ref={scrollContainerRef}>
+                    {/* ... (keep existing products mapping logic) ... */}
                     {loading ? (
-                        /* Render 5 Skeleton Cards */
                         Array.from({ length: 5 }).map((_, index) => (
                             <div key={index} className="skeleton-card">
                                 <div className="skeleton-image"></div>
@@ -99,23 +92,13 @@ export default function ProductSection({ title, products = [], loading = false, 
                         products.map((product, index) => {
                             const productId = product.id || product._id || product.sku || product.name;
                             const isAdded = addedIds.has(productId);
-
-                            // Creative logic for badges (can be based on SKU or category)
-                            const isNew = index === 0;
-                            const isPopular = index === 1 || product.price.includes('DT');
-
                             const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
-
-                            // Generate SEO URL
                             const categorySlug = slugify(product.category || 'all');
                             const productSlug = product.slug || slugify(product.name);
 
                             return (
                                 <Link to={`/${categorySlug}/${productSlug}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                                     {isPromoActive && <div className="card-badge promo"><img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>}
-                                    {/* {isNew && <div className="card-badge new">NOUVEAU</div>} */}
-                                    {/* {isPopular && !isNew && <div className="card-badge popular">POPULAIRE</div>} */}
-
                                     <div className="product-image-container">
                                         <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
                                         <div className="quick-action-btns">
@@ -124,7 +107,6 @@ export default function ProductSection({ title, products = [], loading = false, 
                                             </div>
                                         </div>
                                     </div>
-
                                     <div className="product-info">
                                         <h5 className="product-cat-tag" style={{ fontSize: '11px', margin: 0, fontWeight: 700, opacity: 0.8 }}>{product.category}</h5>
                                         <h3 className="product-name">{product.name}</h3>
@@ -143,7 +125,6 @@ export default function ProductSection({ title, products = [], loading = false, 
                                             )}
                                         </div>
                                     </div>
-
                                     <div className="card-actions-overlay">
                                         <button className="action-btn-premium details">
                                             <h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Détails</h6>
@@ -164,6 +145,15 @@ export default function ProductSection({ title, products = [], loading = false, 
                 <button className="nav-btn-floating next" onClick={() => scroll('right')}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
                 </button>
+            </div>
+
+            <div className="section-footer-actions">
+                {categoryLink ? (
+                    <Link to={categoryLink} className="see-all-btn-creative">
+                        <span>Voir Tout</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+                    </Link>
+                ) : null}
             </div>
         </section>
     )

@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 import { slugify } from '../utils/slugify';
 import ProductSection from './ProductSection';
 
-export default function LazyCategorySection({ category }) {
+export default function LazyCategorySection({ category, index = 0 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
@@ -60,6 +60,7 @@ export default function LazyCategorySection({ category }) {
           products={[]}
           loading={true}
           categoryLink={`/${slugify(category.name)}`}
+          bgVariant={index % 6}
         />
       ) : (
         products.length > 0 ? (
@@ -68,6 +69,7 @@ export default function LazyCategorySection({ category }) {
             products={products}
             loading={false}
             categoryLink={`/${slugify(category.name)}`}
+            bgVariant={index % 6}
           />
         ) : null
       )}
