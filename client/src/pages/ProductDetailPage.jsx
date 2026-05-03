@@ -11,70 +11,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schema
 
 import { API_BASE_URL, SITE_URL } from '../config';
 
-// Extended Mock Data (In a real app, this would come from an API)
-const allProducts = [
-    // Streaming
-    { name: 'Netflix Tunisie Premium', price: '12 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/10/netflix-tunisie-premium-small.webp', category: 'Streaming', description: 'Profitez de Netflix Premium en 4K UHD sur 4 écrans simultanés.', sku: 'STR-001', tags: 'netflix, streaming, 4k' },
-    { name: 'Shahid VIP', price: '20 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/shahid-vip-small.webp', category: 'Streaming', description: 'Shahid VIP. استمتع بمشاهده أحدث المسلسلات والأفلام العربية والعالمية بدون إعلانات.', sku: 'STR-005', tags: 'shahid, vip, arabic' },
-    { name: 'Netflix Tunisie Premium 1 User', price: '15 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/01/netflix-tunisie-premium-1-user-small.webp', category: 'Streaming', description: 'Netflix Premium en partage pour 1 utilisateur.', sku: 'STR-007', tags: 'netflix, streaming' },
-    { name: 'Netflix Tunisie Standard', price: '10 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/11/netflix-tunisie-standard-1-small.webp', category: 'Streaming', description: 'Netflix Standard HD sur 2 écrans.', sku: 'STR-006', tags: 'netflix, streaming' },
-    { name: 'Service de Streaming', price: '20 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/03/Votre-texte-de-paragraphe-small.png', category: 'Streaming', description: 'Service de streaming complet.', sku: 'STR-008', tags: 'streaming' },
-    { name: 'YouTube Premium', price: '18 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/youtube-premium-small.webp', category: 'Streaming', description: 'YouTube sans pub et en arrière-plan.', sku: 'STR-009', tags: 'youtube' },
-    { name: 'Crunchyroll Mega Fan', price: '18 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/crunchyroll-mega-fan-premium-small.webp', category: 'Streaming', description: 'Le meilleur de l\'anime en HD, sans publicité.', sku: 'STR-003', tags: 'anime, crunchyroll' },
-    { name: 'Amazon Prime Video', price: '15 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/amazon-prime-video-300x300.webp', category: 'Streaming', description: 'Accès illimité aux films et séries Amazon Originals.', sku: 'STR-002', tags: 'prime video, amazon' },
-
-    // IPTV
-    { name: 'Abonnement ORCA PRO MAX', price: '55 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/abonnement-orca-pro-max-tunisie-300x300.webp', category: 'IPTV Premium', description: 'Serveur IPTV stable avec plus de 10000 chaines et VOD.', sku: 'IPTV-001', tags: 'iptv, orca' },
-    { name: 'Abonnement Esiptv Pro Plus', price: '65 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/esiptv-pro-plus-300x300.webp', category: 'IPTV Premium', description: 'La meilleure qualité d\'image pour vos chaînes préférées.', sku: 'IPTV-002', tags: 'iptv, esiptv' },
-    { name: 'Abonnement ORCA PRO MAX + Diwan Sport', price: '74 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/abonnement-orca-pro-max-diwan-sport-300x300.webp', category: 'IPTV Premium', description: 'Pack spécial sport et divertissement.', sku: 'IPTV-003', tags: 'iptv, orca, sport' },
-    { name: 'Abonnement ALPHA IPTV + DIWAN SPORT', price: '104 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/alpha-iptv-diwan-sport-taalimiya-300x300.webp', category: 'IPTV Premium', description: 'Alpha IPTV, la référence en Tunisie.', sku: 'IPTV-004', tags: 'iptv, alpha' },
-    { name: 'Esiptv Pro Plus + Diwan Sport', price: '74 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/02/product-box-mockup-300x300.jpg', category: 'IPTV Premium', description: 'Offre combinée Esiptv et Diwan Sport.', sku: 'IPTV-005', tags: 'esiptv, diwan' },
-    { name: 'Abonnement KING 365', price: '109 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/03/king-365-300x300.webp', category: 'IPTV Premium', description: 'Abonnement King 365 premium.', sku: 'IPTV-006', tags: 'king365' },
-
-    // Music
-    { name: 'Spotify Premium Individual', price: '25 DT', image: 'https://placehold.co/300x300/1DB954/FFF?text=Spotify', category: 'Music', description: 'Musique sans pub, écoute hors ligne et qualité sonore supérieure.', sku: 'MUS-001', tags: 'music, spotify' },
-    { name: 'Deezer Premium', price: '25 DT', image: 'https://placehold.co/300x300/000/FFF?text=Deezer', category: 'Music', description: 'Deezer Premium, toute votre musique en illimité.', sku: 'MUS-002', tags: 'music, deezer' },
-    { name: 'Anghami Plus', price: '20 DT', image: 'https://placehold.co/300x300/A020F0/FFF?text=Anghami', category: 'Music', description: 'Anghami Plus, la musique arabe et internationale.', sku: 'MUS-003', tags: 'music, anghami' },
-
-    // Box
-    { name: 'Box Android', price: '155 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/04/Votre-texte-de-paragraphe-7-small.png', category: 'Box Android', description: 'Transformez votre TV en Smart TV Android.', sku: 'BOX-001', tags: 'box, android' },
-    { name: 'Box TV Android', price: '105 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/04/Votre-texte-de-paragraphe-8-small.png', category: 'Box Android', description: 'Boîtier Android performant et économique.', sku: 'BOX-002', tags: 'box, android' },
-    { name: 'Box Android TV', price: '149 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/04/Votre-texte-de-paragraphe-12-small.png', category: 'Box Android', description: 'Expérience Android TV fluide.', sku: 'BOX-003', tags: 'box, android' },
-    { name: 'Box Android SamBox', price: '149 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/04/Votre-texte-de-paragraphe-14-small.png', category: 'Box Android', description: 'SamBox pour un divertissement illimité.', sku: 'BOX-004', tags: 'box, sambox' },
-    { name: 'RÉCEPTEUR STARSAT', price: '90 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/05/Votre-texte-de-paragraphe-1-small.png', category: 'Box Android', description: 'Récepteur satellite Starsat HD.', sku: 'BOX-005', tags: 'recepteur, starsat' },
-    { name: 'Box TV', price: '120 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/05/design-sans-titre-43-small.webp', category: 'Box Android', description: 'Box TV polyvalente.', sku: 'BOX-006', tags: 'box, tv' },
-    { name: 'Android Box', price: '130 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/05/Votre-texte-de-paragraphe-4-small.png', category: 'Box Android', description: 'Android Box 4K.', sku: 'BOX-007', tags: 'box, android' },
-    { name: 'Smart Box', price: '140 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/05/design-sans-titre-41-small.webp', category: 'Box Android', description: 'Smart Box pour streaming et jeux.', sku: 'BOX-008', tags: 'box, smart' },
-
-    // Gift Cards
-    { name: 'Apple Carte Cadeau iTunes USA', price: '49 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/apple-carte-cadeau-itunes-app-store-usa-small.webp', category: 'Gift Card', description: 'Crédit pour App Store, Apple Music et plus (USA).', sku: 'GC-001', tags: 'apple, itunes' },
-    { name: 'Voucher Rewarble Pay', price: '55 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/rewarble-small.webp', category: 'Gift Card', description: 'Payez en ligne en toute sécurité.', sku: 'GC-002', tags: 'voucher, rewarble' },
-    { name: 'Apple Carte Cadeau iTunes FR', price: '55 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/apple-carte-cadeau-itunes-app-store-fr-small.webp', category: 'Gift Card', description: 'Carte iTunes Store France.', sku: 'GC-003', tags: 'apple, itunes' },
-    { name: 'Carte Cadeau Steam FR', price: '50 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/steam-fr-gift-card-small.webp', category: 'Gift Card', description: 'Carte cadeau Steam France.', sku: 'GC-004', tags: 'steam, gift' },
-    { name: 'Carte Cadeau Générique', price: '20 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/votre-texte-de-paragraphe-2-small.webp', category: 'Gift Card', description: 'Carte cadeau générique.', sku: 'GC-005', tags: 'gift' },
-    { name: 'Autre Carte Cadeau', price: '30 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/votre-texte-de-paragraphe-11-small.webp', category: 'Gift Card', description: 'Une autre carte cadeau.', sku: 'GC-006', tags: 'gift' },
-    { name: 'Carte Cadeau Spéciale', price: '40 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/votre-texte-de-paragraphe-1-small.webp', category: 'Gift Card', description: 'Carte cadeau spéciale.', sku: 'GC-007', tags: 'gift' },
-
-    // Gaming
-    { name: 'Free Fire Diamond', price: '20 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/free-fire-diamond-small.webp', category: 'Gaming', description: 'Diamants pour Free Fire.', sku: 'GC-008', tags: 'freefire, game' },
-    { name: 'Carte Cadeau Playstation', price: '50 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/apple-carte-cadeau-itunes-app-store-usa-small.webp', category: 'Gaming', description: 'Carte PSN pour Playstation Store.', sku: 'GC-009', tags: 'psn, sony' },
-
-    // Software & Others
-    { name: 'Abonnement ChatGPT Plus', price: '99 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/chatgpt-plus-tunisie-300x300.webp', category: 'Software', description: 'Accédez à GPT-4 et aux fonctionnalités avancées.', sku: 'SOFT-001', tags: 'ai, chatgpt' },
-    { name: 'Abonnement LinkedIn Premium', price: '199 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/linkedin-premium-career-300x300.webp', category: 'Software', description: 'Boostez votre carrière avec LinkedIn Premium.', sku: 'SOFT-002', tags: 'linkedin, career' },
-    { name: 'CapCut Pro', price: '99 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/04/capcut-pro-300x300.webp', category: 'Software', description: 'Éditeur vidéo puissant avec fonctionnalités Pro.', sku: 'SOFT-003', tags: 'video, editing' },
-    { name: 'Coursera Plus', price: '169 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/coursera-plus-300x300.webp', category: 'Software', description: 'Apprentissage illimité sur Coursera.', sku: 'SOFT-004', tags: 'learning, course' },
-    { name: 'Google Gemini AI', price: '50 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/11/abonnement-google-gemini-ai-300x300.webp', category: 'Software', description: 'L\'IA multimodale de Google.', sku: 'SOFT-005', tags: 'ai, google' },
-    { name: 'Cursor AI Pro', price: '99 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/10/cursor-ai-pro-300x300.webp', category: 'Software', description: 'L\'éditeur de code IA le plus puissant.', sku: 'SOFT-006', tags: 'ai, code, cursor' },
-    { name: 'Claude AI Pro', price: '80 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/10/claude-ai-pro-300x300.webp', category: 'Software', description: 'IA conversationnelle avancée par Anthropic.', sku: 'SOFT-007', tags: 'ai, claude' },
-    { name: 'Adobe Creative Cloud', price: '169 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/12/adobe-creative-cloud-300x300.webp', category: 'Software', description: 'Suite complète Adobe pour créatifs.', sku: 'SOFT-008', tags: 'design, adobe' },
-    { name: 'Microsoft 365 Personnel', price: '120 DT', image: 'https://www.mysat.tn/wp-content/uploads/2024/11/microsoft-365-personnel-small.webp', category: 'Software', description: 'Office apps et stockage cloud.', sku: 'SOFT-009', tags: 'office, microsoft' },
-    { name: 'Design AI', price: '90 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/11/design-sans-titre-3-300x300.webp', category: 'Software', description: 'Outils de design assistés par IA.', sku: 'SOFT-010', tags: 'design, ai' },
-    { name: 'Perplexity Pro', price: '100 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/10/perplexity-pro-300x300.webp', category: 'Software', description: 'Moteur de recherche conversationnel IA.', sku: 'SOFT-011', tags: 'search, ai' },
-    { name: 'ChatGPT Pro', price: '110 DT', image: 'https://www.mysat.tn/wp-content/uploads/2025/01/chatgpt-pro-300x300.webp', category: 'Software', description: 'Version professionnelle de ChatGPT.', sku: 'SOFT-012', tags: 'ai, chatgpt' },
-];
-
-const SimilarProductCard = ({ item, addToCart, setModal }) => {
+const SimilarProductCard = React.memo(({ item, addToCart, setModal }) => {
     const [isAdded, setIsAdded] = useState(false);
 
     const handleAddToCart = (e) => {
@@ -330,10 +267,10 @@ export default function ProductDetailPage() {
         }
     };
 
-    // Fetch Similar Products
+    // Fetch Similar Products - Optimized with Limit
     useEffect(() => {
         if (product && product.category) {
-            fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(product.category)}`)
+            fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(product.category)}&limit=10`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -343,7 +280,7 @@ export default function ProductDetailPage() {
                 })
                 .catch(err => console.error(err));
         }
-    }, [product]);
+    }, [product?.category, productWithId?.id]);
 
     // Auto-slide similar products every 2 seconds
     useEffect(() => {
@@ -393,51 +330,44 @@ export default function ProductDetailPage() {
     }, [product]);
 
 
-    // Fetch Product Data
+    // Fetch Product Data - Optimized Parallel Loading
     useEffect(() => {
         const fetchProduct = async () => {
+            if (!slug) return;
             setLoading(true);
+            
             try {
-                let response;
-                let data = { success: false };
+                // Determine if we search by ID or Slug
+                const isId = slug.match(/^[0-9a-fA-F]{24}$/);
+                const fetchUrl = isId 
+                    ? `${API_BASE_URL}/api/products/${slug}`
+                    : `${API_BASE_URL}/api/products/slug/${category}/${slug}`;
 
-                try {
-                    // Try fetch by slug first
-                    response = await fetch(`${API_BASE_URL}/api/products/slug/${category}/${slug}`);
-                    data = await response.json();
-                } catch (e) {
-                    console.log("DB Fetch failed");
-                }
+                const response = await fetch(fetchUrl);
+                const data = await response.json();
 
                 if (data.success) {
                     setProduct(data.data);
                     setActiveImage(data.data.image);
-                    setLoading(false);
-                    return;
-                }
-
-                // Temporary backward compatibility check for old IDs or direct names
-                if (slug.match(/^[0-9a-fA-F]{24}$/)) {
-                    response = await fetch(`${API_BASE_URL}/api/products/${slug}`);
-                    data = await response.json();
-                    if (data.success) {
-                        setProduct(data.data);
-                        setActiveImage(data.data.image);
-                        setLoading(false);
-                        return;
+                } else if (!isId) {
+                    // Fallback to ID if slug failed but looks like ID
+                    if (slug.length === 24) {
+                        const res2 = await fetch(`${API_BASE_URL}/api/products/${slug}`);
+                        const data2 = await res2.json();
+                        if (data2.success) {
+                            setProduct(data2.data);
+                            setActiveImage(data2.data.image);
+                        }
                     }
                 }
-
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Critical Product Fetch Error:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (slug) {
-            fetchProduct();
-        }
+        fetchProduct();
     }, [category, slug]);
 
     // Ensure product object structure is consistent
