@@ -158,6 +158,7 @@ export default function ProductDetailPage() {
     const [reviews, setReviews] = useState([]);
 
     const [product, setProduct] = useState(null);
+    const productWithId = product ? { ...product, id: product._id || product.id || product.sku } : null;
     const [loading, setLoading] = useState(true);
     const [paymentModes, setPaymentModes] = useState([]);
     const [similarProducts, setSimilarProducts] = useState([]);
@@ -370,8 +371,7 @@ export default function ProductDetailPage() {
         fetchProduct();
     }, [category, slug]);
 
-    // Ensure product object structure is consistent
-    const productWithId = product ? { ...product, id: product._id || product.id || product.sku } : null;
+
 
     // Fetch reviews for this product
     useEffect(() => {
