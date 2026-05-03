@@ -321,8 +321,16 @@ const setCachedProducts = (key, data) => {
     productCache.set(key, { data, timestamp: Date.now() });
 };
 
+// --- SSR CACHE SYSTEM ---
+const ssrCache = new Map();
+const clearSSRCache = () => {
+    ssrCache.clear();
+    console.log("[CACHE] SSR Cache cleared.");
+};
+
 const clearProductsCache = () => {
     productCache.clear();
+    clearSSRCache();
 };
 
 // Products
@@ -830,6 +838,7 @@ const SETTINGS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 const clearSettingsCache = () => {
     apiSettingsCache = null;
     apiSettingsCacheTime = 0;
+    if (typeof clearSSRCache === 'function') clearSSRCache();
 };
 
 // Middleware to auto-clear settings cache on any settings modification
@@ -1846,7 +1855,17 @@ app.get(/.*/, async (req, res, next) => {
         return next();
     }
 
-    // 2. Load Index HTML
+    // 2. Check SSR Cache
+    if (typeof ssrCache !== 'undefined' && ssrCache.has(req.path)) {
+        const cachedHtml = ssrCache.get(req.path);
+        // Do not cache aggressively in browser to avoid stale Admin views, just rely on the fast Node RAM
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        return res.send(cachedHtml);
+    }
+
+    // 3. Load Index HTML
     let htmlContent;
     try {
         htmlContent = fs.readFileSync(INDEX_HTML, 'utf8');
@@ -1997,6 +2016,10 @@ app.get(/.*/, async (req, res, next) => {
 
     } catch (err) {
         console.error("SEO Injection failed:", err);
+    }
+
+    if (typeof ssrCache !== 'undefined') {
+        ssrCache.set(req.path, htmlContent);
     }
 
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
