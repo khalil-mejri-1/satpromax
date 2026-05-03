@@ -109,6 +109,11 @@ const generateUniqueSlug = async (name, currentId = null) => {
 const apiCache = new Map();
 const activePromises = new Map(); // Enterprise: In-flight Request Deduplication
 const TTL = 10 * 60 * 1000; // 10 Minutes default
+const COUNT_CACHE_TTL = 30 * 60 * 1000; // 30 Minutes for counts
+const categoryCountCache = new Map();
+
+// --- DIAGNOSTIC STATE ---
+let concurrentRequests = 0;
 
 const getFromCache = (key) => {
     const entry = apiCache.get(key);
@@ -506,17 +511,30 @@ const clearProductsCache = () => {
     clearSSRCache();
 };
 
+// --- REQUEST LIMITER (POOL PROTECTION) ---
+const MAX_CONCURRENT_API = 70; // Circuit Breaker to prevent pool starvation
+app.use('/api', (req, res, next) => {
+    if (concurrentRequests > MAX_CONCURRENT_API) {
+        console.warn(`⚠️ [CIRCUIT BREAKER] High Load: ${concurrentRequests} concurrent requests. Rejecting new API call.`);
+        return res.status(429).json({ success: false, message: "Server busy, please retry in a moment." });
+    }
+    next();
+});
+
 // Enterprise Optimized Products Endpoint
 app.get("/api/products", async (req, res) => {
+    concurrentRequests++;
     try {
         const cacheKey = req.originalUrl;
         const sortedCacheKey = getSortedCacheKey(cacheKey);
-        const cachedResponse = getCachedProducts(cacheKey);
 
+        // 1. Check Memory Cache
+        const cachedResponse = getCachedProducts(cacheKey);
         if (cachedResponse) {
             return res.status(200).json(cachedResponse);
         }
 
+        // 2. Deduplicate Concurrent Requests (Thundering Herd Protection)
         if (activePromises.has(sortedCacheKey)) {
             const data = await activePromises.get(sortedCacheKey);
             return res.status(200).json(data);
@@ -525,10 +543,9 @@ app.get("/api/products", async (req, res) => {
         const { category, limit, page, sort } = req.query;
 
         const promise = (async () => {
+            const reqStartTime = performance.now();
             let query = {};
-            if (category) {
-                query.category = category;
-            }
+            if (category) query.category = category;
 
             const parsedLimit = parseInt(limit) || 20;
             const parsedPage = parseInt(page) || 1;
@@ -539,31 +556,42 @@ app.get("/api/products", async (req, res) => {
                 .lean();
 
             let sortOption = { createdAt: -1 };
-            if (sort === 'priceAsc') {
-                sortOption = { price: 1 };
-                productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
-            } else if (sort === 'priceDesc') {
-                sortOption = { price: -1 };
-                productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
-            }
+            if (sort === 'priceAsc') sortOption = { price: 1 };
+            else if (sort === 'priceDesc') sortOption = { price: -1 };
+
             productQuery = productQuery.sort(sortOption).skip(skipAmt).limit(parsedLimit);
 
-            let products, totalCount;
+            // Intelligent Count Caching (Caches counts for 30 minutes)
+            const countCacheKey = `count_${category || 'all'}`;
+            const cachedCount = categoryCountCache.get(countCacheKey);
+            const isCountFresh = cachedCount && (Date.now() - cachedCount.timestamp < COUNT_CACHE_TTL);
 
-            if (Object.keys(query).length === 0) {
-                [products, totalCount] = await Promise.all([
-                    productQuery.exec(),
-                    Product.estimatedDocumentCount()
-                ]);
-            } else {
-                [products, totalCount] = await Promise.all([
-                    productQuery.exec(),
-                    Product.countDocuments(query).exec()
-                ]);
-            }
+            const dbWaitStart = performance.now();
+            const [products, totalCount] = await Promise.all([
+                productQuery.maxTimeMS(10000).exec(),
+                isCountFresh ? Promise.resolve(cachedCount.count) : Product.countDocuments(query).maxTimeMS(10000).exec()
+            ]);
+            const queryExecEnd = performance.now();
+
+            if (!isCountFresh) categoryCountCache.set(countCacheKey, { count: totalCount, timestamp: Date.now() });
 
             const responseData = { success: true, count: totalCount, data: products };
             setCachedProducts(cacheKey, responseData);
+
+            const totalEndTime = performance.now();
+
+            // STRICT PERFORMANCE LOGGING (As Requested)
+            const totalTime = (totalEndTime - reqStartTime).toFixed(2);
+            // In Mongoose, we don't easily get exactly 'wait time' vs 'exec time' without explain(), 
+            // but we can measure the total await time.
+            const dbTotalTime = (queryExecEnd - dbWaitStart).toFixed(2);
+
+            console.log(`[PERF LOG] ---------------------------------`);
+            console.log(`[PERF LOG] Route: /api/products?category=${category}&page=${page}`);
+            console.log(`[PERF LOG] DB Wait + Exec Time: ${dbTotalTime} ms`);
+            console.log(`[PERF LOG] Total Response Time: ${totalTime} ms`);
+            console.log(`[PERF LOG] ---------------------------------`);
+
             return responseData;
         })();
 
@@ -580,6 +608,8 @@ app.get("/api/products", async (req, res) => {
     } catch (error) {
         console.error("Error in /api/products:", error);
         res.status(500).json({ success: false, message: error.message });
+    } finally {
+        concurrentRequests--;
     }
 });
 
@@ -2025,10 +2055,13 @@ const startServer = async () => {
         // 2. Initialize Core Settings exactly ONCE before opening the port
         await initSettings();
 
-        // 3. Start Listening
+        // 3. Execute Full Deep Warm-up BEFORE accepting traffic (Eliminates Cold Start)
+        await prewarmCache();
+
+        // 4. Start Listening
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
-            console.log(`📡 Database connected and stable. ✅`);
+            console.log(`📡 Database connected, warmed up, and fully stable. ✅`);
         });
     } catch (err) {
         console.error("FATAL: Could not start server:", err);

@@ -63,14 +63,22 @@ const CATEGORIES_META = {
 const CATEGORY_DB_MAP = {
     'streaming': 'Streaming',
     'iptv-sharing': 'Abonnement IPTV',
+    'abonnement-iptv': 'Abonnement IPTV',
     'iptv-premium': 'IPTV Premium',
+    'abonnement-tod': 'Abonnement TOD',
+    'bein-sports-officiel': 'beIN Sports Officiel',
+    'sharing': 'Sharing',
+    'player-activation': 'Player Activation',
     'music': 'Musique',
     'musique': 'Musique',
     'box-android': 'Box Android Récepteurs tv',
     'box-android-recepteur': 'Box Android Récepteurs tv',
     'box-android-recepteurs-tv': 'Box Android Récepteurs tv',
+    'box-android-récepteurs-tv': 'Box Android Récepteurs tv',
     'gaming': 'Gaming et Clés Digitales',
     'gaming-et-cles-digitales': 'Gaming et Clés Digitales',
+    'gaming-et-clés-digitales': 'Gaming et Clés Digitales',
+    'cartes-gaming': 'Cartes Gaming',
     'gift-card': 'Cartes Cadeaux',
     'cartes-cadeaux': 'Cartes Cadeaux',
     'software': 'Logiciels',
@@ -242,8 +250,11 @@ export default function ProductsPage() {
     const [selectedSort, setSelectedSort] = useState('Popularité');
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(20);
+    const [itemsPerPage, setItemsPerPage] = useState(15);
     const [loadTime, setLoadTime] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
 
     // Normalize categoryName for lookup
@@ -278,15 +289,19 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
+        const fetchProducts = async (pageToFetch = 1) => {
+            if (pageToFetch === 1) {
+                setLoading(true);
+            } else {
+                setIsFetchingMore(true);
+            }
+            
             setError(null);
             try {
                 const startTime = performance.now();
-                // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = `${API_BASE_URL}/api/products?limit=15&sort=newest`;
+                let url = `${API_BASE_URL}/api/products?limit=15&page=${pageToFetch}&sort=newest`;
                 if (dbCategory && normalizedCategory !== 'promotions') {
                     url += `&category=${encodeURIComponent(dbCategory)}`;
                 } else if (categoryName && normalizedCategory !== 'promotions') {
@@ -300,7 +315,6 @@ export default function ProductsPage() {
                 const result = await response.json();
                 let fetchedProducts = result.data || [];
 
-                // Filter for Promotions if requested
                 if (normalizedCategory === 'promotions') {
                     fetchedProducts = fetchedProducts.filter(p =>
                         p.promoPrice &&
@@ -311,19 +325,33 @@ export default function ProductsPage() {
 
                 const endTime = performance.now();
                 setLoadTime(Math.round(endTime - startTime));
-                setProducts(fetchedProducts);
+                setTotalProducts(result.count || 0);
+                
+                if (pageToFetch === 1) {
+                    setProducts(fetchedProducts);
+                } else {
+                    setProducts(prev => [...prev, ...fetchedProducts]);
+                }
+                
+                // If we fetched fewer than 15 products, there are no more to load
+                if (fetchedProducts.length < 15) {
+                    setHasMore(false);
+                } else {
+                    setHasMore(true);
+                }
 
             } catch (err) {
                 console.error("Error fetching products:", err);
                 setError("Impossible de charger les produits. Vérifiez votre connexion.");
             } finally {
                 setLoading(false);
+                setIsFetchingMore(false);
             }
         };
 
-        fetchProducts();
+        fetchProducts(currentPage);
         setSelectedSubCategory('All');
-    }, [normalizedCategory, categoryName]);
+    }, [normalizedCategory, categoryName, currentPage]);
 
     // Apply filtering on the client side
     useEffect(() => {
@@ -359,13 +387,13 @@ export default function ProductsPage() {
         }
 
         setFilteredProducts(filtered);
-        setCurrentPage(1); // Reset to first page on filter/sort change
     }, [products, selectedResolution, selectedRegion, selectedSubCategory, normalizedCategory, selectedSort]);
 
     // Scroll to top when page changes
+    // Reset page when category changes
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [currentPage]);
+        setCurrentPage(1);
+    }, [normalizedCategory]);
 
 
 
@@ -468,7 +496,7 @@ export default function ProductsPage() {
                             <span className="result-count">
                                 {loading ? 'Chargement...' : (
                                     <>
-                                        {filteredProducts.length} résultats • 
+                                        {filteredProducts.length} sur {totalProducts} produits • 
                                         <span style={{ color: '#10b981', marginLeft: '5px', fontWeight: 'bold' }}>
                                             ⚡ {loadTime}ms
                                         </span>
@@ -510,20 +538,9 @@ export default function ProductsPage() {
                                 <option value="Nouveauté">Nouveauté</option>
                                 <option value="Prix: Croissant">Prix: Croissant</option>
                             </select>
-                            <select
-                                className="limit-select"
-                                value={itemsPerPage}
-                                onChange={(e) => {
-                                    setItemsPerPage(Number(e.target.value));
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                <option value="4">4 par page</option>
-                                <option value="8">8 par page</option>
-                                <option value="20">20 par page</option>
-                                <option value="50">50 par page</option>
-                                <option value="100">100 par page</option>
-                            </select>
+                            <span className="result-count" style={{ display: 'none' }}>
+                                <option value="15">15 par page</option>
+                            </span>
 
                         </div>
                     </div>
@@ -536,13 +553,12 @@ export default function ProductsPage() {
                     )}
                     <div className={`category-products-grid ${viewMode}`}>
                         {loading ? (
-                            // Show Skeletons
-                            Array.from({ length: itemsPerPage }).map((_, index) => (
+                            Array.from({ length: 8 }).map((_, index) => (
                                 <SkeletonCard key={index} />
                             ))
                         ) : (
                             filteredProducts.length > 0 ? (
-                                filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(product => (
+                                filteredProducts.map(product => (
                                     viewMode === 'list' ? (
                                         <ProductListCard
                                             key={product._id || product.id}
@@ -566,92 +582,56 @@ export default function ProductsPage() {
                         )}
                     </div>
 
-                    {/* Pagination */}
-                    {!loading && filteredProducts.length > itemsPerPage && (
-                        <div className="pagination-container" style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            gap: '12px',
-                            marginTop: '60px',
-                            marginBottom: '40px'
-                        }}>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="pagination-arrow-btn"
+                    {/* Load More Button */}
+                    {!loading && hasMore && filteredProducts.length >= 15 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+                            <button 
+                                onClick={() => setCurrentPage(prev => prev + 1)}
+                                disabled={isFetchingMore}
                                 style={{
-                                    padding: '12px 20px',
-                                    borderRadius: '14px',
-                                    border: '1px solid #e2e8f0',
-                                    background: '#fff',
-                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                    opacity: currentPage === 1 ? 0.4 : 1,
-                                    fontSize: '14px',
-                                    fontWeight: '700',
-                                    color: '#1e293b',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    padding: '12px 30px',
+                                    backgroundColor: '#0ea5e9',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 'bold',
+                                    cursor: isFetchingMore ? 'not-allowed' : 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                    gap: '10px',
+                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                    transition: 'transform 0.2s'
                                 }}
+                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                             >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                                Précédent
+                                {isFetchingMore ? (
+                                    <>
+                                        <div className="loader-spinner" style={{
+                                            width: '20px',
+                                            height: '20px',
+                                            border: '3px solid #f3f3f3',
+                                            borderTop: '3px solid #3498db',
+                                            borderRadius: '50%',
+                                            animation: 'spin 1s linear infinite'
+                                        }}></div>
+                                        Chargement...
+                                    </>
+                                ) : (
+                                    'Charger plus de produits'
+                                )}
                             </button>
-
-                            <div className="pagination-numbers" style={{ display: 'flex', gap: '8px' }}>
-                                {Array.from({ length: Math.ceil(filteredProducts.length / itemsPerPage) }).map((_, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setCurrentPage(idx + 1)}
-                                        className={`pagination-number-btn ${currentPage === idx + 1 ? 'active' : ''}`}
-                                        style={{
-                                            width: '45px',
-                                            height: '45px',
-                                            borderRadius: '12px',
-                                            border: currentPage === idx + 1 ? 'none' : '1px solid #e2e8f0',
-                                            background: currentPage === idx + 1 ? '#0ea5e9' : '#fff',
-                                            color: currentPage === idx + 1 ? '#fff' : '#475569',
-                                            cursor: 'pointer',
-                                            fontWeight: '800',
-                                            fontSize: '15px',
-                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            boxShadow: currentPage === idx + 1 ? '0 10px 15px -3px rgba(14, 165, 233, 0.2)' : '0 1px 3px rgba(0,0,0,0.05)'
-                                        }}
-                                    >
-                                        {idx + 1}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredProducts.length / itemsPerPage)))}
-                                disabled={currentPage === Math.ceil(filteredProducts.length / itemsPerPage)}
-                                className="pagination-arrow-btn"
-                                style={{
-                                    padding: '12px 20px',
-                                    borderRadius: '14px',
-                                    border: '1px solid #e2e8f0',
-                                    background: '#fff',
-                                    cursor: currentPage === Math.ceil(filteredProducts.length / itemsPerPage) ? 'not-allowed' : 'pointer',
-                                    opacity: currentPage === Math.ceil(filteredProducts.length / itemsPerPage) ? 0.4 : 1,
-                                    fontSize: '14px',
-                                    fontWeight: '700',
-                                    color: '#1e293b',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                                }}
-                            >
-                                Suivant
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                            </button>
+                            <style>{`
+                                @keyframes spin {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            `}</style>
                         </div>
                     )}
+
+                    {/* Pagination */}
+
 
                 </div>
             </main>

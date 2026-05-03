@@ -119,7 +119,8 @@ export default function Header() {
         getWishlistCount,
         addAllToCart,
         categories,
-        loadingCategories
+        loadingCategories,
+        settings
     } = useContext(ShopContext);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -182,21 +183,16 @@ export default function Header() {
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
-
-        // Fetch dynamic settings (Categories handled by Context now)
-        fetch(`${API_BASE_URL}/api/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    if (data.data.topStripText) setTopStripText(data.data.topStripText);
-                    if (data.data.topStripMessage) setTopStripMessage(data.data.topStripMessage);
-                    if (data.data.siteLogo) setSiteLogo(data.data.siteLogo);
-                }
-            })
-            .catch(err => {
-                console.error("Error fetching settings:", err);
-            });
     }, []);
+
+    // Sync settings from ShopContext to local state if needed (or just use context directly)
+    useEffect(() => {
+        if (settings) {
+            if (settings.topStripText) setTopStripText(settings.topStripText);
+            if (settings.topStripMessage) setTopStripMessage(settings.topStripMessage);
+            if (settings.siteLogo) setSiteLogo(settings.siteLogo);
+        }
+    }, [settings]);
 
     // ... (rest of helper functions)
     const getCategorySlug = (name) => {

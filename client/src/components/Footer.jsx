@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { ShopContext } from '../context/ShopContext';
 import { slugify } from '../utils/slugify';
 import './Footer.css';
 
 export default function Footer() {
-    const [settings, setSettings] = useState(null);
-
-    useEffect(() => {
-        fetch('https://Satpromax.com/api/settings')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    setSettings(data.data);
-                }
-            })
-            .catch(err => console.error(err));
-    }, []);
+    const { settings } = useContext(ShopContext);
 
     // Reload Trustpilot widgets on mount
     useEffect(() => {
