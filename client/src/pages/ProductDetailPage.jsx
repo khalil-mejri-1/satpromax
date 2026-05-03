@@ -146,7 +146,7 @@ const SimilarProductCard = React.memo(({ item, addToCart, setModal }) => {
             </div>
         </div>
     );
-};
+});
 
 export default function ProductDetailPage() {
     const { category, slug } = useParams();
