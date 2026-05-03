@@ -2,7 +2,12 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
     try {
-        await mongoose.connect("mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0");
+        const options = {
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 30000, // 30 seconds timeout
+            socketTimeoutMS: 45000,
+        };
+        await mongoose.connect("mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0", options);
         console.log("MongoDB connected ✅");
     } catch (error) {
         console.error("DB connection error ❌", error);

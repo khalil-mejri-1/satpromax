@@ -20,8 +20,8 @@ const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.
 app.use(express.json());
 app.use(cors());
 
-// Connect DB
-connectDB();
+// Connect DB (Handled in startServer at the end of file)
+// connectDB();
 
 // Models
 const Product = require("./models/Product");
@@ -305,9 +305,11 @@ app.delete("/api/support/tickets/:id", async (req, res) => {
     }
 });
 
-// --- PRODUCTS CACHE SYSTEM ---
+// --- CACHE SYSTEM ---
 const productCache = new Map();
-const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+const ssrCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for data
+const SSR_CACHE_TTL = 30 * 60 * 1000; // 30 minutes for HTML
 
 const getCachedProducts = (key) => {
     const cached = productCache.get(key);
@@ -321,8 +323,17 @@ const setCachedProducts = (key, data) => {
     productCache.set(key, { data, timestamp: Date.now() });
 };
 
-// --- SSR CACHE SYSTEM ---
-const ssrCache = new Map();
+const getCachedSSR = (key) => {
+    const cached = ssrCache.get(key);
+    if (cached && (Date.now() - cached.timestamp < SSR_CACHE_TTL)) {
+        return cached.html;
+    }
+    return null;
+};
+
+const setCachedSSR = (key, html) => {
+    ssrCache.set(key, { html, timestamp: Date.now() });
+};
 const clearSSRCache = () => {
     ssrCache.clear();
     console.log("[CACHE] SSR Cache cleared.");
@@ -1863,10 +1874,9 @@ app.get(/.*/, async (req, res, next) => {
         return next();
     }
 
-    // 2. Check SSR Cache
-    if (typeof ssrCache !== 'undefined' && ssrCache.has(req.path)) {
-        const cachedHtml = ssrCache.get(req.path);
-        // Do not cache aggressively in browser to avoid stale Admin views, just rely on the fast Node RAM
+    // 2. Check SSR Cache (RAM first, very fast)
+    const cachedHtml = getCachedSSR(req.path);
+    if (cachedHtml) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -1898,7 +1908,11 @@ app.get(/.*/, async (req, res, next) => {
                 "logo": "https://Satpromax.com/logo.png"
             };
 
-            const homeProducts = await Product.find().sort({ createdAt: -1 }).limit(20);
+            const homeProducts = await Product.find()
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .select('name price image category slug createdAt')
+                .lean();
 
             const bodyContent = generateServerHomeHTML(homeProducts, categories);
             htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
@@ -1917,17 +1931,19 @@ app.get(/.*/, async (req, res, next) => {
             const potentialSlug = parts[parts.length - 1]; // Assume last part is slug
             const decodedSlug = decodeURIComponent(potentialSlug);
 
-            // Try to find product by slug (case-insensitive) or ID
-            let product = await Product.findOne({
-                $or: [
-                    { slug: decodedSlug },
-                    { slug: { $regex: new RegExp(`^${decodedSlug.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } }
-                ]
-            });
+            // Optimization: First try exact match (99% of cases)
+            let product = await Product.findOne({ slug: decodedSlug }).lean();
+
+            // Only if not found, try the more expensive case-insensitive regex
+            if (!product) {
+                product = await Product.findOne({
+                    slug: { $regex: new RegExp(`^${decodedSlug.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
+                }).lean();
+            }
 
             // Fallback for ID if the slug matches an ID pattern
             if (!product && decodedSlug.match(/^[0-9a-fA-F]{24}$/)) {
-                product = await Product.findById(decodedSlug);
+                product = await Product.findById(decodedSlug).lean();
             }
 
             if (product) {
@@ -2026,9 +2042,7 @@ app.get(/.*/, async (req, res, next) => {
         console.error("SEO Injection failed:", err);
     }
 
-    if (typeof ssrCache !== 'undefined') {
-        ssrCache.set(req.path, htmlContent);
-    }
+    setCachedSSR(req.path, htmlContent);
 
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
@@ -2049,8 +2063,20 @@ const prewarmCache = async () => {
     }
 };
 
-app.listen(PORT, async () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    // Delay pre-warming slightly to ensure connection is fully established
-    setTimeout(prewarmCache, 2000);
-});
+// Start Server
+const startServer = async () => {
+    try {
+        await connectDB();
+        
+        app.listen(PORT, async () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+            // No need for timeout anymore since we awaited connectDB
+            await prewarmCache();
+        });
+    } catch (err) {
+        console.error("FATAL: Could not start server", err);
+        process.exit(1);
+    }
+};
+
+startServer();
