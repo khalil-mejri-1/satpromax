@@ -2052,12 +2052,22 @@ app.get(/.*/, async (req, res, next) => {
 
 const prewarmCache = async () => {
     try {
-        console.log("[CACHE] Pre-warming system...");
-        // 1. Fetch settings to warm the connection and logic
+        console.log("[CACHE] Warming up database connection...");
+        console.time("DB Warming Query");
+        
+        // Fetch 20 products to keep the connection active and warm the engine
+        const products = await Product.find()
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .select('name')
+            .lean();
+            
+        console.timeEnd("DB Warming Query");
+        console.log(`[CACHE] Warming complete. Fetched ${products.length} items. ✅`);
+        
+        // Also warm general settings
         await getSafeSettings();
-        // 2. Fetch recent products to warm the DB engine and indexes
-        await Product.find().sort({ createdAt: -1 }).limit(10).select('name').lean();
-        console.log("[CACHE] Warming complete. ✅");
+        
     } catch (err) {
         console.error("[CACHE] Warming failed:", err);
     }
@@ -2065,6 +2075,10 @@ const prewarmCache = async () => {
 
 app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
-    // Delay pre-warming slightly to ensure connection is fully established
+    
+    // Initial warming after 2 seconds
     setTimeout(prewarmCache, 2000);
+    
+    // Periodically warm the DB every 5 minutes to prevent "Sleep" mode on Atlas Free Tier
+    setInterval(prewarmCache, 5 * 60 * 1000);
 });
