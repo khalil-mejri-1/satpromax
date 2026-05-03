@@ -218,21 +218,8 @@ app.use("/api", (req, res, next) => {
     next();
 });
 
-// --- CACHE PRE-WARMING ---
-const preWarmCache = async () => {
-    try {
-        console.log("[CACHE] Pre-warming settings cache...");
-        const settings = await getSafeSettings();
-        apiSettingsCache = { success: true, data: settings };
-        apiSettingsCacheTime = Date.now();
-        console.log("[CACHE] Settings cache pre-warmed successfully!");
-    } catch (err) {
-        console.log("[CACHE] Failed to pre-warm cache:", err.message);
-    }
-};
-
-// Execute pre-warming after a short delay to let DB connect
-setTimeout(preWarmCache, 3000);
+// Old preWarmCache removed to prevent race conditions.
+// We use the Enterprise Deep Warming aggregation after DB connect instead.
 
 app.post("/api/support/fields", async (req, res) => {
     console.log(">>> [TOP PRIORITY] POST /api/support/fields called!");

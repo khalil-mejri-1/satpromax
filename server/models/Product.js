@@ -52,8 +52,8 @@ const productSchema = new mongoose.Schema(
 );
 
 // Enterprise-grade Indexes for Aggregation & Performance
-productSchema.index({ category: 1, createdAt: -1 }); 
-productSchema.index({ slug: 1 });
+productSchema.index({ category: 1, createdAt: -1 });
+// slug index is automatically created by `unique: true, sparse: true` in schema
 productSchema.index({ featured: 1 });
 productSchema.index({ price: 1 }, { collation: { locale: 'en_US', numericOrdering: true } });
 
