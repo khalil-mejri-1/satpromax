@@ -18,6 +18,18 @@ const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.
 
 // Middleware
 app.use(express.json());
+
+// Performance Logger Middleware
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        if (duration > 500) {
+            console.log(`⚠️ [SLOW REQ] ${req.method} ${req.url} - ${duration}ms`);
+        }
+    });
+    next();
+});
 app.use(cors());
 
 
@@ -35,37 +47,42 @@ const SupportTicket = require("./models/SupportTicket");
 const Application = require("./models/Application");
 
 // --- SETTINGS UTILS (WITH CACHING) ---
-let settingsCache = null;
-let settingsCacheTime = 0;
+let globalSettingsCache = null;
 
-const getSafeSettings = async (forceRefresh = false) => {
-    if (!forceRefresh && settingsCache && (Date.now() - settingsCacheTime < TTL)) {
-        return settingsCache;
-    }
-
+// This function runs exactly ONCE during server startup
+const initSettings = async () => {
     try {
+        console.log("⚙️ [STARTUP] Initializing General Settings...");
         let settings = await GeneralSettings.findOne().lean();
-        if (settings) {
-            settingsCache = settings;
-            settingsCacheTime = Date.now();
-            return settings;
-        }
-    } catch (err) {
-        console.error("Error in getSafeSettings:", err);
-    }
 
-    // Fallback or Initial Creation
-    const settings = new GeneralSettings({
-        paymentModes: [{ name: 'D17', logo: '' }, { name: 'Flouci', logo: '' }, { name: 'Main à main', logo: '' }],
-        categories: [
-            { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Offres Streaming" },
-            { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV', description: "Offres IPTV" }
-        ]
-    });
-    await settings.save();
-    settingsCache = settings.toObject();
-    settingsCacheTime = Date.now();
-    return settingsCache;
+        if (!settings) {
+            console.log("⚠️ [STARTUP] Settings not found, creating default...");
+            const defaultSettings = new GeneralSettings({
+                paymentModes: [{ name: 'D17', logo: '' }, { name: 'Flouci', logo: '' }, { name: 'Main à main', logo: '' }],
+                categories: [
+                    { name: 'Streaming', icon: '📺', slug: 'streaming', title: 'Streaming', description: "Offres Streaming" },
+                    { name: 'IPTV Premium', icon: '⚡', slug: 'iptv-sharing', title: 'IPTV', description: "Offres IPTV" }
+                ]
+            });
+            await defaultSettings.save();
+            settings = defaultSettings.toObject();
+        }
+
+        globalSettingsCache = settings;
+        console.log("⚙️ [STARTUP] Settings loaded into memory ✅");
+    } catch (err) {
+        console.error("FATAL: Failed to initialize settings:", err);
+        process.exit(1); // Fail fast if DB cannot load essential settings
+    }
+};
+
+// Extremely fast, purely synchronous memory read for APIs
+const getSafeSettings = () => {
+    if (!globalSettingsCache) {
+        // Fallback in case of emergency (should never hit if startup succeeds)
+        return { paymentModes: [], categories: [] };
+    }
+    return globalSettingsCache;
 };
 
 // --- UTILS ---
@@ -90,6 +107,7 @@ const generateUniqueSlug = async (name, currentId = null) => {
 // --- API ROUTES (MUST COME FIRST) ---
 // --- CACHING SYSTEM (IN-MEMORY) ---
 const apiCache = new Map();
+const activePromises = new Map(); // Enterprise: In-flight Request Deduplication
 const TTL = 10 * 60 * 1000; // 10 Minutes default
 
 const getFromCache = (key) => {
@@ -124,7 +142,7 @@ const verifyTurnstile = async (token) => {
 
 // --- ENTERPRISE ARCHITECTURE: SINGLE AGGREGATION PIPELINE ---
 const buildHomeData = async () => {
-    const settings = await getSafeSettings();
+    const settings = getSafeSettings();
     const categories = settings.categories || [];
 
     const facetBranches = {
@@ -171,9 +189,25 @@ app.get("/api/home-data", async (req, res) => {
         const cached = getFromCache(cacheKey);
         if (cached) return res.status(200).json({ success: true, data: cached });
 
-        const combinedData = await buildHomeData();
-        saveToCache(cacheKey, combinedData);
-        res.status(200).json({ success: true, data: combinedData });
+        // Deduplicate concurrent requests
+        if (activePromises.has(cacheKey)) {
+            const data = await activePromises.get(cacheKey);
+            return res.status(200).json({ success: true, data });
+        }
+
+        const promise = buildHomeData().then(combinedData => {
+            saveToCache(cacheKey, combinedData);
+            activePromises.delete(cacheKey);
+            return combinedData;
+        }).catch(err => {
+            activePromises.delete(cacheKey);
+            throw err;
+        });
+
+        activePromises.set(cacheKey, promise);
+        const combinedData = await promise;
+
+        return res.status(200).json({ success: true, data: combinedData });
     } catch (error) {
         console.error("Home Data Aggregation Error:", error);
         res.status(500).json({ success: false, message: "Server Error" });
@@ -188,23 +222,42 @@ app.get("/api/product-full-detail/:slug", async (req, res) => {
         const cached = getFromCache(cacheKey);
         if (cached) return res.status(200).json({ success: true, data: cached });
 
-        const product = await Product.findOne({ slug }).lean();
-        if (!product) return res.status(404).json({ success: false, message: "Not found" });
+        if (activePromises.has(cacheKey)) {
+            const data = await activePromises.get(cacheKey);
+            return res.status(200).json({ success: true, data });
+        }
 
-        const [related, reviews] = await Promise.all([
-            Product.find({ category: product.category, _id: { $ne: product._id } })
-                .limit(8)
-                .select('name price image category slug promoPrice')
-                .lean(),
-            Review.find({ productId: product._id, status: 'approved' })
-                .sort({ createdAt: -1 })
-                .limit(10)
-                .lean()
-        ]);
+        const promise = (async () => {
+            const product = await Product.findOne({ slug }).lean();
+            if (!product) throw new Error("Not found");
 
-        const fullDetail = { product, related, reviews };
-        saveToCache(cacheKey, fullDetail);
-        res.status(200).json({ success: true, data: fullDetail });
+            const [related, reviews] = await Promise.all([
+                Product.find({ category: product.category, _id: { $ne: product._id } })
+                    .limit(8)
+                    .select('name price image category slug promoPrice')
+                    .lean(),
+                Review.find({ productId: product._id, status: 'approved' })
+                    .sort({ createdAt: -1 })
+                    .limit(10)
+                    .lean()
+            ]);
+
+            const fullDetail = { product, related, reviews };
+            saveToCache(cacheKey, fullDetail);
+            return fullDetail;
+        })();
+
+        activePromises.set(cacheKey, promise);
+
+        try {
+            const fullDetail = await promise;
+            activePromises.delete(cacheKey);
+            res.status(200).json({ success: true, data: fullDetail });
+        } catch (err) {
+            activePromises.delete(cacheKey);
+            if (err.message === "Not found") return res.status(404).json({ success: false, message: "Not found" });
+            throw err;
+        }
     } catch (error) {
         res.status(500).json({ success: false, message: "Server Error" });
     }
@@ -229,9 +282,10 @@ app.post("/api/support/fields", async (req, res) => {
             console.log(">>> Error: fields is not an array");
             return res.status(400).json({ success: false, message: "Fields must be an array" });
         }
-        const settings = await getSafeSettings();
+        const settings = await GeneralSettings.findOne();
         settings.supportFormFields = fields;
         await settings.save();
+        globalSettingsCache = settings.toObject();
         console.log(">>> Fields saved successfully");
         res.json({ success: true, data: settings.supportFormFields });
     } catch (error) {
@@ -279,7 +333,7 @@ app.post("/api/migrate-slugs", async (req, res) => {
 // --- SUPPORT ROUTES ---
 app.get("/api/support/config", async (req, res) => {
     try {
-        const settings = await getSafeSettings();
+        const settings = getSafeSettings();
         res.json({
             success: true,
             telegramUser: settings.support?.telegramUser || 'SatpromaxSupport',
@@ -296,9 +350,10 @@ app.get("/api/support/config", async (req, res) => {
 app.put("/api/support/config", async (req, res) => {
     try {
         const { heroImage } = req.body;
-        const settings = await getSafeSettings();
+        let settings = await GeneralSettings.findOne();
         if (heroImage !== undefined) settings.supportHeroImage = heroImage;
         await settings.save();
+        globalSettingsCache = settings.toObject();
         res.json({ success: true, heroImage: settings.supportHeroImage });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error" });
@@ -307,14 +362,16 @@ app.put("/api/support/config", async (req, res) => {
 
 app.get("/api/support/types", async (req, res) => {
     try {
-        const settings = await getSafeSettings();
+        const settings = getSafeSettings();
         const types = settings.supportIssueTypes && settings.supportIssueTypes.length > 0
             ? settings.supportIssueTypes.map(t => t.name)
             : ['Payment Issue', 'Order Inquiry', 'Technical Support', 'Other'];
 
         if (!settings.supportIssueTypes || settings.supportIssueTypes.length === 0) {
-            settings.supportIssueTypes = types.map(name => ({ name }));
-            await settings.save();
+            let s = await GeneralSettings.findOne();
+            s.supportIssueTypes = types.map(name => ({ name }));
+            await s.save();
+            globalSettingsCache = s.toObject();
         }
 
         res.json({ success: true, data: types });
@@ -328,11 +385,12 @@ app.post("/api/support/types", async (req, res) => {
     try {
         const { name } = req.body;
         if (!name) return res.status(400).json({ success: false, message: "Name required" });
-        const settings = await getSafeSettings();
+        let settings = await GeneralSettings.findOne();
         if (!settings.supportIssueTypes) settings.supportIssueTypes = [];
         if (!settings.supportIssueTypes.some(t => t.name === name)) {
             settings.supportIssueTypes.push({ name });
             await settings.save();
+            globalSettingsCache = settings.toObject();
         }
         res.json({ success: true, data: settings.supportIssueTypes.map(t => t.name) });
     } catch (error) {
@@ -344,10 +402,11 @@ app.post("/api/support/types", async (req, res) => {
 app.delete("/api/support/types/:name", async (req, res) => {
     try {
         const { name } = req.params;
-        const settings = await getSafeSettings();
+        let settings = await GeneralSettings.findOne();
         if (settings.supportIssueTypes) {
             settings.supportIssueTypes = settings.supportIssueTypes.filter(t => t.name !== name);
             await settings.save();
+            globalSettingsCache = settings.toObject();
         }
         res.json({ success: true, data: settings.supportIssueTypes.map(t => t.name) });
     } catch (error) {
@@ -400,8 +459,21 @@ const ssrCache = new Map();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for data
 const SSR_CACHE_TTL = 30 * 60 * 1000; // 30 minutes for HTML
 
+const getSortedCacheKey = (url) => {
+    try {
+        const [base, query] = url.split('?');
+        if (!query) return url;
+        const params = new URLSearchParams(query);
+        params.sort(); // Alphabetical sort to ensure consistency
+        return `${base}?${params.toString()}`;
+    } catch (e) {
+        return url;
+    }
+};
+
 const getCachedProducts = (key) => {
-    const cached = productCache.get(key);
+    const sortedKey = getSortedCacheKey(key);
+    const cached = productCache.get(sortedKey);
     if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
         return cached.data;
     }
@@ -409,7 +481,8 @@ const getCachedProducts = (key) => {
 };
 
 const setCachedProducts = (key, data) => {
-    productCache.set(key, { data, timestamp: Date.now() });
+    const sortedKey = getSortedCacheKey(key);
+    productCache.set(sortedKey, { data, timestamp: Date.now() });
 };
 
 const getCachedSSR = (key) => {
@@ -433,76 +506,99 @@ const clearProductsCache = () => {
     clearSSRCache();
 };
 
-// Products
+// Enterprise Optimized Products Endpoint
 app.get("/api/products", async (req, res) => {
     try {
         const cacheKey = req.originalUrl;
+        const sortedCacheKey = getSortedCacheKey(cacheKey);
         const cachedResponse = getCachedProducts(cacheKey);
 
         if (cachedResponse) {
             return res.status(200).json(cachedResponse);
         }
 
+        if (activePromises.has(sortedCacheKey)) {
+            const data = await activePromises.get(sortedCacheKey);
+            return res.status(200).json(data);
+        }
+
         const { category, limit, page, sort } = req.query;
-        let query = {};
 
-        if (category) {
-            // Check if category looks like a simple slug or has regex chars
-            if (/^[a-zA-Z0-9\s-]+$/.test(category)) {
-                // Exact match is much faster with indexes
+        const promise = (async () => {
+            let query = {};
+            if (category) {
                 query.category = category;
-            } else {
-                const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                query.category = { $regex: new RegExp(escapedCategory, 'i') };
             }
+
+            const parsedLimit = parseInt(limit) || 20;
+            const parsedPage = parseInt(page) || 1;
+            const skipAmt = (parsedPage - 1) * parsedLimit;
+
+            let productQuery = Product.find(query)
+                .select('name price image category slug createdAt promoPrice promoEndDate')
+                .lean();
+
+            let sortOption = { createdAt: -1 };
+            if (sort === 'priceAsc') {
+                sortOption = { price: 1 };
+                productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
+            } else if (sort === 'priceDesc') {
+                sortOption = { price: -1 };
+                productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
+            }
+            productQuery = productQuery.sort(sortOption).skip(skipAmt).limit(parsedLimit);
+
+            let products, totalCount;
+
+            if (Object.keys(query).length === 0) {
+                [products, totalCount] = await Promise.all([
+                    productQuery.exec(),
+                    Product.estimatedDocumentCount()
+                ]);
+            } else {
+                [products, totalCount] = await Promise.all([
+                    productQuery.exec(),
+                    Product.countDocuments(query).exec()
+                ]);
+            }
+
+            const responseData = { success: true, count: totalCount, data: products };
+            setCachedProducts(cacheKey, responseData);
+            return responseData;
+        })();
+
+        activePromises.set(sortedCacheKey, promise);
+
+        try {
+            const responseData = await promise;
+            activePromises.delete(sortedCacheKey);
+            return res.status(200).json(responseData);
+        } catch (err) {
+            activePromises.delete(sortedCacheKey);
+            throw err;
         }
-
-        const parsedLimit = parseInt(limit);
-        const parsedPage = parseInt(page) || 1;
-
-        // CRITICAL PERFORMANCE: Added .select() to only fetch fields needed for the cards
-        // This avoids transferring heavy product descriptions over the network
-        let productQuery = Product.find(query)
-            .select('name price image category slug createdAt promoPrice promoEndDate')
-            .lean();
-
-        // Apply collation for numeric price sorting if needed
-        if (sort === 'priceAsc' || sort === 'priceDesc') {
-            productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
-        }
-
-        if (sort === 'newest') {
-            productQuery = productQuery.sort({ createdAt: -1 });
-        } else if (sort === 'priceAsc') {
-            productQuery = productQuery.sort({ price: 1 });
-        } else if (sort === 'priceDesc') {
-            productQuery = productQuery.sort({ price: -1 });
-        }
-
-        if (parsedLimit) {
-            productQuery = productQuery.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
-        }
-
-        let products;
-        let totalCount;
-
-        // Fetch products and count concurrently if pagination is used
-        if (parsedLimit && page) {
-            [products, totalCount] = await Promise.all([
-                productQuery.exec(),
-                Product.countDocuments(query).exec()
-            ]);
-        } else {
-            products = await productQuery.exec();
-            totalCount = products.length;
-        }
-
-        const responseData = { success: true, count: totalCount, data: products };
-        setCachedProducts(cacheKey, responseData);
-        res.status(200).json(responseData);
     } catch (error) {
         console.error("Error in /api/products:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// --- PERFORMANCE DIAGNOSTIC ENDPOINT ---
+// Use this to verify Index Usage (IXSCAN vs COLLSCAN)
+app.get("/api/debug-performance", async (req, res) => {
+    try {
+        const stats = await Product.find({ category: "Cartes Gaming" })
+            .sort({ createdAt: -1 })
+            .limit(15)
+            .explain("executionStats");
+
+        res.status(200).json({
+            success: true,
+            message: "Execution Stats for 'Cartes Gaming' category",
+            explainData: stats
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -610,7 +706,7 @@ app.post("/api/login", async (req, res) => {
             return res.status(400).json({ success: false, message: "Captcha invalide ou expiré" });
         }
 
-        const settings = await GeneralSettings.findOne();
+        const settings = getSafeSettings();
         const adminEmail = settings?.adminEmail || 'ferid123@admin.test';
         const adminPassword = settings?.adminPassword || '123456';
 
@@ -759,6 +855,7 @@ app.post("/api/auth/reset-password", async (req, res) => {
         target.resetCode = undefined;
         target.resetCodeExpires = undefined;
         await target.save();
+        if (isGeneralAdmin) globalSettingsCache = target.toObject();
 
         res.status(200).json({ success: true, message: "Mot de passe modifié avec succès" });
     } catch (error) {
@@ -805,7 +902,7 @@ app.post("/api/auth/2fa/generate", async (req, res) => {
         let isGeneralAdmin = false;
 
         if (userId === 'admin') {
-            user = await getSafeSettings();
+            user = await GeneralSettings.findOne();
             isGeneralAdmin = true;
         } else {
             user = await User.findById(userId);
@@ -817,6 +914,7 @@ app.post("/api/auth/2fa/generate", async (req, res) => {
 
         user.twoFactorSecret = secret.base32;
         await user.save();
+        if (isGeneralAdmin) globalSettingsCache = user.toObject();
 
         QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
             if (err) return res.status(500).json({ success: false, message: "Error generating QR Code" });
@@ -831,8 +929,10 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
     try {
         const { userId, token } = req.body;
         let user;
+        let isGeneralAdmin = false;
         if (userId === 'admin') {
-            user = await getSafeSettings();
+            user = await GeneralSettings.findOne();
+            isGeneralAdmin = true;
         } else {
             user = await User.findById(userId);
         }
@@ -848,6 +948,7 @@ app.post("/api/auth/2fa/verify", async (req, res) => {
         if (verified) {
             user.twoFactorEnabled = true;
             await user.save();
+            if (isGeneralAdmin) globalSettingsCache = user.toObject();
             res.json({ success: true, message: "2FA Enabled successfully" });
         } else {
             res.status(400).json({ success: false, message: "Invalid token" });
@@ -861,8 +962,10 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
     try {
         const { userId } = req.body;
         let user;
+        let isGeneralAdmin = false;
         if (userId === 'admin') {
-            user = await getSafeSettings();
+            user = await GeneralSettings.findOne();
+            isGeneralAdmin = true;
         } else {
             user = await User.findById(userId);
         }
@@ -872,6 +975,7 @@ app.post("/api/auth/2fa/disable", async (req, res) => {
         user.twoFactorEnabled = false;
         user.twoFactorSecret = undefined;
         await user.save();
+        if (isGeneralAdmin) globalSettingsCache = user.toObject();
         res.json({ success: true, message: "2FA Disabled" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Server error" });
@@ -884,7 +988,7 @@ app.post("/api/auth/2fa/login", async (req, res) => {
         let user;
         let isGeneralAdmin = false;
         if (userId === 'admin') {
-            user = await getSafeSettings();
+            user = getSafeSettings();
             isGeneralAdmin = true;
         } else {
             user = await User.findById(userId);
@@ -893,7 +997,6 @@ app.post("/api/auth/2fa/login", async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
         if (!user.twoFactorSecret) {
-            // Should not happen if flow is correct, but fail safe
             return res.status(400).json({ success: false, message: "2FA not set up for this user" });
         }
 
@@ -938,43 +1041,11 @@ app.patch("/api/users/:id/role", async (req, res) => {
     }
 });
 
-// --- SETTINGS CACHE SYSTEM ---
-let apiSettingsCache = null;
-let apiSettingsCacheTime = 0;
-const SETTINGS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-
-const clearSettingsCache = () => {
-    apiSettingsCache = null;
-    apiSettingsCacheTime = 0;
-    if (typeof clearSSRCache === 'function') clearSSRCache();
-};
-
-// Middleware to auto-clear settings cache on any settings modification
-app.use((req, res, next) => {
-    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-        if (req.originalUrl.includes('/api/settings') || req.originalUrl.includes('/api/support')) {
-            clearSettingsCache();
-        }
-    }
-    next();
-});
-
 // Settings
-// getSafeSettings moved to top for safety
-
-app.get("/api/settings", async (req, res) => {
+app.get("/api/settings", (req, res) => {
     try {
-        if (apiSettingsCache && (Date.now() - apiSettingsCacheTime < SETTINGS_CACHE_TTL)) {
-            return res.status(200).json(apiSettingsCache);
-        }
-
-        const settings = await getSafeSettings();
-        const responseData = { success: true, data: settings };
-
-        apiSettingsCache = responseData;
-        apiSettingsCacheTime = Date.now();
-
-        res.status(200).json(responseData);
+        const settings = getSafeSettings();
+        res.status(200).json({ success: true, data: settings });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
     }
@@ -986,6 +1057,10 @@ app.put("/api/settings", async (req, res) => {
         if (!settings) settings = new GeneralSettings(req.body);
         else Object.assign(settings, req.body);
         await settings.save();
+
+        // Update the global cache instantly!
+        globalSettingsCache = settings.toObject();
+
         res.status(200).json({ success: true, data: settings });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -1896,6 +1971,41 @@ const prewarmCache = async () => {
             timestamp: Date.now()
         });
 
+        // 4. Pre-warm Top 10 Newest Product Details
+        const newest = combinedData.newestProducts.slice(0, 10);
+        console.log(`[CACHE] Pre-warming ${newest.length} newest product details...`);
+
+        for (const p of newest) {
+            const detailKey = `product_detail_${p.slug}`;
+            const [related, reviews] = await Promise.all([
+                Product.find({ category: p.category, _id: { $ne: p._id } }).limit(8).select('name price image category slug promoPrice').lean(),
+                Review.find({ productId: p._id, status: 'approved' }).sort({ createdAt: -1 }).limit(10).lean()
+            ]);
+            apiCache.set(detailKey, {
+                data: { product: p, related, reviews },
+                timestamp: Date.now()
+            });
+        }
+
+        // 5. Pre-warm first page of EVERY category in PARALLEL
+        console.log(`[CACHE] Parallel pre-warming all category pages...`);
+        const categories = combinedData.categories;
+
+        await Promise.all(categories.map(async (cat) => {
+            const cacheKey = `/api/products?category=${encodeURIComponent(cat.name)}&limit=15&sort=newest`;
+            const products = await Product.find({ category: cat.name })
+                .sort({ createdAt: -1 })
+                .limit(15)
+                .select('name price image category slug createdAt promoPrice promoEndDate')
+                .lean();
+
+            setCachedProducts(cacheKey, {
+                success: true,
+                count: products.length,
+                data: products
+            });
+        }));
+
         console.timeEnd("Deep Warming Aggregation");
         console.log(`[CACHE] Deep warming complete. Ready for instant delivery. ✅`);
 
@@ -1906,25 +2016,22 @@ const prewarmCache = async () => {
 
 const startServer = async () => {
     try {
-        // 1. Connect to Database FIRST (Roots fix for buffering timeout)
+        // 1. Connect to Database FIRST
         await connectDB();
 
-        // 2. Start Listening
+        // GLOBAL PERFORMANCE FIX: Disable buffering
+        mongoose.set('bufferCommands', false);
+
+        // 2. Initialize Core Settings exactly ONCE before opening the port
+        await initSettings();
+
+        // 3. Start Listening
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
             console.log(`📡 Database connected and stable. ✅`);
-
-            // 3. Initial warming after 2 seconds to allow internal DB processes to settle
-            setTimeout(() => {
-                console.log("[CACHE] Initiating first enterprise pre-warming...");
-                prewarmCache();
-            }, 2000);
-
-            // 4. Periodically warm the DB every 10 minutes
-            setInterval(prewarmCache, 10 * 60 * 1000);
         });
     } catch (err) {
-        console.error("FATAL: Could not start server due to DB connection failure:", err);
+        console.error("FATAL: Could not start server:", err);
         process.exit(1);
     }
 };

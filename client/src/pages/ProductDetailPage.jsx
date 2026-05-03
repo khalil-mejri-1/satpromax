@@ -326,23 +326,21 @@ export default function ProductDetailPage() {
         }
     }, [similarProducts]);
 
-    // Fetch Settings
+    // Use settings from ShopContext to avoid redundant API calls
+    const { homeData } = useContext(ShopContext);
+
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    setSettings(data.data);
-                    setPaymentModes(data.data.paymentModes || []);
-                    setDeviceChoices(data.data.deviceChoices || ['1 Mois', '3 Mois', '12 Mois']);
-                    if (data.data.paymentModes && data.data.paymentModes.length > 0) {
-                        setBillingInfo(prev => ({ ...prev, paymentMode: data.data.paymentModes[0].name }));
-                    }
-                    if (data.data.whatsappNumber) setWhatsappNumber(data.data.whatsappNumber);
-                }
-            })
-            .catch(err => console.error(err));
-    }, []);
+        if (homeData && homeData.settings) {
+            const settings = homeData.settings;
+            setSettings(settings);
+            setPaymentModes(settings.paymentModes || []);
+            setDeviceChoices(settings.deviceChoices || ['1 Mois', '3 Mois', '12 Mois']);
+            if (settings.paymentModes && settings.paymentModes.length > 0) {
+                setBillingInfo(prev => ({ ...prev, paymentMode: settings.paymentModes[0].name }));
+            }
+            if (settings.whatsappNumber) setWhatsappNumber(settings.whatsappNumber);
+        }
+    }, [homeData]);
 
     // SEO Meta Tags managed by <SEO /> component below
 

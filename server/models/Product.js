@@ -53,7 +53,8 @@ const productSchema = new mongoose.Schema(
 
 // Enterprise-grade Indexes for Aggregation & Performance
 productSchema.index({ category: 1, createdAt: -1 }); 
+productSchema.index({ category: 1, price: 1 }, { collation: { locale: 'en_US', numericOrdering: true } });
+productSchema.index({ category: 1, price: -1 }, { collation: { locale: 'en_US', numericOrdering: true } });
 productSchema.index({ featured: 1 });
-productSchema.index({ price: 1 }, { collation: { locale: 'en_US', numericOrdering: true } });
 
 module.exports = mongoose.model("Product", productSchema, "products");

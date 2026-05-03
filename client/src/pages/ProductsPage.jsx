@@ -243,6 +243,7 @@ export default function ProductsPage() {
     const [selectedSubCategory, setSelectedSubCategory] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(20);
+    const [loadTime, setLoadTime] = useState(0);
 
 
     // Normalize categoryName for lookup
@@ -281,14 +282,15 @@ export default function ProductsPage() {
             setLoading(true);
             setError(null);
             try {
+                const startTime = performance.now();
                 // Determine the category to fetch from DB based on URL param
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = `${API_BASE_URL}/api/products`;
+                let url = `${API_BASE_URL}/api/products?limit=15&sort=newest`;
                 if (dbCategory && normalizedCategory !== 'promotions') {
-                    url += `?category=${encodeURIComponent(dbCategory)}`;
+                    url += `&category=${encodeURIComponent(dbCategory)}`;
                 } else if (categoryName && normalizedCategory !== 'promotions') {
-                    url += `?category=${encodeURIComponent(categoryName.replace(/-/g, ' '))}`;
+                    url += `&category=${encodeURIComponent(categoryName.replace(/-/g, ' '))}`;
                 }
 
                 const response = await fetch(url);
@@ -307,14 +309,15 @@ export default function ProductsPage() {
                     );
                 }
 
+                const endTime = performance.now();
+                setLoadTime(Math.round(endTime - startTime));
                 setProducts(fetchedProducts);
 
             } catch (err) {
                 console.error("Error fetching products:", err);
                 setError("Impossible de charger les produits. Vérifiez votre connexion.");
             } finally {
-                // Add a small delay to show off the skeleton (optional, can be removed)
-                setTimeout(() => setLoading(false), 800);
+                setLoading(false);
             }
         };
 
@@ -463,7 +466,14 @@ export default function ProductsPage() {
                                 </button>
                             </div>
                             <span className="result-count">
-                                {loading ? 'Chargement...' : `${filteredProducts.length} résultats affichés`}
+                                {loading ? 'Chargement...' : (
+                                    <>
+                                        {filteredProducts.length} résultats • 
+                                        <span style={{ color: '#10b981', marginLeft: '5px', fontWeight: 'bold' }}>
+                                            ⚡ {loadTime}ms
+                                        </span>
+                                    </>
+                                )}
                             </span>
                         </div>
                         <div className="toolbar-right">
