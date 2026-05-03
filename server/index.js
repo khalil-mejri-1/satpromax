@@ -347,18 +347,26 @@ app.get("/api/products", async (req, res) => {
         let query = {};
 
         if (category) {
-            const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // Use partial match instead of strict exact match for better category grouping
-            query.category = { $regex: new RegExp(escapedCategory, 'i') };
+            // Check if category looks like a simple slug or has regex chars
+            if (/^[a-zA-Z0-9\s-]+$/.test(category)) {
+                // Exact match is much faster with indexes
+                query.category = category;
+            } else {
+                const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                query.category = { $regex: new RegExp(escapedCategory, 'i') };
+            }
         }
 
         const parsedLimit = parseInt(limit);
         const parsedPage = parseInt(page) || 1;
 
-        // Use .lean() for massive performance boost (returns raw JS objects instead of heavy Mongoose docs)
-        let productQuery = Product.find(query).lean();
+        // CRITICAL PERFORMANCE: Added .select() to only fetch fields needed for the cards
+        // This avoids transferring heavy product descriptions over the network
+        let productQuery = Product.find(query)
+            .select('name price image category slug createdAt promoPrice promoEndDate')
+            .lean();
 
-        // Apply collation to properly sort the 'price' field as numbers even though it's a string
+        // Apply collation for numeric price sorting if needed
         if (sort === 'priceAsc' || sort === 'priceDesc') {
             productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
         }
@@ -2028,6 +2036,21 @@ app.get(/.*/, async (req, res, next) => {
     res.send(htmlContent);
 });
 
-app.listen(PORT, () => {
+const prewarmCache = async () => {
+    try {
+        console.log("[CACHE] Pre-warming system...");
+        // 1. Fetch settings to warm the connection and logic
+        await getSafeSettings();
+        // 2. Fetch recent products to warm the DB engine and indexes
+        await Product.find().sort({ createdAt: -1 }).limit(10).select('name').lean();
+        console.log("[CACHE] Warming complete. ✅");
+    } catch (err) {
+        console.error("[CACHE] Warming failed:", err);
+    }
+};
+
+app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    // Delay pre-warming slightly to ensure connection is fully established
+    setTimeout(prewarmCache, 2000);
 });
