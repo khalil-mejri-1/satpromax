@@ -15,12 +15,13 @@ const connectDB = async () => {
 
     try {
         const options = {
-            serverSelectionTimeoutMS: 5000, 
+            serverSelectionTimeoutMS: 30000, // Relaxed to 30s to survive network hiccups
             socketTimeoutMS: 45000, 
-            connectTimeoutMS: 10000,
-            family: 4, 
-            maxPoolSize: 100, // Enterprise scale
-            minPoolSize: 10,  // Keep 10 connections warm at all times
+            connectTimeoutMS: 30000,
+            heartbeatFrequencyMS: 2000, // Check connection health every 2 seconds
+            family: 4, // Force IPv4 (Fixes Windows localhost DNS issues)
+            maxPoolSize: 100, 
+            minPoolSize: 5,  // Reduced slightly to not overload free tier on startup
             retryWrites: true,
             w: 'majority'
         };
@@ -28,18 +29,6 @@ const connectDB = async () => {
         await mongoose.connect("mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0", options);
         isConnected = true;
         console.log("🚀 [MongoDB] Initial Connection Successful (Pool Optimized)");
-
-        // 🟢 Active Heartbeat to prevent VPS/Firewall from dropping idle connections
-        setInterval(async () => {
-            try {
-                if (mongoose.connection.readyState === 1) {
-                    await mongoose.connection.db.admin().ping();
-                }
-            } catch (err) {
-                console.warn("⚠️ [MongoDB] Ping failed, connection might be unstable.", err.message);
-            }
-        }, 30000); // Every 30 seconds
-
     } catch (error) {
         console.error("🔴 [MongoDB] Initial Connection Failed ❌", error);
         process.exit(1);

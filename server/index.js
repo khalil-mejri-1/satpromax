@@ -543,7 +543,6 @@ app.get("/api/products", async (req, res) => {
         const { category, limit, page, sort } = req.query;
 
         const promise = (async () => {
-            const reqStartTime = performance.now();
             let query = {};
             if (category) query.category = category;
 
@@ -566,32 +565,15 @@ app.get("/api/products", async (req, res) => {
             const cachedCount = categoryCountCache.get(countCacheKey);
             const isCountFresh = cachedCount && (Date.now() - cachedCount.timestamp < COUNT_CACHE_TTL);
 
-            const dbWaitStart = performance.now();
             const [products, totalCount] = await Promise.all([
                 productQuery.maxTimeMS(10000).exec(),
                 isCountFresh ? Promise.resolve(cachedCount.count) : Product.countDocuments(query).maxTimeMS(10000).exec()
             ]);
-            const queryExecEnd = performance.now();
 
             if (!isCountFresh) categoryCountCache.set(countCacheKey, { count: totalCount, timestamp: Date.now() });
 
             const responseData = { success: true, count: totalCount, data: products };
             setCachedProducts(cacheKey, responseData);
-
-            const totalEndTime = performance.now();
-
-            // STRICT PERFORMANCE LOGGING (As Requested)
-            const totalTime = (totalEndTime - reqStartTime).toFixed(2);
-            // In Mongoose, we don't easily get exactly 'wait time' vs 'exec time' without explain(), 
-            // but we can measure the total await time.
-            const dbTotalTime = (queryExecEnd - dbWaitStart).toFixed(2);
-
-            console.log(`[PERF LOG] ---------------------------------`);
-            console.log(`[PERF LOG] Route: /api/products?category=${category}&page=${page}`);
-            console.log(`[PERF LOG] DB Wait + Exec Time: ${dbTotalTime} ms`);
-            console.log(`[PERF LOG] Total Response Time: ${totalTime} ms`);
-            console.log(`[PERF LOG] ---------------------------------`);
-
             return responseData;
         })();
 
@@ -2055,13 +2037,10 @@ const startServer = async () => {
         // 2. Initialize Core Settings exactly ONCE before opening the port
         await initSettings();
 
-        // 3. Execute Full Deep Warm-up BEFORE accepting traffic (Eliminates Cold Start)
-        await prewarmCache();
-
-        // 4. Start Listening
+        // 3. Start Listening
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
-            console.log(`📡 Database connected, warmed up, and fully stable. ✅`);
+            console.log(`📡 Database connected and stable. ✅`);
         });
     } catch (err) {
         console.error("FATAL: Could not start server:", err);
