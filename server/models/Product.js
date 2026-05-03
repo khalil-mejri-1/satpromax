@@ -50,4 +50,8 @@ const productSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+productSchema.index({ category: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ price: 1 }, { collation: { locale: 'en_US', numericOrdering: true } });
+
 module.exports = mongoose.model("Product", productSchema, "products");

@@ -289,10 +289,37 @@ app.delete("/api/support/tickets/:id", async (req, res) => {
     }
 });
 
+// --- PRODUCTS CACHE SYSTEM ---
+const productCache = new Map();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+const getCachedProducts = (key) => {
+    const cached = productCache.get(key);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+        return cached.data;
+    }
+    return null;
+};
+
+const setCachedProducts = (key, data) => {
+    productCache.set(key, { data, timestamp: Date.now() });
+};
+
+const clearProductsCache = () => {
+    productCache.clear();
+};
+
 // Products
 app.get("/api/products", async (req, res) => {
     try {
-        const { category, limit, page, random, sort } = req.query;
+        const cacheKey = req.originalUrl;
+        const cachedResponse = getCachedProducts(cacheKey);
+
+        if (cachedResponse) {
+            return res.status(200).json(cachedResponse);
+        }
+
+        const { category, limit, page, sort } = req.query;
         let query = {};
 
         if (category) {
@@ -304,16 +331,13 @@ app.get("/api/products", async (req, res) => {
         const parsedLimit = parseInt(limit);
         const parsedPage = parseInt(page) || 1;
 
-        if (random === 'true' && parsedLimit) {
-            // Use aggregation to get random products efficiently
-            const randomProducts = await Product.aggregate([
-                { $match: query },
-                { $sample: { size: parsedLimit } }
-            ]);
-            return res.status(200).json({ success: true, count: randomProducts.length, data: randomProducts });
-        }
+        // Use .lean() for massive performance boost (returns raw JS objects instead of heavy Mongoose docs)
+        let productQuery = Product.find(query).lean();
 
-        let productQuery = Product.find(query);
+        // Apply collation to properly sort the 'price' field as numbers even though it's a string
+        if (sort === 'priceAsc' || sort === 'priceDesc') {
+            productQuery = productQuery.collation({ locale: "en_US", numericOrdering: true });
+        }
 
         if (sort === 'newest') {
             productQuery = productQuery.sort({ createdAt: -1 });
@@ -327,16 +351,25 @@ app.get("/api/products", async (req, res) => {
             productQuery = productQuery.skip((parsedPage - 1) * parsedLimit).limit(parsedLimit);
         }
 
-        const products = await productQuery;
+        let products;
+        let totalCount;
 
-        // We only want the total count if we are paginating
-        let totalCount = products.length;
+        // Fetch products and count concurrently if pagination is used
         if (parsedLimit && page) {
-            totalCount = await Product.countDocuments(query);
+            [products, totalCount] = await Promise.all([
+                productQuery.exec(),
+                Product.countDocuments(query).exec()
+            ]);
+        } else {
+            products = await productQuery.exec();
+            totalCount = products.length;
         }
 
-        res.status(200).json({ success: true, count: totalCount, data: products });
+        const responseData = { success: true, count: totalCount, data: products };
+        setCachedProducts(cacheKey, responseData);
+        res.status(200).json(responseData);
     } catch (error) {
+        console.error("Error in /api/products:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -368,6 +401,7 @@ app.post("/api/products", async (req, res) => {
         if (productData.name) productData.slug = await generateUniqueSlug(productData.name);
         const product = new Product(productData);
         const savedProduct = await product.save();
+        clearProductsCache(); // Invalidate cache
         res.status(201).json({ success: true, data: savedProduct });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -381,6 +415,7 @@ app.put("/api/products/:id", async (req, res) => {
         if (productData.name) productData.slug = await generateUniqueSlug(productData.name, req.params.id);
         const product = await Product.findByIdAndUpdate(req.params.id, productData, { new: true, runValidators: true });
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+        clearProductsCache(); // Invalidate cache
         res.status(200).json({ success: true, data: product });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
@@ -391,6 +426,7 @@ app.delete("/api/products/:id", async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+        clearProductsCache(); // Invalidate cache
         res.status(200).json({ success: true, message: "Product deleted" });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -406,6 +442,7 @@ app.put("/api/products/:id/seo", async (req, res) => {
             { new: true }
         );
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+        clearProductsCache(); // Invalidate cache
         res.status(200).json({ success: true, data: product });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

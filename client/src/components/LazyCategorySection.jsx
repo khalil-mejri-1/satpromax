@@ -19,7 +19,7 @@ export default function LazyCategorySection({ category }) {
         }
       },
       {
-        rootMargin: '300px', // Fetch when it's 300px away from viewport to ensure smooth scrolling
+        rootMargin: '50px', // Fetch only when very close to viewport so requests don't all fire at once
         threshold: 0
       }
     );
@@ -39,8 +39,8 @@ export default function LazyCategorySection({ category }) {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      // Fetch 15 random products for this category for a diverse display
-      const res = await fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(category.name)}&limit=15&random=true`);
+      // Fetch 15 newest products for this category in order
+      const res = await fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(category.name)}&limit=15&sort=newest`);
       const data = await res.json();
       if (data.success && data.data) {
         setProducts(data.data);
