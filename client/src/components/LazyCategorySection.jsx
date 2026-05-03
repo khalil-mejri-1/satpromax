@@ -3,10 +3,10 @@ import { API_BASE_URL } from '../config';
 import { slugify } from '../utils/slugify';
 import ProductSection from './ProductSection';
 
-export default function LazyCategorySection({ category, index = 0 }) {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [hasFetched, setHasFetched] = useState(false);
+export default function LazyCategorySection({ category, index = 0, initialProducts = [] }) {
+  const [products, setProducts] = useState(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
+  const [hasFetched, setHasFetched] = useState(initialProducts.length > 0);
   const sectionRef = useRef(null);
 
   useEffect(() => {

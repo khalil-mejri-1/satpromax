@@ -1,29 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './ReviewCarousel.css';
-import { API_BASE_URL } from '../config';
+import { ShopContext } from '../context/ShopContext';
 
 const ReviewCarousel = () => {
-    const [reviews, setReviews] = useState([]);
+    const { homeData, loadingAppData } = React.useContext(ShopContext);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchReviews = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/reviews/approved`);
-                const data = await response.json();
-                if (data.success) {
-                    setReviews(data.data);
-                }
-            } catch (error) {
-                console.error("Error fetching reviews:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchReviews();
-    }, []);
+    const reviews = homeData?.reviews || [];
+    const loading = loadingAppData;
 
     const getItemsToDisplay = () => {
         if (window.innerWidth >= 1024) return 3;

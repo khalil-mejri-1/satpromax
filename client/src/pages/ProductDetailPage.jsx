@@ -268,20 +268,44 @@ export default function ProductDetailPage() {
         }
     };
 
-    // Fetch Similar Products - Optimized with Limit
+    // Fetch Product Full Data - Aggregated Root Optimization
     useEffect(() => {
-        if (product && product.category) {
-            fetch(`${API_BASE_URL}/api/products?category=${encodeURIComponent(product.category)}&limit=10`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const filtered = data.data.filter(p => (p._id || p.id) !== productWithId.id);
-                        setSimilarProducts(filtered);
+        const fetchFullProductData = async () => {
+            if (!slug) return;
+            setLoading(true);
+            
+            try {
+                // Determine if we search by ID or Slug
+                // We use the new aggregated endpoint /api/product-full-detail/:slug
+                const response = await fetch(`${API_BASE_URL}/api/product-full-detail/${slug}`);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const { product, related, reviews } = data.data;
+                    setProduct(product);
+                    setActiveImage(product.image);
+                    setSimilarProducts(related);
+                    setReviews(reviews);
+                } else {
+                    // Fallback for direct ID access if needed (optional since the endpoint handles it mostly)
+                    if (slug.match(/^[0-9a-fA-F]{24}$/)) {
+                         const res2 = await fetch(`${API_BASE_URL}/api/products/${slug}`);
+                         const data2 = await res2.json();
+                         if (data2.success) {
+                             setProduct(data2.data);
+                             setActiveImage(data2.data.image);
+                         }
                     }
-                })
-                .catch(err => console.error(err));
-        }
-    }, [product?.category, productWithId?.id]);
+                }
+            } catch (error) {
+                console.error("Critical Product Fetch Error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFullProductData();
+    }, [category, slug]);
 
     // Auto-slide similar products every 2 seconds
     useEffect(() => {
@@ -329,63 +353,6 @@ export default function ProductDetailPage() {
             if (widget) window.Trustpilot.loadFromElement(widget);
         }
     }, [product]);
-
-
-    // Fetch Product Data - Optimized Parallel Loading
-    useEffect(() => {
-        const fetchProduct = async () => {
-            if (!slug) return;
-            setLoading(true);
-            
-            try {
-                // Determine if we search by ID or Slug
-                const isId = slug.match(/^[0-9a-fA-F]{24}$/);
-                const fetchUrl = isId 
-                    ? `${API_BASE_URL}/api/products/${slug}`
-                    : `${API_BASE_URL}/api/products/slug/${category}/${slug}`;
-
-                const response = await fetch(fetchUrl);
-                const data = await response.json();
-
-                if (data.success) {
-                    setProduct(data.data);
-                    setActiveImage(data.data.image);
-                } else if (!isId) {
-                    // Fallback to ID if slug failed but looks like ID
-                    if (slug.length === 24) {
-                        const res2 = await fetch(`${API_BASE_URL}/api/products/${slug}`);
-                        const data2 = await res2.json();
-                        if (data2.success) {
-                            setProduct(data2.data);
-                            setActiveImage(data2.data.image);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Critical Product Fetch Error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProduct();
-    }, [category, slug]);
-
-
-
-    // Fetch reviews for this product
-    useEffect(() => {
-        if (productWithId && productWithId.id) {
-            fetch(`${API_BASE_URL}/api/reviews/product/${productWithId.id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        setReviews(data.data);
-                    }
-                })
-                .catch(err => console.error("Error fetching reviews:", err));
-        }
-    }, [productWithId?.id]);
 
     const scrollToReviews = () => {
         if (reviewsSectionRef.current) {

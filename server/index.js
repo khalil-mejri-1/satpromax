@@ -20,8 +20,7 @@ const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.
 app.use(express.json());
 app.use(cors());
 
-// Connect DB
-connectDB();
+
 
 // Models
 const Product = require("./models/Product");
@@ -35,30 +34,27 @@ const ContactMessage = require("./models/ContactMessage");
 const SupportTicket = require("./models/SupportTicket");
 const Application = require("./models/Application");
 
-// --- SETTINGS UTILS ---
-const getSafeSettings = async () => {
+// --- SETTINGS UTILS (WITH CACHING) ---
+let settingsCache = null;
+let settingsCacheTime = 0;
+
+const getSafeSettings = async (forceRefresh = false) => {
+    if (!forceRefresh && settingsCache && (Date.now() - settingsCacheTime < TTL)) {
+        return settingsCache;
+    }
+
     try {
-        let settings = await GeneralSettings.findOne();
+        let settings = await GeneralSettings.findOne().lean();
         if (settings) {
-            if (settings.paymentModes && Array.isArray(settings.paymentModes) && settings.paymentModes.some(m => typeof m === 'string')) {
-                settings.paymentModes = settings.paymentModes.map(m => typeof m === 'string' ? { name: m, logo: '' } : m);
-                await settings.save();
-            }
-            if (settings.categories && Array.isArray(settings.categories) && settings.categories.some(c => typeof c === 'string')) {
-                settings.categories = settings.categories.map(c => typeof c === 'string' ? { name: c, icon: '', slug: slugify(c) } : c);
-                await settings.save();
-            }
+            settingsCache = settings;
+            settingsCacheTime = Date.now();
             return settings;
         }
     } catch (err) {
         console.error("Error in getSafeSettings:", err);
-        const rawSettings = await GeneralSettings.collection.findOne();
-        if (rawSettings) {
-            await GeneralSettings.collection.replaceOne({ _id: rawSettings._id }, rawSettings);
-            return await GeneralSettings.findById(rawSettings._id);
-        }
     }
 
+    // Fallback or Initial Creation
     const settings = new GeneralSettings({
         paymentModes: [{ name: 'D17', logo: '' }, { name: 'Flouci', logo: '' }, { name: 'Main à main', logo: '' }],
         categories: [
@@ -67,7 +63,9 @@ const getSafeSettings = async () => {
         ]
     });
     await settings.save();
-    return settings;
+    settingsCache = settings.toObject();
+    settingsCacheTime = Date.now();
+    return settingsCache;
 };
 
 // --- UTILS ---
@@ -90,6 +88,24 @@ const generateUniqueSlug = async (name, currentId = null) => {
 };
 
 // --- API ROUTES (MUST COME FIRST) ---
+// --- CACHING SYSTEM (IN-MEMORY) ---
+const apiCache = new Map();
+const TTL = 10 * 60 * 1000; // 10 Minutes default
+
+const getFromCache = (key) => {
+    const entry = apiCache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > TTL) {
+        apiCache.delete(key);
+        return null;
+    }
+    return entry.data;
+};
+
+const saveToCache = (key, data) => {
+    apiCache.set(key, { data, timestamp: Date.now() });
+};
+
 const verifyTurnstile = async (token) => {
     if (!token) return false;
     try {
@@ -102,10 +118,97 @@ const verifyTurnstile = async (token) => {
         const data = await res.json();
         return data.success;
     } catch (err) {
-        console.error("Turnstile verification error:", err);
         return false;
     }
 };
+
+// --- ENTERPRISE ARCHITECTURE: SINGLE AGGREGATION PIPELINE ---
+const buildHomeData = async () => {
+    const settings = await getSafeSettings();
+    const categories = settings.categories || [];
+
+    const facetBranches = {
+        newestProducts: [
+            { $sort: { createdAt: -1 } },
+            { $limit: 20 },
+            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1 } }
+        ]
+    };
+
+    categories.forEach((cat, index) => {
+        facetBranches[`cat_${index}`] = [
+            { $match: { category: cat.name } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 15 },
+            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1 } }
+        ];
+    });
+
+    const [reviews, productAggResult] = await Promise.all([
+        Review.find({ status: 'approved' }).sort({ createdAt: -1 }).limit(12).lean(),
+        Product.aggregate([{ $facet: facetBranches }])
+    ]);
+
+    const productAgg = productAggResult[0] || {};
+    const categoryMap = {};
+    categories.forEach((cat, index) => {
+        categoryMap[cat.name] = productAgg[`cat_${index}`] || [];
+    });
+
+    return {
+        settings,
+        reviews,
+        newestProducts: productAgg.newestProducts || [],
+        categoryMap,
+        categories
+    };
+};
+
+// 1. Home Page Full Data (Enterprise Endpoint)
+app.get("/api/home-data", async (req, res) => {
+    try {
+        const cacheKey = "home_full_data_v4";
+        const cached = getFromCache(cacheKey);
+        if (cached) return res.status(200).json({ success: true, data: cached });
+
+        const combinedData = await buildHomeData();
+        saveToCache(cacheKey, combinedData);
+        res.status(200).json({ success: true, data: combinedData });
+    } catch (error) {
+        console.error("Home Data Aggregation Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
+
+// 2. Product Detail Full Data (Product + Related + Reviews)
+app.get("/api/product-full-detail/:slug", async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const cacheKey = `product_detail_${slug}`;
+        const cached = getFromCache(cacheKey);
+        if (cached) return res.status(200).json({ success: true, data: cached });
+
+        const product = await Product.findOne({ slug }).lean();
+        if (!product) return res.status(404).json({ success: false, message: "Not found" });
+
+        const [related, reviews] = await Promise.all([
+            Product.find({ category: product.category, _id: { $ne: product._id } })
+                .limit(8)
+                .select('name price image category slug promoPrice')
+                .lean(),
+            Review.find({ productId: product._id, status: 'approved' })
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .lean()
+        ]);
+
+        const fullDetail = { product, related, reviews };
+        saveToCache(cacheKey, fullDetail);
+        res.status(200).json({ success: true, data: fullDetail });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+});
 
 app.use("/api", (req, res, next) => {
     console.log(`[API LOG] ${req.method} ${req.originalUrl}`);
@@ -881,10 +984,10 @@ app.get("/api/settings", async (req, res) => {
 
         const settings = await getSafeSettings();
         const responseData = { success: true, data: settings };
-        
+
         apiSettingsCache = responseData;
         apiSettingsCacheTime = Date.now();
-        
+
         res.status(200).json(responseData);
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -1647,92 +1750,9 @@ app.post("/api/upload", upload.single('image'), (req, res) => {
 app.use(express.static(CLIENT_DIST, { index: false }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- SEO INJECTION HELPERS ---
-const injectSEO = (html, data) => {
-    if (!data) return html;
-    let injected = html;
 
-    const replacements = {
-        title: [/<title[\s>][\s\S]*?<\/title>/i, `<title>${data.title}</title>`],
-        description: [/<meta\s+[^>]*?name=["']description["'][^>]*?>/i, `<meta name="description" content="${data.description}" />`],
-        keywords: [/<meta\s+[^>]*?name=["']keywords["'][^>]*?>/i, `<meta name="keywords" content="${data.keywords || ''}" />`],
-        ogTitle: [/<meta\s+[^>]*?(property|name)=["']og:title["'][^>]*?>/i, `<meta property="og:title" content="${data.title}" />`],
-        ogDescription: [/<meta\s+[^>]*?(property|name)=["']og:description["'][^>]*?>/i, `<meta property="og:description" content="${data.description}" />`],
-        ogImage: [/<meta\s+[^>]*?(property|name)=["']og:image["'][^>]*?>/i, `<meta property="og:image" content="${data.image}" />`],
-        ogUrl: [/<meta\s+[^>]*?(property|name)=["']og:url["'][^>]*?>/i, `<meta property="og:url" content="${data.url}" />`],
-        ogType: [/<meta\s+[^>]*?(property|name)=["']og:type["'][^>]*?>/i, `<meta property="og:type" content="${data.type || 'website'}" />`],
-        ogSiteName: [/<meta\s+[^>]*?(property|name)=["']og:site_name["'][^>]*?>/i, `<meta property="og:site_name" content="Satpromax" />`],
-        twitterTitle: [/<meta\s+[^>]*?(property|name)=["']twitter:title["'][^>]*?>/i, `<meta property="twitter:title" content="${data.title}" />`],
-        twitterDescription: [/<meta\s+[^>]*?(property|name)=["']twitter:description["'][^>]*?>/i, `<meta property="twitter:description" content="${data.description}" />`],
-        twitterImage: [/<meta\s+[^>]*?(property|name)=["']twitter:image["'][^>]*?>/i, `<meta property="twitter:image" content="${data.image}" />`],
-        twitterCard: [/<meta\s+[^>]*?(property|name)=["']twitter:card["'][^>]*?>/i, `<meta name="twitter:card" content="summary_large_image" />`],
-        canonical: [/<link\s+[^>]*?rel=["']canonical["'][^>]*?>/i, `<link rel="canonical" href="${data.url}" />`]
-    };
 
-    for (const [key, [regex, replacement]] of Object.entries(replacements)) {
-        try {
-            if (injected.match(regex)) {
-                injected = injected.replace(regex, () => replacement);
-            } else if (key !== 'canonical' || data.url) {
-                // If it's a critical meta tag and missing, prepend to </head>
-                if (key.startsWith('og') || key === 'title' || key === 'description' || key === 'canonical') {
-                    injected = injected.replace('</head>', () => `${replacement}</head>`);
-                }
-            }
-        } catch (err) {
-            console.error(`Error replacing SEO field ${key}:`, err);
-        }
-    }
 
-    if (data.schema) {
-        const schemaScript = `<script type="application/ld+json">${JSON.stringify(data.schema)}</script>`;
-        injected = injected.replace('</head>', () => `${schemaScript}</head>`);
-    }
-
-    return injected;
-};
-
-const generateServerProductSchema = (product, url) => {
-    if (!product) return null;
-    const isPromo = product.promoPrice && product.promoEndDate && new Date(product.promoEndDate) > new Date();
-    const priceStr = isPromo ? product.promoPrice : product.price;
-    const numericPrice = parseFloat(String(priceStr).replace(/[^0-9.]/g, '')) || 0;
-
-    return {
-        "@context": "https://schema.org/",
-        "@type": "Product",
-        "name": product.name,
-        "image": Array.isArray(product.gallery) && product.gallery.length > 0 ? [product.image, ...product.gallery] : [product.image],
-        "description": product.description || `Acheter ${product.name} chez Satpromax.`,
-        "sku": product.sku || product._id,
-        "mpn": product.sku || product._id,
-        "brand": { "@type": "Brand", "name": "Satpromax" },
-        "offers": {
-            "@type": "Offer",
-            "url": url,
-            "priceCurrency": "TND",
-            "price": numericPrice,
-            "availability": "https://schema.org/InStock",
-            "seller": { "@type": "Organization", "name": "Satpromax" }
-        },
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "5",
-            "reviewCount": "1"
-        }
-    };
-};
-
-const generateServerBreadcrumbSchema = (crumbs) => ({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": crumbs.map((c, i) => ({
-        "@type": "ListItem",
-        "position": i + 1,
-        "name": c.name,
-        "item": c.url
-    }))
-});
 
 const generateServerHeader = (categories) => {
     const navLinks = categories.map(c =>
@@ -1867,218 +1887,56 @@ const generateServerHomeHTML = (products, categories) => {
     `;
 };
 
-// --- FINAL CATCH-ALL ROUTE (SEO + SSR MIDDLEWARE) ---
-app.get(/.*/, async (req, res, next) => {
+// --- FINAL CATCH-ALL ROUTE (SPA MODE) ---
+app.get(/.*/, (req, res) => {
     // 1. Explicitly ignore ALL API calls to let them reach their routes
     if (req.path.startsWith('/api')) {
-        return next();
+        return res.status(404).json({ success: false, message: "API Route not found" });
     }
 
-    // 2. Check SSR Cache (RAM first, very fast)
-    const cachedHtml = getCachedSSR(req.path);
-    if (cachedHtml) {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        return res.send(cachedHtml);
-    }
-
-    // 3. Load Index HTML
-    let htmlContent;
-    try {
-        htmlContent = fs.readFileSync(INDEX_HTML, 'utf8');
-    } catch (err) {
-        console.error("Client build Missing:", err);
-        return res.status(500).send("Server Error: Client build not found.");
-    }
-
-    try {
-        const fullUrl = `https://Satpromax.com${req.path}`;
-        const parts = req.path.split('/').filter(Boolean);
-        const settings = await GeneralSettings.findOne(); // Fetch settings once for global Navbar
-        const categories = settings?.categories || [];
-
-        // A. HOME PAGE
-        if (parts.length === 0) {
-            const homeSchema = {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                "name": "Satpromax",
-                "url": "https://Satpromax.com",
-                "logo": "https://Satpromax.com/logo.png"
-            };
-
-            const homeProducts = await Product.find()
-                .sort({ createdAt: -1 })
-                .limit(20)
-                .select('name price image category slug createdAt')
-                .lean();
-
-            const bodyContent = generateServerHomeHTML(homeProducts, categories);
-            htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
-
-            htmlContent = injectSEO(htmlContent, {
-                title: "Satpromax- Meilleur Abonnement IPTV & Streaming Tunisie",
-                description: "Satpromax: Votre destination n°1 pour les abonnements IPTV, Netflix, Shahid VIP et produits High-Tech en Tunisie.",
-                image: "https://Satpromax.com/og-image.jpg",
-                url: fullUrl,
-                schema: homeSchema
-            });
-        }
-
-        // B. PRODUCT DETAILS or CATEGORY or SHARE LINKS
-        else if (parts.length >= 1) {
-            const potentialSlug = parts[parts.length - 1]; // Assume last part is slug
-            const decodedSlug = decodeURIComponent(potentialSlug);
-
-            // Optimization: First try exact match (99% of cases)
-            let product = await Product.findOne({ slug: decodedSlug }).lean();
-
-            // Only if not found, try the more expensive case-insensitive regex
-            if (!product) {
-                product = await Product.findOne({
-                    slug: { $regex: new RegExp(`^${decodedSlug.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') }
-                }).lean();
-            }
-
-            // Fallback for ID if the slug matches an ID pattern
-            if (!product && decodedSlug.match(/^[0-9a-fA-F]{24}$/)) {
-                product = await Product.findById(decodedSlug).lean();
-            }
-
-            if (product) {
-                // Fetch Similar Products for Internal Linking
-                const similarProducts = await Product.find({
-                    category: product.category,
-                    _id: { $ne: product._id }
-                }).limit(8).select('name slug category image price');
-
-                const productSchema = generateServerProductSchema(product, fullUrl);
-                const breadcrumbSchema = generateServerBreadcrumbSchema([
-                    { name: 'Home', url: 'https://Satpromax.com/' },
-                    { name: product.category, url: `https://Satpromax.com/${product.category.toLowerCase().replace(/\s+/g, '-')}` },
-                    { name: product.name, url: fullUrl }
-                ]);
-
-                const cleanDescription = (product.description || "Découvrez ce produit sur Satpromax.")
-                    .replace(/\n/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .replace(/"/g, '&quot;')
-                    .trim()
-                    .substring(0, 160);
-
-                const bodyContent = generateServerProductHTML(product, similarProducts, categories);
-                htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
-
-                // Ensure image is absolute for Facebook
-                let absoluteImage = product.image;
-                if (absoluteImage && !absoluteImage.startsWith('http')) {
-                    absoluteImage = `https://Satpromax.com${absoluteImage.startsWith('/') ? '' : '/'}${absoluteImage}`;
-                }
-
-                // Defensive price string handling
-                const priceValue = String(product.price || '');
-                const displayPrice = priceValue.toLowerCase().includes('dt') ? priceValue : `${priceValue} DT`;
-
-                htmlContent = injectSEO(htmlContent, {
-                    title: product.metaTitle || `${product.name} - ${displayPrice} | Satpromax`,
-                    description: product.metaDescription || cleanDescription,
-                    keywords: product.tags,
-                    image: absoluteImage,
-                    url: fullUrl,
-                    type: "product",
-                    schema: [productSchema, breadcrumbSchema]
-                });
-            } else {
-                if (parts.length === 1) {
-                    const categorySlug = parts[0];
-                    const category = settings?.categories?.find(c => c.slug === categorySlug);
-                    const categoryName = category ? category.name : (categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' '));
-
-                    // Fetch category products for SSR injection
-                    const categoryProducts = await Product.find({
-                        category: { $regex: new RegExp(`^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-                    }).limit(24);
-
-                    const bodyContent = `
-                        <div class="ssr-shell">
-                            ${generateServerHeader(categories)}
-                            <div class="ssr-content category-page">
-                                <h1>Boutique ${categoryName} - Satpromax</h1>
-                                <h4>Découvrez notre sélection de produits dans la catégorie ${categoryName}.</h4>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
-                                    ${categoryProducts.map(p => `
-                                        <div class="product-card" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center;">
-                                            <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 150px; object-fit: contain;" />
-                                            <h3 style="font-size: 16px; margin: 10px 0;">${p.name}</h3>
-                                            <h3 style="color: #ef4444; font-weight: bold;">${p.price} DT</h3>
-                                            <a href="/${categorySlug}/${p.slug}" style="display: inline-block; padding: 8px 16px; background: #fbbf24; color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px;">Voir</a>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                            ${generateServerFooter()}
-                        </div>
-                    `;
-                    htmlContent = htmlContent.replace('<div id="root"></div>', `<div id="root">${bodyContent}</div>`);
-
-                    htmlContent = injectSEO(htmlContent, {
-                        title: `${categoryName} - Produits et Abonnements | Satpromax`,
-                        description: `Découvrez notre collection ${categoryName} : meilleurs prix et service garanti en Tunisie.`,
-                        image: "https://Satpromax.com/logo.png",
-                        url: fullUrl
-                    });
-                } else {
-                    htmlContent = injectSEO(htmlContent, {
-                        title: "Satpromax- Tunisie",
-                        description: "Votre boutique en ligne préférée pour les abonnements digitaux.",
-                        url: fullUrl
-                    });
-                }
-            }
-        }
-
-    } catch (err) {
-        console.error("SEO Injection failed:", err);
-    }
-
-    setCachedSSR(req.path, htmlContent);
-
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(htmlContent);
+    // 2. Serve the static index.html for all frontend routes
+    res.sendFile(INDEX_HTML);
 });
 
 const prewarmCache = async () => {
     try {
-        console.log("[CACHE] Warming up database connection...");
-        console.time("DB Warming Query");
-        
-        // Fetch 20 products to keep the connection active and warm the engine
-        const products = await Product.find()
-            .sort({ createdAt: -1 })
-            .limit(20)
-            .select('name')
-            .lean();
-            
-        console.timeEnd("DB Warming Query");
-        console.log(`[CACHE] Warming complete. Fetched ${products.length} items. ✅`);
-        
-        // Also warm general settings
-        await getSafeSettings();
-        
+        console.log("[CACHE] Enterprise deep warming home data...");
+        console.time("Deep Warming Aggregation");
+
+        const combinedData = await buildHomeData();
+
+        apiCache.set("home_full_data_v4", {
+            data: combinedData,
+            timestamp: Date.now()
+        });
+
+        console.timeEnd("Deep Warming Aggregation");
+        console.log(`[CACHE] Deep warming complete. Ready for instant delivery. ✅`);
+
     } catch (err) {
-        console.error("[CACHE] Warming failed:", err);
+        console.error("[CACHE] Deep warming failed:", err);
     }
 };
 
-app.listen(PORT, async () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    
-    // Initial warming after 2 seconds
-    setTimeout(prewarmCache, 2000);
-    
-    // Periodically warm the DB every 5 minutes to prevent "Sleep" mode on Atlas Free Tier
-    setInterval(prewarmCache, 5 * 60 * 1000);
-});
+const startServer = async () => {
+    try {
+        // 1. Connect to Database FIRST (Roots fix for buffering timeout)
+        await connectDB();
+
+        // 2. Start Listening
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+
+            // 3. Initial warming after 5 seconds to ensure stability
+            setTimeout(prewarmCache, 5000);
+
+            // 4. Periodically warm the DB every 5 minutes
+            setInterval(prewarmCache, 5 * 60 * 1000);
+        });
+    } catch (err) {
+        console.error("FATAL: Could not start server due to DB connection failure:", err);
+        process.exit(1);
+    }
+};
+
+startServer();

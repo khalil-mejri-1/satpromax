@@ -13,27 +13,13 @@ import TrendingMovies from '../components/TrendingMovies';
 
 import SEO from '../components/SEO/SEO';
 
-export default function Home() {
-  const [categories, setCategories] = useState([]);
-  const [promoCards, setPromoCards] = useState([]);
-  const [loading, setLoading] = useState(true);
+import { ShopContext } from '../context/ShopContext';
 
-  useEffect(() => {
-    // Fetch Settings (Categories & Promos)
-    fetch(`${API_BASE_URL}/api/settings`)
-      .then(res => res.json())
-      .then(settingsData => {
-        if (settingsData.success && settingsData.data) {
-          if (settingsData.data.categories) setCategories(settingsData.data.categories);
-          if (settingsData.data.promoCards) setPromoCards(settingsData.data.promoCards);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch settings", err);
-        setLoading(false);
-      });
-  }, []);
+export default function Home() {
+  const { homeData, loadingAppData } = React.useContext(ShopContext);
+  const categories = homeData?.settings?.categories || [];
+  const promoCards = homeData?.settings?.promoCards || [];
+  const loading = loadingAppData;
 
   return (
     <div className="home-page">
@@ -58,7 +44,12 @@ export default function Home() {
         ))
       ) : (
         categories.map((category, index) => (
-          <LazyCategorySection key={index} category={category} index={index} />
+          <LazyCategorySection 
+            key={index} 
+            category={category} 
+            index={index} 
+            initialProducts={homeData?.categoryMap?.[category.name] || []}
+          />
         ))
       )}
 

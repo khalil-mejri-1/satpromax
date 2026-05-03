@@ -45,13 +45,16 @@ const productSchema = new mongoose.Schema(
         rating: { type: Number, default: 0 },
         reviewCount: { type: Number, default: 0 },
         seoH1: String,
-        seoSubheadings: [{ level: String, text: String }]
+        seoSubheadings: [{ level: String, text: String }],
+        featured: { type: Boolean, default: false }
     },
     { timestamps: true }
 );
 
-productSchema.index({ category: 1 });
-productSchema.index({ createdAt: -1 });
+// Enterprise-grade Indexes for Aggregation & Performance
+productSchema.index({ category: 1, createdAt: -1 }); 
+productSchema.index({ slug: 1 });
+productSchema.index({ featured: 1 });
 productSchema.index({ price: 1 }, { collation: { locale: 'en_US', numericOrdering: true } });
 
 module.exports = mongoose.model("Product", productSchema, "products");

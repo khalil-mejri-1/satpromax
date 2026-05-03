@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import './ProductSection.css';
 import { slugify } from '../utils/slugify';
+import { API_BASE_URL } from '../config';
 
 export default function ProductSection({ title, products = [], loading = false, categoryLink, bgVariant = 0 }) {
     const scrollContainerRef = useRef(null);
@@ -59,6 +60,18 @@ export default function ProductSection({ title, products = [], loading = false, 
         }
     };
 
+    // Enterprise Pre-fetching: Load product data before user even clicks
+    const handlePrefetch = (slug) => {
+        if (!slug) return;
+        const cacheKey = `product_detail_${slug}`;
+        // Simple global cache check to prevent spamming
+        if (!window.__prefetchCache) window.__prefetchCache = new Set();
+        if (window.__prefetchCache.has(slug)) return;
+        
+        window.__prefetchCache.add(slug);
+        fetch(`${API_BASE_URL}/api/product-full-detail/${slug}`).catch(() => {});
+    };
+
     return (
         <section className={`product-section container bg-${bgVariant}`}>
             <div className="section-header">
@@ -97,7 +110,14 @@ export default function ProductSection({ title, products = [], loading = false, 
                             const productSlug = product.slug || slugify(product.name);
 
                             return (
-                                <Link to={`/${categorySlug}/${productSlug}`} key={index} className="product-card slider-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <Link 
+                                    to={`/${categorySlug}/${productSlug}`} 
+                                    key={index} 
+                                    className="product-card slider-card" 
+                                    style={{ textDecoration: 'none', color: 'inherit' }}
+                                    onMouseEnter={() => handlePrefetch(productSlug)}
+                                    onTouchStart={() => handlePrefetch(productSlug)}
+                                >
                                     {isPromoActive && <div className="card-badge promo"><img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>}
                                     <div className="product-image-container">
                                         <img src={product.image} alt={product.name} className="product-image" loading="lazy" />

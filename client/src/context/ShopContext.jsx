@@ -26,9 +26,10 @@ export const ShopContextProvider = ({ children }) => {
         }
     });
 
-    // Categories State
+    // Aggregated App Data State
+    const [homeData, setHomeData] = useState(null);
     const [categories, setCategories] = useState([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [loadingAppData, setLoadingAppData] = useState(true);
     const [settings, setSettings] = useState(null);
     const [customButtons, setCustomButtons] = useState([]);
 
@@ -38,72 +39,67 @@ export const ShopContextProvider = ({ children }) => {
         return (btn && btn.customText) ? btn.customText : defaultText;
     };
 
-    const fetchCategories = () => {
-        setLoadingCategories(true);
-        fetch(`${API_BASE_URL}/api/settings`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.data) {
-                    setSettings(data.data);
-                    if (data.data.categories) {
-                        setCategories(data.data.categories);
-                    }
-                    // Apply global styles
-                    if (data.data.buttonColor) {
-                        document.documentElement.style.setProperty('--button-bg', data.data.buttonColor);
-                    }
-                    if (data.data.buttonTextColor) {
-                        document.documentElement.style.setProperty('--button-text', data.data.buttonTextColor);
-                    }
+    const initAppData = async () => {
+        setLoadingAppData(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/home-data`);
+            const data = await res.json();
+            
+            if (data.success && data.data) {
+                const payload = data.data;
+                setHomeData(payload);
+                setSettings(payload.settings);
+                setCategories(payload.settings.categories || []);
+                setCustomButtons(payload.settings.customButtons || []);
 
-                    if (data.data.customButtons) {
-                        setCustomButtons(data.data.customButtons);
-                    }
+                // Apply global styles (Optimization: only once)
+                const s = payload.settings;
+                if (s.buttonColor) document.documentElement.style.setProperty('--button-bg', s.buttonColor);
+                if (s.buttonTextColor) document.documentElement.style.setProperty('--button-text', s.buttonTextColor);
 
-                    // Inject Custom Button Styles
-                    if (data.data.customButtons && Array.isArray(data.data.customButtons)) {
-                        let css = '';
-                        data.data.customButtons.forEach(btn => {
-                            if (btn.selector) {
-                                let backgroundStyle = '';
-                                if (btn.isGradient) {
-                                    backgroundStyle = `background: linear-gradient(${btn.gradientAngle || 45}deg, ${btn.gradientColor1}, ${btn.gradientColor2}) !important;`;
-                                } else if (btn.backgroundColor) {
-                                    backgroundStyle = `background: ${btn.backgroundColor} !important;`;
-                                }
-
-                                if (backgroundStyle || btn.color) {
-                                    css += `${btn.selector} { 
-                                        ${backgroundStyle} 
-                                        ${btn.color ? `color: ${btn.color} !important;` : ''} 
-                                        border-color: transparent !important;
-                                        transition: all 0.3s ease !important;
-                                    }\n`;
-                                }
+                // Inject Custom Button Styles
+                if (s.customButtons && Array.isArray(s.customButtons)) {
+                    let css = '';
+                    s.customButtons.forEach(btn => {
+                        if (btn.selector) {
+                            let backgroundStyle = '';
+                            if (btn.isGradient) {
+                                backgroundStyle = `background: linear-gradient(${btn.gradientAngle || 45}deg, ${btn.gradientColor1}, ${btn.gradientColor2}) !important;`;
+                            } else if (btn.backgroundColor) {
+                                backgroundStyle = `background: ${btn.backgroundColor} !important;`;
                             }
-                        });
 
-                        if (css) {
-                            let styleTag = document.getElementById('dynamic-buttons-style');
-                            if (!styleTag) {
-                                styleTag = document.createElement('style');
-                                styleTag.id = 'dynamic-buttons-style';
-                                document.head.appendChild(styleTag);
+                            if (backgroundStyle || btn.color) {
+                                css += `${btn.selector} { 
+                                    ${backgroundStyle} 
+                                    ${btn.color ? `color: ${btn.color} !important;` : ''} 
+                                    border-color: transparent !important;
+                                    transition: all 0.3s ease !important;
+                                }\n`;
                             }
-                            styleTag.innerHTML = css;
                         }
+                    });
+
+                    if (css) {
+                        let styleTag = document.getElementById('dynamic-buttons-style');
+                        if (!styleTag) {
+                            styleTag = document.createElement('style');
+                            styleTag.id = 'dynamic-buttons-style';
+                            document.head.appendChild(styleTag);
+                        }
+                        styleTag.innerHTML = css;
                     }
                 }
-                setLoadingCategories(false);
-            })
-            .catch(err => {
-                console.error("Error fetching categories:", err);
-                setLoadingCategories(false);
-            });
+            }
+        } catch (err) {
+            console.error("Error initializing app data:", err);
+        } finally {
+            setLoadingAppData(false);
+        }
     };
 
     useEffect(() => {
-        fetchCategories();
+        initAppData();
     }, []);
 
     // Save to local storage whenever cart or wishlist changes
@@ -223,8 +219,9 @@ export const ShopContextProvider = ({ children }) => {
         wishlistItems,
         categories,
         settings,
-        loadingCategories,
-        fetchCategories,
+        homeData,
+        loadingAppData,
+        initAppData,
         addToCart,
         removeFromCart,
         updateCartItemQuantity,
@@ -233,8 +230,6 @@ export const ShopContextProvider = ({ children }) => {
         addAllToCart,
         removeFromWishlist,
         getCartTotal,
-        getCartCount,
-        getWishlistCount,
         getCartCount,
         getWishlistCount,
         clearCart,
