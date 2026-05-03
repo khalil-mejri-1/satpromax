@@ -20,8 +20,8 @@ const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.
 app.use(express.json());
 app.use(cors());
 
-// Connect DB (Handled in startServer at the end of file)
-// connectDB();
+// Connect DB
+connectDB();
 
 // Models
 const Product = require("./models/Product");
@@ -2063,20 +2063,8 @@ const prewarmCache = async () => {
     }
 };
 
-// Start Server
-const startServer = async () => {
-    try {
-        await connectDB();
-        
-        app.listen(PORT, async () => {
-            console.log(`Server running on http://localhost:${PORT}`);
-            // No need for timeout anymore since we awaited connectDB
-            await prewarmCache();
-        });
-    } catch (err) {
-        console.error("FATAL: Could not start server", err);
-        process.exit(1);
-    }
-};
-
-startServer();
+app.listen(PORT, async () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    // Delay pre-warming slightly to ensure connection is fully established
+    setTimeout(prewarmCache, 2000);
+});
