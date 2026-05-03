@@ -115,6 +115,22 @@ app.use("/api", (req, res, next) => {
     next();
 });
 
+// --- CACHE PRE-WARMING ---
+const preWarmCache = async () => {
+    try {
+        console.log("[CACHE] Pre-warming settings cache...");
+        const settings = await getSafeSettings();
+        apiSettingsCache = { success: true, data: settings };
+        apiSettingsCacheTime = Date.now();
+        console.log("[CACHE] Settings cache pre-warmed successfully!");
+    } catch (err) {
+        console.log("[CACHE] Failed to pre-warm cache:", err.message);
+    }
+};
+
+// Execute pre-warming after a short delay to let DB connect
+setTimeout(preWarmCache, 3000);
+
 app.post("/api/support/fields", async (req, res) => {
     console.log(">>> [TOP PRIORITY] POST /api/support/fields called!");
     console.log(">>> Body:", JSON.stringify(req.body, null, 2));
@@ -806,13 +822,42 @@ app.patch("/api/users/:id/role", async (req, res) => {
     }
 });
 
+// --- SETTINGS CACHE SYSTEM ---
+let apiSettingsCache = null;
+let apiSettingsCacheTime = 0;
+const SETTINGS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+const clearSettingsCache = () => {
+    apiSettingsCache = null;
+    apiSettingsCacheTime = 0;
+};
+
+// Middleware to auto-clear settings cache on any settings modification
+app.use((req, res, next) => {
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        if (req.originalUrl.includes('/api/settings') || req.originalUrl.includes('/api/support')) {
+            clearSettingsCache();
+        }
+    }
+    next();
+});
+
 // Settings
 // getSafeSettings moved to top for safety
 
 app.get("/api/settings", async (req, res) => {
     try {
+        if (apiSettingsCache && (Date.now() - apiSettingsCacheTime < SETTINGS_CACHE_TTL)) {
+            return res.status(200).json(apiSettingsCache);
+        }
+
         const settings = await getSafeSettings();
-        res.status(200).json({ success: true, data: settings });
+        const responseData = { success: true, data: settings };
+        
+        apiSettingsCache = responseData;
+        apiSettingsCacheTime = Date.now();
+        
+        res.status(200).json(responseData);
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
     }
