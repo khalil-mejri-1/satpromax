@@ -218,8 +218,7 @@ app.use("/api", (req, res, next) => {
     next();
 });
 
-// Old preWarmCache removed to prevent race conditions.
-// We use the Enterprise Deep Warming aggregation after DB connect instead.
+
 
 app.post("/api/support/fields", async (req, res) => {
     console.log(">>> [TOP PRIORITY] POST /api/support/fields called!");
@@ -1912,13 +1911,17 @@ const startServer = async () => {
 
         // 2. Start Listening
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
+            console.log(`🚀 Server running on http://localhost:${PORT}`);
+            console.log(`📡 Database connected and stable. ✅`);
 
-            // 3. Initial warming after 5 seconds to ensure stability
-            setTimeout(prewarmCache, 5000);
+            // 3. Initial warming after 2 seconds to allow internal DB processes to settle
+            setTimeout(() => {
+                console.log("[CACHE] Initiating first enterprise pre-warming...");
+                prewarmCache();
+            }, 2000);
 
-            // 4. Periodically warm the DB every 5 minutes
-            setInterval(prewarmCache, 5 * 60 * 1000);
+            // 4. Periodically warm the DB every 10 minutes
+            setInterval(prewarmCache, 10 * 60 * 1000);
         });
     } catch (err) {
         console.error("FATAL: Could not start server due to DB connection failure:", err);
