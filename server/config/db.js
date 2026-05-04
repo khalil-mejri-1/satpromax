@@ -76,11 +76,11 @@ const connectDB = async () => {
 
     try {
         // 1. Connect to Local DB (Primary for GET)
-        await mongoose.connect(process.env.MONGODB_URI_LOCAL || "mongodb://127.0.0.1:27017/technoplus", options);
+        await mongoose.connect("mongodb://127.0.0.1:27017/technoplus", options);
         console.log("🟢 [Local DB] Connected (Primary for Reads)");
 
         // 2. Connect to Remote DB (Secondary for Sync)
-        remoteConn = mongoose.createConnection(process.env.MONGODB_URI_REMOTE, options);
+        remoteConn = mongoose.createConnection("mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus", options);
         remoteConn.on('connected', () => console.log('🔵 [Remote DB] Connected (Mirror for Writes)'));
         remoteConn.on('error', (err) => console.error('🔴 [Remote DB] Mirror Connection Error:', err));
 
