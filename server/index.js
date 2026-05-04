@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
@@ -49,13 +50,13 @@ const Application = require("./models/Application");
 
 // --- SETTINGS UTILS (WITH CACHING) ---
 let globalSettingsCache = null;
-
+console.log("REMOTE URI:", process.env.MONGODB_URI_REMOTE);
 // This function runs exactly ONCE during server startup
 const initSettings = async () => {
     try {
         console.log("⚙️ [STARTUP] Initializing General Settings...");
         let settings = await GeneralSettings.findOne().lean();
-
+console.log("REMOTE URI:", process.env.MONGODB_URI_REMOTE);
         if (!settings) {
             console.log("⚠️ [STARTUP] Settings not found, creating default...");
             const defaultSettings = new GeneralSettings({
