@@ -131,19 +131,8 @@ const saveToCache = (key, data) => {
 };
 
 const verifyTurnstile = async (token) => {
-    if (!token) return false;
-    try {
-        const secretKey = process.env.TURNSTILE_SECRET_KEY;
-        const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ secret: secretKey, response: token })
-        });
-        const data = await res.json();
-        return data.success;
-    } catch (err) {
-        return false;
-    }
+    // Captcha disabled as per user request
+    return true;
 };
 
 // --- ENTERPRISE ARCHITECTURE: SINGLE AGGREGATION PIPELINE ---

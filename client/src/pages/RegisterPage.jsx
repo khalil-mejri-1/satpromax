@@ -14,35 +14,10 @@ export default function RegisterPage() {
         password: '',
         confirmPassword: ''
     });
-    const [captchaToken, setCaptchaToken] = useState(null);
-    const widgetRef = React.useRef(null);
     const [message, setMessage] = useState(null);
     const navigate = useNavigate();
 
-    React.useEffect(() => {
-        const renderTurnstile = () => {
-            if (window.turnstile && widgetRef.current) {
-                window.turnstile.render(widgetRef.current, {
-                    sitekey: '0x4AAAAAACY_TRkoirfO1kT5',
-                    callback: (token) => setCaptchaToken(token),
-                    'error-callback': () => setCaptchaToken(null),
-                    'expired-callback': () => setCaptchaToken(null),
-                });
-            }
-        };
 
-        if (window.turnstile) {
-            renderTurnstile();
-        } else {
-            const checkTurnstile = setInterval(() => {
-                if (window.turnstile) {
-                    renderTurnstile();
-                    clearInterval(checkTurnstile);
-                }
-            }, 100);
-            return () => clearInterval(checkTurnstile);
-        }
-    }, []);
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
@@ -90,8 +65,7 @@ export default function RegisterPage() {
                 body: JSON.stringify({
                     username: formData.username,
                     email: formData.email,
-                    password: formData.password,
-                    captchaToken
+                    password: formData.password
                 })
             });
             const data = await response.json();
@@ -172,15 +146,9 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
-                            <div
-                                className="cf-turnstile"
-                                data-sitekey="0x4AAAAAACY_TRkoirfO1kT5"
-                                data-callback="onTurnstileSuccess"
-                            ></div>
-                        </div>
 
-                        <button type="submit" className="btn-login" disabled={!captchaToken}>S'inscrire</button>
+
+                        <button type="submit" className="btn-login">S'inscrire</button>
 
                         <div className="divider">
                             <span>OU</span>
