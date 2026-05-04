@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const MONGO_URI = "mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0";
+const MONGO_URI = "mongodb://127.0.0.1:27017/technoplus";
 
 const optimizeDB = async () => {
     try {

@@ -16,17 +16,18 @@ const connectDB = async () => {
     try {
         const options = {
             serverSelectionTimeoutMS: 30000, // Relaxed to 30s to survive network hiccups
-            socketTimeoutMS: 45000, 
+            socketTimeoutMS: 45000,
             connectTimeoutMS: 30000,
             heartbeatFrequencyMS: 2000, // Check connection health every 2 seconds
+            maxIdleTimeMS: 10000, // IMPORTANT: Prevent stale socket starvation (fixes 40s delay)
             family: 4, // Force IPv4 (Fixes Windows localhost DNS issues)
-            maxPoolSize: 100, 
+            maxPoolSize: 100,
             minPoolSize: 5,  // Reduced slightly to not overload free tier on startup
             retryWrites: true,
             w: 'majority'
         };
 
-        await mongoose.connect("mongodb+srv://technoplus989_db_user:r2G0uyv5WI19dZU6@cluster0.oxhvidw.mongodb.net/technoplus?appName=Cluster0", options);
+        await mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/technoplus", options);
         isConnected = true;
         console.log("🚀 [MongoDB] Initial Connection Successful (Pool Optimized)");
     } catch (error) {

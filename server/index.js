@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
@@ -11,10 +12,10 @@ const QRCode = require("qrcode");
 const multer = require("multer");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const CLIENT_DIST = path.join(__dirname, "../client/dist");
 const INDEX_HTML = path.join(CLIENT_DIST, "index.html");
-const client = new OAuth2Client("1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.apps.googleusercontent.com");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Middleware
 app.use(express.json());
@@ -132,7 +133,7 @@ const saveToCache = (key, data) => {
 const verifyTurnstile = async (token) => {
     if (!token) return false;
     try {
-        const secretKey = "0x4AAAAAACY_TdZ-q5OvHkw1e4xVcjiwJ_U";
+        const secretKey = process.env.TURNSTILE_SECRET_KEY;
         const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -719,8 +720,8 @@ app.post("/api/login", async (req, res) => {
         }
 
         const settings = getSafeSettings();
-        const adminEmail = settings?.adminEmail || 'ferid123@admin.test';
-        const adminPassword = settings?.adminPassword || '123456';
+        const adminEmail = settings?.adminEmail || process.env.ADMIN_EMAIL;
+        const adminPassword = settings?.adminPassword || process.env.ADMIN_PASSWORD;
 
 
         if (email === adminEmail && password === adminPassword) {
@@ -791,8 +792,8 @@ app.post("/api/auth/forgot-password", async (req, res) => {
         }
 
         if (!settings) settings = await GeneralSettings.findOne();
-        const senderEmail = settings?.senderEmail || 'kmejri57@gmail.com';
-        const senderPassword = settings?.senderPassword || 'msncmujsbjqnszxp';
+        const senderEmail = settings?.senderEmail || process.env.EMAIL_USER;
+        const senderPassword = settings?.senderPassword || process.env.EMAIL_PASS;
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -880,7 +881,7 @@ app.post("/api/google-login", async (req, res) => {
         const { credential } = req.body;
         const ticket = await client.verifyIdToken({
             idToken: credential,
-            audience: "1009149258614-fi43cus8mt3j8gcfh7d4jlnk1d05hajg.apps.googleusercontent.com"
+            audience: process.env.GOOGLE_CLIENT_ID
         });
         const payload = ticket.getPayload();
         const { email, name } = payload;
@@ -1382,9 +1383,9 @@ app.post("/api/orders", async (req, res) => {
         // Email Notification
         try {
             const settings = await GeneralSettings.findOne();
-            const senderEmail = settings?.notificationSenderEmail || 'kmejri57@gmail.com';
-            const senderPass = settings?.notificationSenderPassword || 'msncmujsbjqnszxp';
-            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+            const senderEmail = settings?.notificationSenderEmail || process.env.NOTIFICATION_SENDER_EMAIL;
+            const senderPass = settings?.notificationSenderPassword || process.env.NOTIFICATION_SENDER_PASSWORD;
+            const receiverEmail = settings?.notificationReceiverEmail || process.env.NOTIFICATION_RECEIVER_EMAIL;
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -1733,9 +1734,9 @@ app.post("/api/contact", async (req, res) => {
 
         try {
             const settings = await GeneralSettings.findOne();
-            const senderEmail = settings?.notificationSenderEmail || 'Satpromax2026@gmail.com';
-            const senderPass = settings?.notificationSenderPassword || 'ywjatvegygdylvth';
-            const receiverEmail = settings?.notificationReceiverEmail || 'mejrik1888@gmail.com';
+            const senderEmail = settings?.notificationSenderEmail || process.env.CONTACT_SENDER_EMAIL;
+            const senderPass = settings?.notificationSenderPassword || process.env.CONTACT_SENDER_PASSWORD;
+            const receiverEmail = settings?.notificationReceiverEmail || process.env.NOTIFICATION_RECEIVER_EMAIL;
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
