@@ -136,17 +136,17 @@ const verifyTurnstile = async (token) => {
 const buildHomeData = async () => {
     const settings = getSafeSettings();
     const settingsCategories = settings.categories || [];
-    
+
     // Discover all unique categories currently in use by products
     const dbCategories = await Product.distinct("category");
-    
+
     // Merge settings categories with any extra categories found in DB
     const finalCategories = [...settingsCategories];
     dbCategories.forEach(dbCat => {
         if (dbCat && !finalCategories.some(c => c.name === dbCat)) {
-            finalCategories.push({ 
-                name: dbCat, 
-                slug: slugify(dbCat), 
+            finalCategories.push({
+                name: dbCat,
+                slug: slugify(dbCat),
                 title: dbCat,
                 description: `Tous les produits de la catégorie ${dbCat}`
             });
@@ -1454,6 +1454,30 @@ app.delete("/api/orders/:id", async (req, res) => {
         res.status(200).json({ success: true, message: "Commande supprimée" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+app.get("/api/stats", async (req, res) => {
+    try {
+        const totalProducts = await Product.countDocuments();
+        const totalOrders = await Order.countDocuments();
+        const totalUsers = await User.countDocuments();
+
+        // Calculate total sales from completed orders
+        const orders = await Order.find({ status: 'Pay' });
+        const totalSales = orders.reduce((sum, order) => sum + (parseFloat(order.totalAmount) || 0), 0);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalProducts,
+                totalSales: totalSales.toFixed(2),
+                totalOrders,
+                totalUsers
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
