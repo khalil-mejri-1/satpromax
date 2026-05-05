@@ -135,22 +135,38 @@ const verifyTurnstile = async (token) => {
 // --- ENTERPRISE ARCHITECTURE: SINGLE AGGREGATION PIPELINE ---
 const buildHomeData = async () => {
     const settings = getSafeSettings();
-    const categories = settings.categories || [];
+    const settingsCategories = settings.categories || [];
+    
+    // Discover all unique categories currently in use by products
+    const dbCategories = await Product.distinct("category");
+    
+    // Merge settings categories with any extra categories found in DB
+    const finalCategories = [...settingsCategories];
+    dbCategories.forEach(dbCat => {
+        if (dbCat && !finalCategories.some(c => c.name === dbCat)) {
+            finalCategories.push({ 
+                name: dbCat, 
+                slug: slugify(dbCat), 
+                title: dbCat,
+                description: `Tous les produits de la catégorie ${dbCat}`
+            });
+        }
+    });
 
     const facetBranches = {
         newestProducts: [
             { $sort: { createdAt: -1 } },
-            { $limit: 20 },
-            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1 } }
+            { $limit: 200 },
+            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1, createdAt: 1 } }
         ]
     };
 
-    categories.forEach((cat, index) => {
+    finalCategories.forEach((cat, index) => {
         facetBranches[`cat_${index}`] = [
             { $match: { category: cat.name } },
             { $sort: { createdAt: -1 } },
-            { $limit: 15 },
-            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1 } }
+            { $limit: 200 }, // Fetch up to 200 products per category to ensure all 175 are covered
+            { $project: { name: 1, price: 1, image: 1, category: 1, slug: 1, promoPrice: 1, createdAt: 1 } }
         ];
     });
 
@@ -161,16 +177,19 @@ const buildHomeData = async () => {
 
     const productAgg = productAggResult[0] || {};
     const categoryMap = {};
-    categories.forEach((cat, index) => {
+    finalCategories.forEach((cat, index) => {
         categoryMap[cat.name] = productAgg[`cat_${index}`] || [];
     });
+
+    // Filter out categories that have NO products to keep the UI clean
+    const activeCategories = finalCategories.filter(cat => categoryMap[cat.name] && categoryMap[cat.name].length > 0);
 
     return {
         settings,
         reviews,
         newestProducts: productAgg.newestProducts || [],
         categoryMap,
-        categories
+        categories: activeCategories
     };
 };
 
@@ -446,6 +465,7 @@ app.delete("/api/support/tickets/:id", async (req, res) => {
 });
 
 // --- CACHE SYSTEM ---
+const CACHE_VERSION = "v2.0"; // Increment to force invalidate all caches
 const productCache = new Map();
 const ssrCache = new Map();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for data
@@ -454,12 +474,13 @@ const SSR_CACHE_TTL = 30 * 60 * 1000; // 30 minutes for HTML
 const getSortedCacheKey = (url) => {
     try {
         const [base, query] = url.split('?');
-        if (!query) return url;
+        const versionedBase = `${base}_${CACHE_VERSION}`;
+        if (!query) return versionedBase;
         const params = new URLSearchParams(query);
         params.sort(); // Alphabetical sort to ensure consistency
-        return `${base}?${params.toString()}`;
+        return `${versionedBase}?${params.toString()}`;
     } catch (e) {
-        return url;
+        return url + "_" + CACHE_VERSION;
     }
 };
 
@@ -533,12 +554,11 @@ app.get("/api/products", async (req, res) => {
             let query = {};
             if (category) query.category = category;
 
-            const parsedLimit = parseInt(limit) || 20;
+            const parsedLimit = parseInt(limit) || 1000;
             const parsedPage = parseInt(page) || 1;
             const skipAmt = (parsedPage - 1) * parsedLimit;
 
             let productQuery = Product.find(query)
-                .select('name price image category slug createdAt promoPrice promoEndDate')
                 .lean();
 
             let sortOption = { createdAt: -1 };

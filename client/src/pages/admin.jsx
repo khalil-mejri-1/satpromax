@@ -267,7 +267,7 @@ const GlobalSeoModal = ({ isOpen, onClose, initialData }) => {
     };
 
     const fetchProducts = () => {
-        fetch(`${API_BASE_URL}/api/products`)
+        fetch(`${API_BASE_URL}/api/products?limit=1000`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) setProducts(data.data);
@@ -850,7 +850,7 @@ const PromoManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch(`${API_BASE_URL}/api/products`)
+        fetch(`${API_BASE_URL}/api/products?limit=1000`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -1112,7 +1112,7 @@ const ProductsManager = () => {
 
     const fetchProducts = () => {
         setLoading(true);
-        fetch(`${API_BASE_URL}/api/products`)
+        fetch(`${API_BASE_URL}/api/products?limit=1000`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
@@ -1220,41 +1220,56 @@ const ProductsManager = () => {
         setModalOpen(true);
     };
 
-    const openEditModal = (product) => {
+    const openEditModal = async (product) => {
         setModalType('edit');
         setCurrentProduct(product);
+        
+        try {
+            // Root Fix: Always fetch the freshest and complete data for editing
+            const res = await fetch(`${API_BASE_URL}/api/products/${product._id}`);
+            const result = await res.json();
+            
+            if (result.success && result.data) {
+                const fullProduct = result.data;
+                
+                // Convert comma-separated strings to arrays
+                const skuList = fullProduct.sku ? fullProduct.sku.split(',').map(s => s.trim()).filter(s => s) : [];
+                const tagsList = fullProduct.tags ? fullProduct.tags.split(',').map(t => t.trim()).filter(t => t) : [];
 
-        // Convert comma-separated strings to arrays
-        const skuList = product.sku ? product.sku.split(',').map(s => s.trim()).filter(s => s) : [];
-        const tagsList = product.tags ? product.tags.split(',').map(t => t.trim()).filter(t => t) : [];
-
-        setFormData({
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            category: product.category,
-            subCategory: product.subCategory || '',
-            description: product.description || '',
-            skuList: skuList,
-            tagsList: tagsList,
-            metaTitle: product.metaTitle || '',
-            metaDescription: product.metaDescription || '',
-            resolution: product.resolution || '',
-            region: product.region || '',
-            downloadLink: product.downloadLink || '',
-            googlePlayLink: product.googlePlayLink || '',
-            galleryList: product.gallery || [],
-            descriptionGlobal: product.descriptionGlobal || '',
-            extraSections: product.extraSections || [],
-            hasDelivery: product.hasDelivery || false,
-            deliveryPrice: product.deliveryPrice || '',
-            hasTest: product.hasTest || false,
-            hasBouquets: product.hasBouquets || false,
-            selectedBouquets: product.selectedBouquets || [],
-            hasSubscriptionFormats: product.hasSubscriptionFormats || false,
-            selectedSubscriptionFormats: product.selectedSubscriptionFormats || []
-        });
-        setModalOpen(true);
+                setFormData({
+                    name: fullProduct.name || '',
+                    price: fullProduct.price || '',
+                    image: fullProduct.image || '',
+                    category: fullProduct.category || '',
+                    subCategory: fullProduct.subCategory || '',
+                    description: fullProduct.description || '',
+                    skuList: skuList,
+                    tagsList: tagsList,
+                    metaTitle: fullProduct.metaTitle || '',
+                    metaDescription: fullProduct.metaDescription || '',
+                    resolution: fullProduct.resolution || '',
+                    region: fullProduct.region || '',
+                    downloadLink: fullProduct.downloadLink || '',
+                    googlePlayLink: fullProduct.googlePlayLink || '',
+                    galleryList: fullProduct.gallery || [],
+                    descriptionGlobal: fullProduct.descriptionGlobal || '',
+                    extraSections: fullProduct.extraSections || [],
+                    hasDelivery: fullProduct.hasDelivery || false,
+                    deliveryPrice: fullProduct.deliveryPrice || '',
+                    hasTest: fullProduct.hasTest || false,
+                    hasBouquets: fullProduct.hasBouquets || false,
+                    selectedBouquets: fullProduct.selectedBouquets || [],
+                    hasSubscriptionFormats: fullProduct.hasSubscriptionFormats || false,
+                    selectedSubscriptionFormats: fullProduct.selectedSubscriptionFormats || []
+                });
+                setModalOpen(true);
+            } else {
+                showNotification("Erreur: Impossible de charger les détails complets du produit.", "error");
+            }
+        } catch (err) {
+            console.error("Fetch error in openEditModal:", err);
+            showNotification("Erreur de connexion au serveur.", "error");
+        }
     };
 
     const openDeleteModal = (product) => {
@@ -1387,6 +1402,41 @@ const ProductsManager = () => {
                     <button className="btn btn-primary" onClick={openAddModal}>
                         + Ajouter un produit
                     </button>
+                </div>
+            </div>
+
+            {/* Total Products Summary Card */}
+            <div style={{
+                background: '#f8fafc',
+                padding: '15px 20px',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '25px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+                <div style={{
+                    width: '48px',
+                    height: '48px',
+                    background: '#eff6ff',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    border: '1px solid #dbeafe'
+                }}>
+                    📦
+                </div>
+                <div>
+                    <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Nombre Total de Produits
+                    </div>
+                    <div style={{ fontSize: '28px', color: '#1e293b', fontWeight: '800', lineHeight: '1.2' }}>
+                        {products.length} <span style={{ fontSize: '16px', color: '#94a3b8', fontWeight: '400' }}>Articles</span>
+                    </div>
                 </div>
             </div>
 
