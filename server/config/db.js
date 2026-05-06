@@ -22,13 +22,13 @@ const connectDB = async () => {
     };
 
     try {
-        // Connect to Primary Local DB
+        // Connect to Local DB
         await mongoose.connect("mongodb://127.0.0.1:27017/technoplus", options);
-        console.log("🟢 [Local DB] Connected Successfully ✅");
+        console.log("🟢 [MongoDB] Connected to Local Database");
 
         isConnected = true;
     } catch (error) {
-        console.error("🔴 [MongoDB] Initial Connection Failed ❌", error);
+        console.error("🔴 [MongoDB] Connection Failed ❌", error);
         process.exit(1);
     }
 };
