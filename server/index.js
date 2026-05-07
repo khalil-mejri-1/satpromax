@@ -2032,7 +2032,7 @@ const generateServerHomeHTML = (products, categories) => {
 // --- FINAL CATCH-ALL ROUTE (SSR & SPA MODE) ---
 app.get(/.*/, async (req, res) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-        return next(); // Let static or API routes handle it
+        return next();
     }
 
     try {
@@ -2057,28 +2057,35 @@ app.get(/.*/, async (req, res) => {
 
         const pathName = req.path;
 
-        // SSR Logic for Home Page
+        // SSR Logic for Home Page (Using FAST Cache)
         if (pathName === "/" || pathName === "/home") {
-            const data = await buildHomeData();
+            const cachedHome = apiCache.get("home_full_data_v4");
+            const data = cachedHome ? cachedHome.data : await buildHomeData();
             ssrHtml = generateServerHomeHTML(data.newestProducts, data.categories);
         } 
-        // SSR Logic for Product Detail Page
+        // SSR Logic for Product Detail Page (Using FAST Cache)
         else {
             const parts = pathName.split('/').filter(p => p !== "");
             if (parts.length === 2) {
                 const [catSlug, productSlug] = parts;
-                const product = await Product.findOne({ slug: productSlug }).lean();
+                
+                const detailKey = `product_detail_${productSlug}`;
+                const cachedDetail = apiCache.get(detailKey);
+                
+                let product, related;
+                if (cachedDetail) {
+                    product = cachedDetail.data.product;
+                    related = cachedDetail.data.related;
+                } else {
+                    product = await Product.findOne({ slug: productSlug }).lean();
+                    if (product) {
+                        related = await Product.find({ category: product.category, _id: { $ne: product._id } }).limit(8).lean();
+                    }
+                }
                 
                 if (product) {
-                    const [related, settings] = await Promise.all([
-                        Product.find({ category: product.category, _id: { $ne: product._id } })
-                            .limit(8)
-                            .select('name price image category slug promoPrice')
-                            .lean(),
-                        GeneralSettings.findOne().lean()
-                    ]);
-                    
-                    ssrHtml = generateServerProductHTML(product, related, settings?.categories || []);
+                    const settings = getSafeSettings();
+                    ssrHtml = generateServerProductHTML(product, related || [], settings?.categories || []);
                     schemaScript = generateProductSchema(product);
                     metadata.title = `${product.name} - Satpromax`;
                     metadata.description = product.description || `Achetez ${product.name} sur Satpromax Tunisie.`;
@@ -2086,6 +2093,8 @@ app.get(/.*/, async (req, res) => {
                 }
             }
         }
+
+        res.setHeader('Content-Type', 'text/html');
 
         if (ssrHtml) {
             // Use regex to find <div id="root"> regardless of spaces or content
@@ -2112,7 +2121,6 @@ app.get(/.*/, async (req, res) => {
                 finalHtml = finalHtml.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${metadata.image}"`);
             }
 
-            console.log(`[SSR] Rendered page: ${pathName}`);
             return res.send(finalHtml);
         }
 
