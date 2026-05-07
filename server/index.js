@@ -1878,6 +1878,31 @@ const generateServerHeader = (categories) => {
     `;
 };
 
+const generateProductSchema = (product) => {
+    if (!product) return "";
+    const schema = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": product.image,
+        "description": product.description || product.descriptionGlobal,
+        "sku": product.sku || product._id.toString(),
+        "brand": {
+            "@type": "Brand",
+            "name": "Satpromax"
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": `https://Satpromax.com/${slugify(product.category)}/${product.slug}`,
+            "priceCurrency": "TND",
+            "price": product.promoPrice || product.price,
+            "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "itemCondition": "https://schema.org/NewCondition"
+        }
+    };
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+};
+
 const generateServerFooter = () => `
     <footer class="ssr-footer" style="margin-top: 50px; padding: 30px; background: #f8fafc; text-align: center;">
         <div class="footer-links" style="margin-bottom: 20px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
@@ -1925,29 +1950,42 @@ const generateServerProductHTML = (product, similarProducts = [], categories = [
                 <main style="display: grid; grid-template-columns: 300px 1fr; gap: 40px;">
                     <div class="image-col">
                          <img src="${product.image}" alt="${product.name}" style="width: 100%; border-radius: 12px;" />
+                         <h6 style="text-align: center; color: #94a3b8; font-size: 10px; margin-top: 10px;">Image officielle de ${product.name} - Satpromax Tunisie</h6>
                     </div>
                     <div class="info-col">
-                        <h1 style="margin-top: 0;">${product.name}</h1>
-                        <div class="price" style="font-size: 24px; color: #ef4444; margin: 15px 0;">
-                            ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price}</del> <strong>${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
+                        <h1 style="margin-top: 0; font-size: 32px; color: #1e293b;">${product.name}</h1>
+                        <h2 style="font-size: 18px; color: #64748b; font-weight: 500; margin-top: -10px;">Meilleur choix en ${product.category}</h2>
+                        
+                        <div class="price" style="font-size: 28px; color: #ef4444; margin: 20px 0;">
+                            ${isPromo ? `<del style="color: #94a3b8; font-size: 18px;">${product.price} DT</del> <strong style="background: #fff1f2; padding: 5px 10px; border-radius: 8px;">${product.promoPrice} DT</strong>` : `<strong>${product.price} DT</strong>`}
                         </div>
-                        <div class="description">
-                            <h3>${product.description || ''}</h3>
-                            <h3 style="line-height: 1.6;">${product.descriptionGlobal || ''}</h3>
+
+                        <div class="description-box">
+                            <h3 style="border-left: 4px solid #fbbf24; padding-left: 10px; font-size: 20px;">Description du Produit</h3>
+                            <p style="line-height: 1.6; color: #334155;">${product.description || ''}</p>
+                            <div style="font-size: 15px; color: #475569;">${product.descriptionGlobal || ''}</div>
                         </div>
-                        <div class="extra-sections">
-                            ${extraContent}
+
+                        <div class="features-list" style="margin-top: 30px;">
+                            <h4 style="font-size: 18px; color: #1e293b;">Caractéristiques Principales</h4>
+                            <div class="extra-sections">
+                                ${extraContent}
+                            </div>
                         </div>
-                        <div class="meta" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; color: #64748b;">
-                            <h3>SKU: ${product.sku || 'N/A'}</h3>
-                            <h3>Disponibilité: ${product.inStock !== false ? 'En Stock' : 'Épuisé'}</h3>
+
+                        <div class="product-metadata" style="margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                            <h5 style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Informations Techniques</h5>
+                            <div style="font-size: 14px; color: #1e293b;">
+                                <strong>SKU:</strong> ${product.sku || 'N/A'} | 
+                                <strong>Disponibilité:</strong> ${product.inStock !== false ? 'En Stock' : 'Épuisé'}
+                            </div>
                         </div>
                     </div>
                 </main>
 
-                <aside class="similar-products" style="margin-top: 60px;">
-                    <h3 style="border-bottom: 2px solid #fbbf24; padding-bottom: 10px; display: inline-block;">Vous aimerez aussi</h3>
-                    <div class="links-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                <aside class="related-section" style="margin-top: 80px;">
+                    <h2 style="font-size: 24px; border-bottom: 2px solid #fbbf24; padding-bottom: 10px; display: inline-block;">Produits Similaires</h2>
+                    <div class="links-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
                         ${similarLinks}
                     </div>
                 </aside>
@@ -2010,6 +2048,7 @@ app.get(/.*/, async (req, res) => {
         
         let template = fs.readFileSync(templatePath, 'utf8');
         let ssrHtml = "";
+        let schemaScript = "";
         let metadata = {
             title: "Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie",
             description: "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax. Qualité premium et support 24/7.",
@@ -2040,6 +2079,7 @@ app.get(/.*/, async (req, res) => {
                     ]);
                     
                     ssrHtml = generateServerProductHTML(product, related, settings?.categories || []);
+                    schemaScript = generateProductSchema(product);
                     metadata.title = `${product.name} - Satpromax`;
                     metadata.description = product.description || `Achetez ${product.name} sur Satpromax Tunisie.`;
                     metadata.image = product.image || metadata.image;
@@ -2051,6 +2091,11 @@ app.get(/.*/, async (req, res) => {
             // Use regex to find <div id="root"> regardless of spaces or content
             let finalHtml = template.replace(/<div id="root">\s*<\/div>/, `<div id="root">${ssrHtml}</div>`);
             
+            // Inject Schema Script into Head
+            if (schemaScript) {
+                finalHtml = finalHtml.replace('</head>', `${schemaScript}</head>`);
+            }
+
             // Inject dynamic metadata
             if (metadata.title) {
                 finalHtml = finalHtml.replace(/<title>.*?<\/title>/, `<title>${metadata.title}</title>`);
