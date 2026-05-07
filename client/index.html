@@ -45,7 +45,7 @@
       justify-content: center;
       align-items: center;
       z-index: 999999;
-      transition: opacity 0.6s ease, visibility 0.6s;
+      transition: opacity 0.4s ease, visibility 0.4s;
     }
 
     .loader-content {
@@ -129,16 +129,24 @@
   <script type="module" src="/src/main.jsx"></script>
 
   <script>
-    // Remove preloader after page is fully loaded
-    window.addEventListener('load', function() {
+    // Remove preloader function
+    const hidePreloader = () => {
       const loader = document.getElementById('preloader');
-      setTimeout(() => {
+      if (loader && !loader.classList.contains('preloader-hidden')) {
         loader.classList.add('preloader-hidden');
         setTimeout(() => {
           loader.remove();
-        }, 600);
-      }, 500); // Small delay for smooth feel
+        }, 400);
+      }
+    };
+
+    // Remove preloader after page is fully loaded
+    window.addEventListener('load', function() {
+      setTimeout(hidePreloader, 300); // Small delay for smooth feel
     });
+
+    // Fallback: Max 1.1 seconds wait + 0.4s transition = 1.5 seconds total
+    setTimeout(hidePreloader, 1100);
   </script>
 
 </html>
