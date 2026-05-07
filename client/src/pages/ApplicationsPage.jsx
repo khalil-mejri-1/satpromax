@@ -20,6 +20,8 @@ const DownloadIcon = () => (
     </svg>
 );
 
+import SafeImage from '../components/SafeImage';
+
 export default function ApplicationsPage() {
     const [apps, setApps] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function ApplicationsPage() {
                         {filteredApps.map(app => (
                             <div key={app._id} className="app-card">
                                 <div className="app-icon-wrapper">
-                                    <img src={app.icon} alt={app.name} className="app-icon-img" />
+                                    <SafeImage src={app.icon} alt={app.name} className="app-icon-img" />
                                     <span className="os-badge">{app.os}</span>
                                 </div>
                                 <div className="app-content">

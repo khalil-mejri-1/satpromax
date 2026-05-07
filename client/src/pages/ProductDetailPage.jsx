@@ -8,6 +8,7 @@ import './ProductDetailPage.css';
 import { countryCodes } from '../data/countryCodes';
 import SEO from '../components/SEO/SEO';
 import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
+import SafeImage from '../components/SafeImage';
 
 import { API_BASE_URL, SITE_URL } from '../config';
 
@@ -52,7 +53,7 @@ const SimilarProductCard = React.memo(({ item, addToCart, setModal }) => {
         >
             {item.promoPrice && new Date(item.promoEndDate) > new Date() && (
                 <div className="card-badge-similar promo">
-                    <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
+                    <SafeImage src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
                 </div>
             )}
             <Link to={`/${slugify(item.category)}/${item.slug || slugify(item.name)}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -67,7 +68,7 @@ const SimilarProductCard = React.memo(({ item, addToCart, setModal }) => {
                     borderRadius: '18px',
                     position: 'relative'
                 }}>
-                    <img
+                    <SafeImage
                         src={item.image}
                         alt={item.name}
                         style={{
@@ -708,10 +709,10 @@ export default function ProductDetailPage() {
                                 <div className="zoom-icon" onClick={() => setIsZoomOpen(true)}>⛶</div>
                                 {product.promoPrice && new Date(product.promoEndDate) > new Date() && (
                                     <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '100px', height: '100px', zIndex: 5, pointerEvents: 'none' }}>
-                                        <img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        <SafeImage src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     </div>
                                 )}
-                                <img src={activeImage || product.image} alt={product.name} className="main-display-image" key={activeImage} />
+                                <SafeImage src={activeImage || product.image} alt={product.name} className="main-display-image" key={activeImage} />
                             </div>
 
                             {/* Gallery Thumbnails */}
@@ -722,7 +723,7 @@ export default function ProductDetailPage() {
                                         className={`thumbnail-item ${activeImage === product.image ? 'active' : ''}`}
                                         onClick={() => setActiveImage(product.image)}
                                     >
-                                        <img src={product.image} alt="Main" />
+                                        <SafeImage src={product.image} alt="Main" />
                                     </div>
 
                                     {/* Additional Gallery Images */}
@@ -732,7 +733,7 @@ export default function ProductDetailPage() {
                                             className={`thumbnail-item ${activeImage === imgUrl ? 'active' : ''}`}
                                             onClick={() => setActiveImage(imgUrl)}
                                         >
-                                            <img src={imgUrl} alt={`Gallery ${idx + 1}`} />
+                                            <SafeImage src={imgUrl} alt={`Gallery ${idx + 1}`} />
                                         </div>
                                     ))}
                                 </div>

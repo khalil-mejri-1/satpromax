@@ -5,6 +5,8 @@ import './ProductSection.css';
 import { slugify } from '../utils/slugify';
 import { API_BASE_URL } from '../config';
 
+import SafeImage from './SafeImage';
+
 export default function ProductSection({ title, products = [], loading = false, categoryLink, bgVariant = 0 }) {
     const scrollContainerRef = useRef(null);
     const { addToCart } = useContext(ShopContext);
@@ -15,7 +17,6 @@ export default function ProductSection({ title, products = [], loading = false, 
     // However, since we are mapping, we might need a separate component or just handle it directly.
     // Let's creating a small sub-component for the card could be cleaner, but modifying inline is faster for now.
     // We will just handle the click event directly.
-
     // Quick helper to show "Added" state could be complex inline without extracting component.
     // We'll proceed with just the functional requirement: Add to cart without redirect.
     const [addedIds, setAddedIds] = useState(new Set());
@@ -118,9 +119,17 @@ export default function ProductSection({ title, products = [], loading = false, 
                                     onMouseEnter={() => handlePrefetch(productSlug)}
                                     onTouchStart={() => handlePrefetch(productSlug)}
                                 >
-                                    {isPromoActive && <div className="card-badge promo"><img src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>}
+                                    {isPromoActive && (
+                                        <div className="card-badge promo">
+                                            <SafeImage 
+                                                src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" 
+                                                alt="Promo" 
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                                            />
+                                        </div>
+                                    )}
                                     <div className="product-image-container">
-                                        <img src={product.image} alt={product.name} className="product-image" loading="lazy" />
+                                        <SafeImage src={product.image} alt={product.name} className="product-image" loading="lazy" />
                                         <div className="quick-action-btns">
                                             <div className="quick-view-circle">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>

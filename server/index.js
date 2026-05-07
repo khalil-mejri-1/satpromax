@@ -1991,15 +1991,91 @@ const generateServerHomeHTML = (products, categories) => {
     `;
 };
 
-// --- FINAL CATCH-ALL ROUTE (SPA MODE) ---
-app.get(/.*/, (req, res) => {
-    // 1. Explicitly ignore ALL API calls to let them reach their routes
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ success: false, message: "API Route not found" });
+// --- FINAL CATCH-ALL ROUTE (SSR & SPA MODE) ---
+app.get(/.*/, async (req, res) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+        return next(); // Let static or API routes handle it
     }
 
-    // 2. Serve the static index.html for all frontend routes
-    res.sendFile(INDEX_HTML);
+    try {
+        // Try to find the best index.html template (dist first, then source)
+        let templatePath = INDEX_HTML;
+        if (!fs.existsSync(templatePath)) {
+            templatePath = path.join(__dirname, "../client/index.html");
+        }
+
+        if (!fs.existsSync(templatePath)) {
+            return res.status(404).send("Template index.html not found.");
+        }
+        
+        let template = fs.readFileSync(templatePath, 'utf8');
+        let ssrHtml = "";
+        let metadata = {
+            title: "Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie",
+            description: "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax. Qualité premium et support 24/7.",
+            image: "https://i.ibb.co/LDB2brRC/Untitled-design-6.png"
+        };
+
+        const pathName = req.path;
+
+        // SSR Logic for Home Page
+        if (pathName === "/" || pathName === "/home") {
+            const data = await buildHomeData();
+            ssrHtml = generateServerHomeHTML(data.newestProducts, data.categories);
+        } 
+        // SSR Logic for Product Detail Page
+        else {
+            const parts = pathName.split('/').filter(p => p !== "");
+            if (parts.length === 2) {
+                const [catSlug, productSlug] = parts;
+                const product = await Product.findOne({ slug: productSlug }).lean();
+                
+                if (product) {
+                    const [related, settings] = await Promise.all([
+                        Product.find({ category: product.category, _id: { $ne: product._id } })
+                            .limit(8)
+                            .select('name price image category slug promoPrice')
+                            .lean(),
+                        GeneralSettings.findOne().lean()
+                    ]);
+                    
+                    ssrHtml = generateServerProductHTML(product, related, settings?.categories || []);
+                    metadata.title = `${product.name} - Satpromax`;
+                    metadata.description = product.description || `Achetez ${product.name} sur Satpromax Tunisie.`;
+                    metadata.image = product.image || metadata.image;
+                }
+            }
+        }
+
+        if (ssrHtml) {
+            // Use regex to find <div id="root"> regardless of spaces or content
+            let finalHtml = template.replace(/<div id="root">\s*<\/div>/, `<div id="root">${ssrHtml}</div>`);
+            
+            // Inject dynamic metadata
+            if (metadata.title) {
+                finalHtml = finalHtml.replace(/<title>.*?<\/title>/, `<title>${metadata.title}</title>`);
+                finalHtml = finalHtml.replace(/<meta property="og:title" content=".*?"/g, `<meta property="og:title" content="${metadata.title}"`);
+                finalHtml = finalHtml.replace(/<meta property="twitter:title" content=".*?"/g, `<meta property="twitter:title" content="${metadata.title}"`);
+            }
+            if (metadata.description) {
+                finalHtml = finalHtml.replace(/<meta name="description" content=".*?"/g, `<meta name="description" content="${metadata.description}"`);
+                finalHtml = finalHtml.replace(/<meta property="og:description" content=".*?"/g, `<meta property="og:description" content="${metadata.description}"`);
+                finalHtml = finalHtml.replace(/<meta property="twitter:description" content=".*?"/g, `<meta property="twitter:description" content="${metadata.description}"`);
+            }
+            if (metadata.image) {
+                finalHtml = finalHtml.replace(/<meta property="og:image" content=".*?"/g, `<meta property="og:image" content="${metadata.image}"`);
+                finalHtml = finalHtml.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${metadata.image}"`);
+            }
+
+            console.log(`[SSR] Rendered page: ${pathName}`);
+            return res.send(finalHtml);
+        }
+
+        res.sendFile(templatePath);
+    } catch (err) {
+        console.error("SSR Execution Error:", err);
+        res.sendFile(INDEX_HTML);
+    }
 });
 
 const prewarmCache = async () => {

@@ -8,6 +8,8 @@ import './CheckoutPage.css';
 import { countryCodes } from '../data/countryCodes';
 import { API_BASE_URL } from '../config';
 
+import SafeImage from '../components/SafeImage';
+
 export default function CheckoutPage() {
     const { cartItems, getCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
     const cartTotal = getCartTotal();
@@ -297,7 +299,7 @@ export default function CheckoutPage() {
                                     <div key={item.id} className="checkout-product-item">
                                         <div className="checkout-product-main">
                                             <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="checkout-product-link-wrapper">
-                                                <img src={item.image} alt={item.name} className="checkout-product-img" />
+                                                <SafeImage src={item.image} alt={item.name} className="checkout-product-img" />
                                                 <div className="checkout-product-info">
                                                     <div className="checkout-product-name-row">
                                                         <div className="checkout-product-name">{item.name}</div>
@@ -562,7 +564,7 @@ export default function CheckoutPage() {
                                             )}
                                             <div style={{ height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 {mode.logo ? (
-                                                    <img src={mode.logo} alt={mode.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                                    <SafeImage src={mode.logo} alt={mode.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                                 ) : (
                                                     <div style={{ fontSize: '32px' }}>💳</div>
                                                 )}

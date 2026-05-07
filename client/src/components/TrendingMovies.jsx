@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './TrendingMovies.css';
 
+import SafeImage from './SafeImage';
+
 const TrendingMovies = () => {
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -110,7 +112,7 @@ const TrendingMovies = () => {
                         >
                             <div className="movie-card-inner">
                                 <div className="vod-badge">VOD</div>
-                                <img 
+                                <SafeImage 
                                     src={movie.poster_path ? `${IMAGE_BASE}${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image'} 
                                     alt={movie.title} 
                                     className="movie-poster"
