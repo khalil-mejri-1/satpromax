@@ -896,6 +896,7 @@ const PromoManager = () => {
         promoDurationMinutes: 0
     });
     const [notification, setNotification] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
