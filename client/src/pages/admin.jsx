@@ -1667,7 +1667,7 @@ const ProductsManager = () => {
                                         <input type="text" name="image" className="form-input" value={formData.image} onChange={handleInputChange} placeholder="/uploads/..." />
                                         <label className="btn btn-secondary" style={{ padding: '0 15px', height: '48px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} title="Télécharger" >
                                             📁
-                                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'main')} />
+                                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'image')} />
                                         </label>
                                     </div>
                                     {formData.image && (

@@ -2030,7 +2030,7 @@ const generateServerHomeHTML = (products, categories) => {
 };
 
 // --- FINAL CATCH-ALL ROUTE (SSR & SPA MODE) ---
-app.get(/.*/, async (req, res) => {
+app.get(/.*/, async (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
         return next();
     }
