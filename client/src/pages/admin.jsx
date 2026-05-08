@@ -705,34 +705,28 @@ const Notification = ({ message, type, onClose }) => {
 
     return (
         <div className="notification-container">
-            <div className={`notification ${type}`} style={{
-                background: 'rgba(15, 23, 42, 0.9)',
-                backdropFilter: 'blur(12px)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                padding: '16px 24px'
-            }}
-            >
-                <div className="notification-icon" style={{
-                    background: type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                    color: type === 'success' ? '#10b981' : '#ef4444',
-                    width: '44px', height: '44px'
-                }} >
+            <div className={`notification ${type}`}>
+                <div className="notification-icon">
                     {type === 'success' ? (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                     )}
                 </div>
                 <div className="notification-content">
-                    <div className="notification-title" style={{ color: '#fff', fontSize: '15px' }} >{type === 'success' ? 'Succès' : 'Attention'}</div>
-                    <div className="notification-message" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }} >{message}</div>
+                    <div className="notification-title">{type === 'success' ? 'Succès' : 'Attention'}</div>
+                    <div className="notification-message">{message}</div>
                 </div>
-                <button className="modal-close" onClick={onClose} style={{ marginLeft: '10px' }} >&times;</button>
+                <button className="modal-close" onClick={onClose}>&times;</button>
+                <div className="notification-progress">
+                    <div className="notification-progress-bar"></div>
+                </div>
             </div>
         </div>
     );
 };
+
+
 
 // Modal Component
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -1668,14 +1662,25 @@ const ProductsManager = () => {
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Image Principale (URL)</label>
-                                <div style={{ display: 'flex', gap: '10px' }} >
-                                    <input type="text" name="image" className="form-input" value={formData.image} onChange={handleInputChange} placeholder="/uploads/..." />
-                                    <label className="btn btn-secondary" style={{ padding: '0 15px', height: '48px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} >
-                                        📁
-                                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'main')} />
-                                    </label>
+                                <div className="admin-image-preview-container">
+                                    <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+                                        <input type="text" name="image" className="form-input" value={formData.image} onChange={handleInputChange} placeholder="/uploads/..." />
+                                        <label className="btn btn-secondary" style={{ padding: '0 15px', height: '48px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} title="Télécharger" >
+                                            📁
+                                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFileUpload(e, 'main')} />
+                                        </label>
+                                    </div>
+                                    {formData.image && (
+                                        <div className="admin-image-preview-box" onClick={() => window.open(formData.image, '_blank')}>
+                                            <img src={formData.image} alt="Preview" />
+                                            <div className="admin-image-preview-overlay">
+                                                <span className="admin-image-preview-text">VOIR</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
@@ -5023,32 +5028,46 @@ const GuidesManager = ({ openGlobalSeo }) => {
                     </h3>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} >
-                        <div className="form-group" style={{ marginBottom: 0 }} >
-                            <label className="form-label" style={{ fontWeight: '700', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }} >Image Hero Desktop</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={pageSettings.guideHeroImage}
-                                onChange={(e) => setPageSettings({ ...pageSettings, guideHeroImage: e.target.value })}
-                                placeholder="URL de l'image"
-                                style={{ borderRadius: '10px', fontSize: '13px' }}
-                            />
-                            {pageSettings.guideHeroImage && (
-                                <img src={pageSettings.guideHeroImage} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px', border: '1px solid var(--border)' }} alt="Preview" />
-                            )}
+                        <div className="form-group">
+                            <label className="form-label">Image Hero Desktop</label>
+                            <div className="admin-image-preview-container">
+                                <input
+                                    className="form-input"
+                                    value={pageSettings.guideHeroImage}
+                                    onChange={(e) => setPageSettings({ ...pageSettings, guideHeroImage: e.target.value })}
+                                    placeholder="URL de l'image"
+                                />
+                                {pageSettings.guideHeroImage && (
+                                    <div className="admin-image-preview-box" onClick={() => window.open(pageSettings.guideHeroImage, '_blank')}>
+                                        <img src={pageSettings.guideHeroImage} alt="Preview" />
+                                        <div className="admin-image-preview-overlay">
+                                            <span className="admin-image-preview-text">VOIR</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="form-group" style={{ marginBottom: 0 }} >
-                            <label className="form-label" style={{ fontWeight: '700', fontSize: '12px', color: '#c1c3c5ffff', textTransform: 'uppercase', letterSpacing: '0.05em' }} >Fond de Page</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={pageSettings.guidePageBgImage}
-                                onChange={(e) => setPageSettings({ ...pageSettings, guidePageBgImage: e.target.value })}
-                                placeholder="URL du fond"
-                                style={{ borderRadius: '10px', fontSize: '13px' }}
-                            />
+                        <div className="form-group">
+                            <label className="form-label">Fond de Page</label>
+                            <div className="admin-image-preview-container">
+                                <input
+                                    className="form-input"
+                                    value={pageSettings.guidePageBgImage}
+                                    onChange={(e) => setPageSettings({ ...pageSettings, guidePageBgImage: e.target.value })}
+                                    placeholder="URL du fond"
+                                />
+                                {pageSettings.guidePageBgImage && (
+                                    <div className="admin-image-preview-box" onClick={() => window.open(pageSettings.guidePageBgImage, '_blank')}>
+                                        <img src={pageSettings.guidePageBgImage} alt="Preview" />
+                                        <div className="admin-image-preview-overlay">
+                                            <span className="admin-image-preview-text">VOIR</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
 
                         <button
                             className="btn btn-primary"
