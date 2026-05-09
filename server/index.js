@@ -1925,7 +1925,7 @@ const generateProductSchema = (product) => {
             "@type": "Offer",
             "url": `https://Satpromax.com/${slugify(product.category)}/${product.slug}`,
             "priceCurrency": "TND",
-            "price": product.promoPrice || product.price,
+            "price": parseFloat((product.promoPrice || product.price || "0").toString().replace(/[^\d.]/g, '')),
             "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             "itemCondition": "https://schema.org/NewCondition",
             "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
