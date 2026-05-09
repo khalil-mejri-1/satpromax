@@ -2129,6 +2129,7 @@ app.get(/.*/, async (req, res, next) => {
             const cachedHome = apiCache.get("home_full_data_v4");
             const data = cachedHome ? cachedHome.data : await buildHomeData();
             ssrHtml = generateServerHomeHTML(data.newestProducts, data.categories);
+            schemaScript = generateOrganizationSchema() + "\n" + generateWebSiteSchema();
         } 
         // SSR Logic for Product Detail Page (Using FAST Cache)
         else {
