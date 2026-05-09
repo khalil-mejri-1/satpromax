@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -255,6 +255,20 @@ export default function ProductsPage() {
     const [hasMore, setHasMore] = useState(true);
     const [totalProducts, setTotalProducts] = useState(0);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const observer = useRef();
+
+    const lastProductElementRef = useCallback(node => {
+        if (loading || isFetchingMore) return;
+        if (observer.current) observer.current.disconnect();
+        
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setCurrentPage(prev => prev + 1);
+            }
+        });
+        
+        if (node) observer.current.observe(node);
+    }, [loading, isFetchingMore, hasMore]);
 
 
     // Normalize categoryName for lookup
@@ -582,53 +596,40 @@ export default function ProductsPage() {
                         )}
                     </div>
 
-                    {/* Load More Button */}
-                    {!loading && hasMore && filteredProducts.length >= 15 && (
-                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
-                            <button 
-                                onClick={() => setCurrentPage(prev => prev + 1)}
-                                disabled={isFetchingMore}
-                                style={{
-                                    padding: '12px 30px',
-                                    backgroundColor: '#0ea5e9',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontWeight: 'bold',
-                                    cursor: isFetchingMore ? 'not-allowed' : 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px',
-                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                                    transition: 'transform 0.2s'
-                                }}
-                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                            >
-                                {isFetchingMore ? (
-                                    <>
-                                        <div className="loader-spinner" style={{
-                                            width: '20px',
-                                            height: '20px',
-                                            border: '3px solid #f3f3f3',
-                                            borderTop: '3px solid #3498db',
-                                            borderRadius: '50%',
-                                            animation: 'spin 1s linear infinite'
-                                        }}></div>
-                                        Chargement...
-                                    </>
-                                ) : (
-                                    'Charger plus de produits'
-                                )}
-                            </button>
-                            <style>{`
-                                @keyframes spin {
-                                    0% { transform: rotate(0deg); }
-                                    100% { transform: rotate(360deg); }
-                                }
-                            `}</style>
+                    {/* Infinite Scroll Sentinel / Loader */}
+                    {hasMore && (
+                        <div 
+                            ref={lastProductElementRef}
+                            style={{ 
+                                display: 'flex', 
+                                justifyContent: 'center', 
+                                marginTop: '40px', 
+                                padding: '20px',
+                                minHeight: '60px'
+                            }}
+                        >
+                            {(loading || isFetchingMore) && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div className="loader-spinner" style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        border: '3px solid #e2e8f0',
+                                        borderTop: '3px solid #0ea5e9',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite'
+                                    }}></div>
+                                    <span style={{ color: '#64748b', fontWeight: '600' }}>Chargement des produits...</span>
+                                </div>
+                            )}
                         </div>
                     )}
+
+                    <style>{`
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `}</style>
 
                     {/* Pagination */}
 

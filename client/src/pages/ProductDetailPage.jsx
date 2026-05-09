@@ -987,7 +987,7 @@ export default function ProductDetailPage() {
                                     <div className="option-row">
                                         <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Choisi mon appareil"}</h6>
                                         <select
-                                            className="option-select"
+                                            className="express-input-field"
                                             value={selectedDevice}
                                             onChange={(e) => setSelectedDevice(e.target.value)}
                                             required
@@ -1111,7 +1111,7 @@ export default function ProductDetailPage() {
                                         <h6 style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 'bold' }}>{"Numéro de série du récepteur *"}</h6>
                                         <input
                                             type="text"
-                                            className="option-select" // using same class for consistency
+                                            className="express-input-field" // using same class for consistency
                                             placeholder="S/N de votre récepteur"
                                             value={receiverSerial}
                                             onChange={(e) => setReceiverSerial(e.target.value)}
@@ -1129,7 +1129,7 @@ export default function ProductDetailPage() {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                             <input
                                                 type="text"
-                                                className="option-select"
+                                                className="express-input-field"
                                                 placeholder="Address MAC"
                                                 value={macAddress}
                                                 onChange={(e) => setMacAddress(e.target.value)}
@@ -1138,7 +1138,7 @@ export default function ProductDetailPage() {
                                             />
                                             <input
                                                 type="text"
-                                                className="option-select"
+                                                className="express-input-field"
                                                 placeholder="Device Key"
                                                 value={deviceKey}
                                                 onChange={(e) => setDeviceKey(e.target.value)}
@@ -1209,7 +1209,7 @@ export default function ProductDetailPage() {
                                 <div className="form-group">
                                     <input
                                         type="text"
-                                        className="form-input"
+                                        className="express-input-field"
                                         name="name"
                                         placeholder="Nom complet *"
                                         value={billingInfo.name}
@@ -1220,8 +1220,8 @@ export default function ProductDetailPage() {
                                 <div className="form-group">
                                     <div style={{ display: 'flex', gap: '10px' }}>
                                         <select
-                                            className="form-input"
-                                            style={{ width: '140px', paddingRight: '5px', textOverflow: 'ellipsis' }}
+                                            className="express-input-field"
+                                            style={{ width: '140px', textOverflow: 'ellipsis' }}
                                             value={selectedCountryCode}
                                             onChange={(e) => {
                                                 setSelectedCountryCode(e.target.value);
@@ -1236,7 +1236,7 @@ export default function ProductDetailPage() {
                                         </select>
                                         <input
                                             type="tel"
-                                            className="form-input"
+                                            className="express-input-field"
                                             name="localWhatsapp"
                                             placeholder="Numéro WhatsApp *"
                                             value={localWhatsapp}
@@ -1847,7 +1847,7 @@ export default function ProductDetailPage() {
                                         <h6 style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', margin: 0 }}>Votre Nom</h6>
                                         <input
                                             type="text"
-                                            className="form-input"
+                                            className="express-input-field"
                                             value={reviewForm.username}
                                             onChange={(e) => setReviewForm({ ...reviewForm, username: e.target.value })}
                                             required

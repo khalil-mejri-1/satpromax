@@ -718,6 +718,43 @@
     box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.1);
 }
 
+/* Express Order Form Inputs - Light Pill Design */
+.express-input-field {
+    width: 100%;
+    padding: 15px 25px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 50px; /* Modern Pill Shape */
+    background: #ffffff !important;
+    font-size: 15px;
+    color: #1e293b !important;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.express-input-field:focus {
+    border-color: #3b82f6;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+.express-input-field::placeholder {
+    color: #94a3b8;
+    opacity: 0.8;
+}
+
+select.express-input-field {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    background-size: 16px;
+    padding-right: 45px;
+    appearance: none;
+}
+
 .form-row {
     display: flex;
     gap: 15px;

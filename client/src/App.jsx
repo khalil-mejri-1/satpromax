@@ -68,6 +68,16 @@ const GlobalGuard = () => {
   return null;
 };
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 function App() {
 
 
@@ -76,6 +86,7 @@ function App() {
       <ShopContextProvider>
         <GlobalGuard />
         <BrowserRouter>
+          <ScrollToTop />
           <Schema schema={organizationSchema} />
           <NavigationSchema />
           <Routes>
