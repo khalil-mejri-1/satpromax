@@ -10,7 +10,6 @@ Disallow: /checkout
 
 
 # API and Technical
-Disallow: /api/
 Disallow: /cgi-bin/
 
 # Search results (prevent duplicate content)
