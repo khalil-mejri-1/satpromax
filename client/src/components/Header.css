@@ -107,21 +107,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.category-select {
-    color: #4b5563;
-    background: #ffffff;
-    transition: background-color 0.2s;
-    font-weight: 500;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    border-right: 1px solid #eee;
-    white-space: nowrap;
-    cursor: pointer;
-    position: relative;
-}
+
 
 .search-bar input {
     flex: 1;
@@ -1259,98 +1245,7 @@
     }
 }
 
-/* Category Dropdown Styles (New) */
-.category-dropdown-container {
-    position: absolute;
-    top: calc(100% + 16px);
-    left: 0;
-    width: 185px;
-    /* Adjusted from user's 185px to better fit dynamic names as seen in image */
-    background: white;
-    border-radius: 8px;
-    /* Slightly smoother */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    border: 1px solid #f1f5f9;
-    padding: 15px 0;
-    z-index: 10000;
-    animation: dropdownSlideIn 0.3s ease;
-    cursor: default;
-    overflow: hidden;
-}
 
-.category-dropdown-header {
-    padding: 0 20px 10px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #f1c901;
-    /* Yellow as in image */
-    text-transform: capitalize;
-}
-
-.category-dropdown-list {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 5px 0;
-}
-
-/* Custom Scrollbar */
-.category-dropdown-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.category-dropdown-list::-webkit-scrollbar-track {
-    background: #f8fafc;
-}
-
-.category-dropdown-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-}
-
-.category-dropdown-link {
-    display: block;
-    padding: 10px 20px;
-    font-size: 13.5px;
-    color: #475569;
-    text-decoration: none;
-    transition: all 0.2s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 500;
-}
-
-.category-dropdown-link:hover {
-    background: #f1f5f9;
-    color: black;
-    font-weight: 800;
-    padding-left: 25px;
-    /* Subtle slide effect */
-}
-
-@keyframes dropdownSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (max-width: 591px) {
-    .category-dropdown-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 85%;
-        max-height: 80vh;
-        animation: none;
-    }
-}
 
 /* Search Dropdown Styles */
 .search-input-wrapper {

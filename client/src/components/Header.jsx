@@ -126,7 +126,6 @@ export default function Header() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
     const [user, setUser] = useState(null);
-    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState({ categories: [], products: [] });
@@ -259,36 +258,7 @@ export default function Header() {
                     </div>
 
                     <div className="search-bar">
-                        <div className="category-select" onClick={() => setIsCategoryModalOpen(!isCategoryModalOpen)}>
-                            Toutes les catégories
-                            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isCategoryModalOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}>
-                                <path d="M1 1L5 5L9 1" stroke="#666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
 
-                            {/* Category Dropdown */}
-                            {isCategoryModalOpen && (
-                                <div className="category-dropdown-container">
-                                    <div className="category-dropdown-header">
-                                        Toutes les catégories
-                                    </div>
-                                    <div className="category-dropdown-list">
-                                        {categories.map((cat, index) => {
-                                            const name = typeof cat === 'object' ? cat.name : cat;
-                                            return (
-                                                <Link
-                                                    key={index}
-                                                    to={`/${getCategorySlug(name)}`}
-                                                    className="category-dropdown-link"
-                                                    onClick={() => setIsCategoryModalOpen(false)}
-                                                >
-                                                    {name}
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                         <div className="search-input-wrapper">
                             <input
                                 type="text"

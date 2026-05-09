@@ -655,6 +655,30 @@ export default function ProductDetailPage() {
         { name: product.name, url: window.location.href }
     ];
 
+    const organizationSchema = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Satpromax",
+        "url": SITE_URL,
+        "logo": `${SITE_URL}/logo.png`,
+        "sameAs": [
+            "https://www.facebook.com/Satpromax",
+            "https://www.instagram.com/Satpromax"
+        ]
+    };
+
+    const websiteSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Satpromax",
+        "url": SITE_URL,
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": `${SITE_URL}/search?q={search_term_string}`,
+            "query-input": "required name=search_term_string"
+        }
+    };
+
     return (
         <div className="page-wrapper">
             <SEO
@@ -665,7 +689,9 @@ export default function ProductDetailPage() {
                 type="product"
                 schemas={[
                     generateProductSchema(product),
-                    generateBreadcrumbSchema(breadcrumbs)
+                    generateBreadcrumbSchema(breadcrumbs),
+                    organizationSchema,
+                    websiteSchema
                 ]}
             />
             <Header />
