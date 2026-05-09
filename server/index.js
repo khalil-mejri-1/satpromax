@@ -1878,6 +1878,31 @@ const generateServerHeader = (categories) => {
     `;
 };
 
+const generateHomeProductsSchema = (products) => {
+    if (!products || products.length === 0) return "";
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "itemListElement": products.map((product, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+                "@type": "Product",
+                "name": product.name,
+                "image": product.image,
+                "url": `https://Satpromax.com/${slugify(product.category)}/${product.slug}`,
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "TND",
+                    "price": parseFloat((product.promoPrice || product.price || "0").toString().replace(/[^\d.]/g, '')),
+                    "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+                }
+            }
+        }))
+    };
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+};
+
 const generateOrganizationSchema = () => {
     const schema = {
         "@context": "https://schema.org",
@@ -2129,7 +2154,7 @@ app.get(/.*/, async (req, res, next) => {
             const cachedHome = apiCache.get("home_full_data_v4");
             const data = cachedHome ? cachedHome.data : await buildHomeData();
             ssrHtml = generateServerHomeHTML(data.newestProducts, data.categories);
-            schemaScript = generateOrganizationSchema() + "\n" + generateWebSiteSchema();
+            schemaScript = generateOrganizationSchema() + "\n" + generateWebSiteSchema() + "\n" + generateHomeProductsSchema(data.newestProducts);
         } 
         // SSR Logic for Product Detail Page (Using FAST Cache)
         else {
