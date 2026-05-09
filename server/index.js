@@ -1878,6 +1878,36 @@ const generateServerHeader = (categories) => {
     `;
 };
 
+const generateOrganizationSchema = () => {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Satpromax",
+        "url": "https://Satpromax.com",
+        "logo": "https://Satpromax.com/logo.png",
+        "sameAs": [
+            "https://www.facebook.com/Satpromax",
+            "https://www.instagram.com/Satpromax"
+        ]
+    };
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+};
+
+const generateWebSiteSchema = () => {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Satpromax",
+        "url": "https://Satpromax.com",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://Satpromax.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    };
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+};
+
 const generateProductSchema = (product) => {
     if (!product) return "";
     const schema = {
@@ -2086,7 +2116,7 @@ app.get(/.*/, async (req, res, next) => {
                 if (product) {
                     const settings = getSafeSettings();
                     ssrHtml = generateServerProductHTML(product, related || [], settings?.categories || []);
-                    schemaScript = generateProductSchema(product);
+                    schemaScript = generateProductSchema(product) + "\n" + generateOrganizationSchema() + "\n" + generateWebSiteSchema();
                     metadata.title = `${product.name} - Satpromax`;
                     metadata.description = product.description || `Achetez ${product.name} sur Satpromax Tunisie.`;
                     metadata.image = product.image || metadata.image;
