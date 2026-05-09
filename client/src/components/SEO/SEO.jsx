@@ -55,16 +55,22 @@ const SEO = ({
             <meta name="twitter:description" content={description || defaultDescription} />
             <meta name="twitter:image" content={fullImage} />
 
-            {/* JSON-LD Schemas */}
-            {schemas.map((schema, index) => (
-                schema && (
-                    <script
-                        key={index}
-                        type="application/ld+json"
-                        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-                    />
-                )
-            ))}
+            {/* JSON-LD Schemas - Combined into @graph for better parsing */}
+            {schemas.length > 0 && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@graph": schemas.filter(s => !!s).map(s => {
+                                // Remove individual @context to avoid redundancy in @graph
+                                const { "@context": _, ...rest } = s;
+                                return rest;
+                            })
+                        })
+                    }}
+                />
+            )}
         </>
     );
 };
