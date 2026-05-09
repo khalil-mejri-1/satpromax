@@ -2082,7 +2082,8 @@ app.get(/.*/, async (req, res, next) => {
         let metadata = {
             title: "Satpromax - Meilleur Abonnement IPTV & Streaming Tunisie",
             description: "Découvrez les meilleurs abonnements Streaming, IPTV et Gaming chez Satpromax. Qualité premium et support 24/7.",
-            image: "https://i.ibb.co/LDB2brRC/Untitled-design-6.png"
+            image: "https://i.ibb.co/LDB2brRC/Untitled-design-6.png",
+            url: "https://Satpromax.com"
         };
 
         const pathName = req.path;
@@ -2120,6 +2121,7 @@ app.get(/.*/, async (req, res, next) => {
                     metadata.title = `${product.name} - Satpromax`;
                     metadata.description = product.description || `Achetez ${product.name} sur Satpromax Tunisie.`;
                     metadata.image = product.image || metadata.image;
+                    metadata.url = `https://Satpromax.com/${catSlug}/${productSlug}`;
                 }
             }
         }
@@ -2149,6 +2151,10 @@ app.get(/.*/, async (req, res, next) => {
             if (metadata.image) {
                 finalHtml = finalHtml.replace(/<meta property="og:image" content=".*?"/g, `<meta property="og:image" content="${metadata.image}"`);
                 finalHtml = finalHtml.replace(/<meta property="twitter:image" content=".*?"/g, `<meta property="twitter:image" content="${metadata.image}"`);
+            }
+            if (metadata.url) {
+                finalHtml = finalHtml.replace(/<link rel="canonical" href=".*?"/g, `<link rel="canonical" href="${metadata.url}"`);
+                finalHtml = finalHtml.replace(/<meta property="og:url" content=".*?"/g, `<meta property="og:url" content="${metadata.url}"`);
             }
 
             return res.send(finalHtml);
