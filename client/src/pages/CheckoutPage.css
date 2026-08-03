@@ -208,24 +208,28 @@
 }
 
 .remove-item-btn {
-    background: none;
+    background: #f1f5f9;
     border: none;
-    color: #ef4444;
-    font-size: 24px;
-    font-weight: bold;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
     cursor: pointer;
     margin-left: 10px;
-    padding: 0 5px;
-    line-height: 1;
-    transition: transform 0.2s;
-    display: flex;
+    padding: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .remove-item-btn:hover {
-    transform: scale(1.2);
-    color: #b91c1c;
+    color: #ffffff;
+    background: #ef4444;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
 }
 
 /* Totals Section */

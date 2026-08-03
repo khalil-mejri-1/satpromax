@@ -51,7 +51,7 @@ const SimilarProductCard = React.memo(({ item, addToCart, setModal }) => {
                 e.currentTarget.style.borderColor = '#f1f5f9';
             }}
         >
-            {item.promoPrice && new Date(item.promoEndDate) > new Date() && (
+            {item.promoPrice && item.promoPrice.trim() !== '' && (!item.promoEndDate || new Date(item.promoEndDate) > new Date()) && (
                 <div className="card-badge-similar promo">
                     <SafeImage src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" />
                 </div>
@@ -490,7 +490,7 @@ export default function ProductDetailPage() {
         }
 
         // Calculate total
-        const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+        const isPromoActive = product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
         const displayPrice = isPromoActive ? product.promoPrice : product.price;
         const rawPrice = displayPrice ? String(displayPrice) : '0';
         const productPrice = parseInt(rawPrice.replace(/[^0-9]/g, '')) || 0;
@@ -733,7 +733,7 @@ export default function ProductDetailPage() {
                             <div className="detail-image-wrapper">
                                 {/* Zoom Icon */}
                                 <div className="zoom-icon" onClick={() => setIsZoomOpen(true)}>⛶</div>
-                                {product.promoPrice && new Date(product.promoEndDate) > new Date() && (
+                                {product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date()) && (
                                     <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '100px', height: '100px', zIndex: 5, pointerEvents: 'none' }}>
                                         <SafeImage src="https://i.ibb.co/4x2XwJy/pngtree-special-promo-banner-shape-vector-png-image-7113277.png" alt="Promo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     </div>
@@ -815,7 +815,7 @@ export default function ProductDetailPage() {
                                 <a href="https://www.trustpilot.com/review/Satpromax.com" target="_blank" rel="noopener noreferrer"><h6 style={{ margin: 0, fontSize: 'inherit', color: 'inherit', fontWeight: 'inherit' }}>Trustpilot</h6></a>
                             </div>
 
-                            {product.promoPrice && new Date(product.promoEndDate) > new Date() ? (
+                            {product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date()) ? (
                                 <div className="detail-price">
                                     <h6 style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '24px', marginRight: '15px', fontWeight: '600', display: 'inline', margin: 0 }}>
                                         {product.price}
@@ -1216,7 +1216,7 @@ export default function ProductDetailPage() {
                                         }
                                         addToCart({
                                             ...productWithId,
-                                            price: (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price,
+                                            price: (product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date())) ? product.promoPrice : product.price,
                                             selectedDevice: isIPTVCategory ? selectedDevice : null,
                                             receiverSerial: isSharingCategory ? receiverSerial : null,
                                             macAddress: isPlayerActivationCategory ? macAddress : null,
@@ -1342,7 +1342,7 @@ export default function ProductDetailPage() {
                                 <div className="order-summary">
                                     <div className="summary-row">
                                         <h4>Prix des produits</h4>
-                                        <h4>{(product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price}</h4>
+                                        <h4>{(product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date())) ? product.promoPrice : product.price}</h4>
                                     </div>
                                     {product.hasDelivery && product.deliveryPrice && (
                                         <div className="summary-row">
@@ -1355,7 +1355,7 @@ export default function ProductDetailPage() {
                                         <h5 style={{ margin: 0 }}>
                                             {
                                                 (() => {
-                                                    const priceToUse = (product.promoPrice && new Date(product.promoEndDate) > new Date()) ? product.promoPrice : product.price;
+                                                    const priceToUse = (product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date())) ? product.promoPrice : product.price;
                                                     const total = (parseInt(String(priceToUse).replace(/[^0-9]/g, '')) * quantity) +
                                                         ((product.hasDelivery && product.deliveryPrice)
                                                             ? (parseInt(String(product.deliveryPrice).replace(/[^0-9]/g, '')) || 0)

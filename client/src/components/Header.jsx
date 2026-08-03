@@ -114,6 +114,7 @@ export default function Header() {
         wishlistItems,
         getCartCount,
         getCartTotal,
+        getOriginalCartTotal,
         removeFromCart,
         removeFromWishlist,
         getWishlistCount,
@@ -231,6 +232,7 @@ export default function Header() {
     const cartCount = getCartCount();
     const wishlistCount = getWishlistCount();
     const cartTotal = getCartTotal();
+    const originalCartTotal = getOriginalCartTotal && getOriginalCartTotal();
 
     return (
         <header className="header">
@@ -472,11 +474,16 @@ export default function Header() {
                                                     <div className="item-name">{item.name}</div>
                                                     <div className="item-price">{item.price}</div>
                                                 </div>
-                                                <button className="remove-btn" onClick={(e) => {
+                                                <button className="remove-btn" title="Supprimer de la liste" onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation(); // Prevent modal opening if removing
                                                     removeFromWishlist(item.id);
-                                                }}>×</button>
+                                                }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                </button>
                                             </div>
                                         ))
                                     )}
@@ -570,12 +577,30 @@ export default function Header() {
                                                 <img src={item.image} alt={item.name} />
                                                 <div className="item-info">
                                                     <Link to={`/${slugify(item.category || 'all')}/${item.slug || slugify(item.name)}`} className="item-name">{item.name}</Link>
-                                                    <div className="item-meta">{item.quantity} × <span className="price-bold">{item.price}</span></div>
+                                                    <div className="item-meta">
+                                                        {item.quantity} × {item.originalPrice && item.originalPrice !== item.price ? (
+                                                            <>
+                                                                <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px' }}>
+                                                                    {item.originalPrice}
+                                                                </span>
+                                                                <span className="price-bold" style={{ color: '#ef4444' }}>
+                                                                    {item.price}
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <span className="price-bold">{item.price}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <button className="remove-btn" onClick={(e) => {
+                                                <button className="remove-btn" title="Supprimer du panier" onClick={(e) => {
                                                     e.preventDefault();
                                                     removeFromCart(item.id);
-                                                }}>×</button>
+                                                }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                </button>
                                             </div>
                                         ))
                                     )}
@@ -584,7 +609,18 @@ export default function Header() {
                                     <div className="dropdown-footer">
                                         <div className="subtotal-row">
                                             <span>Sous-total :</span>
-                                            <span className="subtotal-amount">{cartTotal} DT</span>
+                                            <span className="subtotal-amount">
+                                                {originalCartTotal && originalCartTotal > cartTotal ? (
+                                                    <>
+                                                        <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '8px', fontWeight: 'normal' }}>
+                                                            {originalCartTotal} DT
+                                                        </span>
+                                                        <span>{cartTotal} DT</span>
+                                                    </>
+                                                ) : (
+                                                    `${cartTotal} DT`
+                                                )}
+                                            </span>
                                         </div>
                                         <Link to="/checkout" className="btn-view-cart">VOIR LE PANIER</Link>
                                         <Link to="/checkout" className="btn-checkout-mini">COMMANDER</Link>

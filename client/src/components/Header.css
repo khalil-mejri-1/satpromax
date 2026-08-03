@@ -669,20 +669,28 @@
 }
 
 .remove-btn {
-    background: none;
+    background: #f1f5f9;
     border: none;
-    color: #94a3b8;
-    font-size: 20px;
-    cursor: pointer;
-    line-height: 1;
-    padding: 5px;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
     border-radius: 50%;
-    transition: color 0.2s, background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .remove-btn:hover {
-    color: #ef4444;
-    background: #fee2e2;
+    color: #ffffff;
+    background: #ef4444;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
 }
 
 .empty-msg {

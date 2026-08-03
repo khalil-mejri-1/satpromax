@@ -11,8 +11,9 @@ import { API_BASE_URL } from '../config';
 import SafeImage from '../components/SafeImage';
 
 export default function CheckoutPage() {
-    const { cartItems, getCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
+    const { cartItems, getCartTotal, getOriginalCartTotal, removeFromCart, updateCartItemDevice, clearCart } = useContext(ShopContext);
     const cartTotal = getCartTotal();
+    const originalCartTotal = getOriginalCartTotal && getOriginalCartTotal();
     const hasShipping = cartItems.some(item => item.hasDelivery);
     const shippingCost = hasShipping ? 7 : 0;
     const finalTotal = cartTotal + shippingCost;
@@ -308,11 +309,25 @@ export default function CheckoutPage() {
                                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFromCart(item.id); }}
                                                             title="Supprimer du panier"
                                                         >
-                                                            ×
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                            </svg>
                                                         </button>
                                                     </div>
                                                     <div className="checkout-product-meta">Qté: {item.quantity}</div>
-                                                    <div className="checkout-product-price-mobile mobile-only">{item.price}</div>
+                                                     <div className="checkout-product-price-mobile mobile-only">
+                                                        {item.originalPrice && item.originalPrice !== item.price ? (
+                                                            <>
+                                                                <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px' }}>
+                                                                    {item.originalPrice}
+                                                                </span>
+                                                                <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{item.price}</span>
+                                                            </>
+                                                        ) : (
+                                                            item.price
+                                                        )}
+                                                     </div>
                                                 </div>
                                             </Link>
 
@@ -376,13 +391,27 @@ export default function CheckoutPage() {
                                             )}
                                         </div>
                                         <div className="checkout-product-total desktop-only">
-                                            <div className="price-tag">{item.price}</div>
+                                             <div className="price-tag">
+                                                {item.originalPrice && item.originalPrice !== item.price ? (
+                                                    <>
+                                                        <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '6px', fontWeight: 'normal' }}>
+                                                            {item.originalPrice}
+                                                        </span>
+                                                        <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{item.price}</span>
+                                                    </>
+                                                ) : (
+                                                    item.price
+                                                )}
+                                             </div>
                                             <button
                                                 className="remove-item-btn"
                                                 onClick={() => removeFromCart(item.id)}
                                                 title="Supprimer du panier"
                                             >
-                                                ×
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
                                             </button>
                                         </div>
                                     </div>
@@ -393,7 +422,18 @@ export default function CheckoutPage() {
                         <div className="order-totals">
                             <div className="total-row">
                                 <span>Sous-total</span>
-                                <span>{cartTotal} DT</span>
+                                <span>
+                                    {originalCartTotal && originalCartTotal > cartTotal ? (
+                                        <>
+                                            <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.85em', marginRight: '8px', fontWeight: 'normal' }}>
+                                                {originalCartTotal} DT
+                                            </span>
+                                            <span>{cartTotal} DT</span>
+                                        </>
+                                    ) : (
+                                        `${cartTotal} DT`
+                                    )}
+                                </span>
                             </div>
                             {hasShipping && (
                                 <div className="total-row">

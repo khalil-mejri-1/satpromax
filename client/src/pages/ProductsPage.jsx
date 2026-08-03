@@ -57,7 +57,21 @@ const CATEGORIES_META = {
     promotions: {
         title: '🔥 Offres Spéciales',
         description: "Profitez de nos meilleures réductions et offres limitées !",
+    },
+    'offres-speciales': {
+        title: '🔥 Offres Spéciales',
+        description: "Profitez de nos meilleures réductions et offres limitées !",
+    },
+    'offres-speciale': {
+        title: '🔥 Offres Spéciales',
+        description: "Profitez de nos meilleures réductions et offres limitées !",
     }
+};
+
+const isPromoCategory = (cat) => {
+    if (!cat) return false;
+    const norm = cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").trim();
+    return norm === 'promotions' || norm === 'offres-speciales' || norm === 'offres-speciale' || norm === 'promo';
 };
 
 const CATEGORY_DB_MAP = {
@@ -83,7 +97,9 @@ const CATEGORY_DB_MAP = {
     'cartes-cadeaux': 'Cartes Cadeaux',
     'software': 'Logiciels',
     'logiciels': 'Logiciels',
-    'promotions': 'Promotions' // Virtual
+    'promotions': 'Promotions', // Virtual
+    'offres-speciales': 'Promotions',
+    'offres-speciale': 'Promotions'
 };
 
 const SkeletonCard = () => {
@@ -121,7 +137,7 @@ const ProductCard = ({ product, addToCart, addToWishlist }) => {
         setTimeout(() => setIsWishlisted(false), 2000);
     }
 
-    const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+    const isPromoActive = product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
 
     return (
         <Link to={`/${slugify(product.category)}/${product.slug || slugify(product.name)}`} className="category-product-card" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -315,10 +331,11 @@ export default function ProductsPage() {
                 const startTime = performance.now();
                 const dbCategory = CATEGORY_DB_MAP[normalizedCategory];
 
-                let url = `${API_BASE_URL}/api/products?limit=15&page=${pageToFetch}&sort=newest`;
-                if (dbCategory && normalizedCategory !== 'promotions') {
+                const isPromo = isPromoCategory(normalizedCategory);
+                let url = `${API_BASE_URL}/api/products?limit=${isPromo ? 1000 : 15}&page=${pageToFetch}&sort=newest`;
+                if (dbCategory && !isPromo) {
                     url += `&category=${encodeURIComponent(dbCategory)}`;
-                } else if (categoryName && normalizedCategory !== 'promotions') {
+                } else if (categoryName && !isPromo) {
                     url += `&category=${encodeURIComponent(categoryName.replace(/-/g, ' '))}`;
                 }
 
@@ -329,7 +346,7 @@ export default function ProductsPage() {
                 const result = await response.json();
                 let fetchedProducts = result.data || [];
 
-                if (normalizedCategory === 'promotions') {
+                if (isPromo) {
                     fetchedProducts = fetchedProducts.filter(p =>
                         p.promoPrice &&
                         p.promoPrice.trim() !== '' &&

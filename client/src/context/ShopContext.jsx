@@ -116,14 +116,27 @@ export const ShopContextProvider = ({ children }) => {
     const addToCart = (product, quantity = 1) => {
         // Ensure we have a valid ID. Support MongoDB _id, sku, or fallback to name for mocks
         const productId = product.id || product._id || product.sku || product.name;
-        const productToAdd = { ...product, id: productId };
+        
+        const isPromoActive = product.promoPrice && 
+                        typeof product.promoPrice === 'string' && 
+                        product.promoPrice.trim() !== '' && 
+                        (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
+
+        const effectivePrice = isPromoActive ? product.promoPrice : (product.price || '0');
+
+        const productToAdd = { 
+            ...product, 
+            id: productId,
+            price: effectivePrice,
+            originalPrice: product.price
+        };
 
         setCartItems((prev) => {
             const existingItem = prev.find((item) => item.id === productId);
             if (existingItem) {
                 return prev.map((item) =>
                     item.id === productId
-                        ? { ...item, quantity: item.quantity + quantity }
+                        ? { ...item, quantity: item.quantity + quantity, price: effectivePrice }
                         : item
                 );
             }
@@ -181,13 +194,24 @@ export const ShopContextProvider = ({ children }) => {
 
     const getCartTotal = () => {
         return cartItems.reduce((total, item) => {
-            // Assuming price is a string like "100 DT" or number. We need to parse it.
-            // Adjusting parsing logic based on potential data formats.
             let price = 0;
             if (typeof item.price === 'string') {
-                price = parseFloat(item.price.replace(/[^0-9.]/g, ''));
+                price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
             } else {
-                price = item.price;
+                price = item.price || 0;
+            }
+            return total + price * item.quantity;
+        }, 0);
+    };
+
+    const getOriginalCartTotal = () => {
+        return cartItems.reduce((total, item) => {
+            const origVal = item.originalPrice || item.price;
+            let price = 0;
+            if (typeof origVal === 'string') {
+                price = parseFloat(origVal.replace(/[^0-9.]/g, '')) || 0;
+            } else {
+                price = origVal || 0;
             }
             return total + price * item.quantity;
         }, 0);
@@ -230,6 +254,7 @@ export const ShopContextProvider = ({ children }) => {
         addAllToCart,
         removeFromWishlist,
         getCartTotal,
+        getOriginalCartTotal,
         getCartCount,
         getWishlistCount,
         clearCart,

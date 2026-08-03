@@ -106,7 +106,7 @@ export default function ProductSection({ title, products = [], loading = false, 
                         products.map((product, index) => {
                             const productId = product.id || product._id || product.sku || product.name;
                             const isAdded = addedIds.has(productId);
-                            const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+                            const isPromoActive = product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
                             const categorySlug = slugify(product.category || 'all');
                             const productSlug = product.slug || slugify(product.name);
 

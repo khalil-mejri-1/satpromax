@@ -948,15 +948,22 @@ const PromoManager = () => {
         e.preventDefault();
         setSubmitting(true);
 
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + parseInt(promoData.promoDurationDays || 0));
-        endDate.setHours(endDate.getHours() + parseInt(promoData.promoDurationHours || 0));
-        endDate.setMinutes(endDate.getMinutes() + parseInt(promoData.promoDurationMinutes || 0));
+        const days = parseInt(promoData.promoDurationDays || 0);
+        const hours = parseInt(promoData.promoDurationHours || 0);
+        const minutes = parseInt(promoData.promoDurationMinutes || 0);
+
+        let endDate = null;
+        if (days > 0 || hours > 0 || minutes > 0) {
+            const startDate = new Date();
+            endDate = new Date();
+            endDate.setDate(endDate.getDate() + days);
+            endDate.setHours(endDate.getHours() + hours);
+            endDate.setMinutes(endDate.getMinutes() + minutes);
+        }
 
         const updateData = {
             promoPrice: promoData.promoPrice,
-            promoStartDate: startDate,
+            promoStartDate: promoData.promoPrice ? new Date() : null,
             promoEndDate: endDate
         };
 
@@ -985,7 +992,7 @@ const PromoManager = () => {
     // Filter and Group items
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+        const isPromoActive = product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
 
         if (showOnlyPromos) {
             return matchesSearch && isPromoActive;
@@ -1041,7 +1048,7 @@ const PromoManager = () => {
                     <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px', marginBottom: '15px', color: 'var(--text-main)', fontSize: '18px', fontWeight: '800' }} >{category}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }} >
                         {groupedProducts[category].map(product => {
-                            const isPromoActive = product.promoPrice && new Date(product.promoEndDate) > new Date();
+                            const isPromoActive = product.promoPrice && product.promoPrice.trim() !== '' && (!product.promoEndDate || new Date(product.promoEndDate) > new Date());
                             return (
                                 <div
                                     key={product._id}
